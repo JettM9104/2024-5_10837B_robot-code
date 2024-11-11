@@ -94,7 +94,7 @@ void driveDiagonal(double direction, double distance, double speed) {
     double target_y = current_y + distance * sin(direction);
 
     double traveled_distance = 0;
-    double target_distance = rotation * (M_PI * 10);
+    double target_distance = rotation * (pi * 10);
     double start_time = Brain.Timer.system();
 
     ApositiveU.spin(forward, x_speed, percent);
@@ -110,7 +110,7 @@ void driveDiagonal(double direction, double distance, double speed) {
         double current_y = start_y + traveled_distance * sin(current_direction);
 
         double current_heading = BrainInertial.heading(degrees);
-        double desired_heading = direction * (180.0 / M_PI);
+        double desired_heading = direction * (180.0 / pi);
 
         double heading_error = desired_heading - current_heading;
 
