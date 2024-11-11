@@ -127,4 +127,53 @@ void driveDiagonal(double direction, double distance, double speed) {
     bNegativeL.stop();
 }
 
+void turn(int target, double kp, double ki) {
 
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 1;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
+  error = target-(BrainInertial.rotation(degrees));
+
+  BrainInertial.setRotation(0,degrees);
+  dtL.resetPosition();
+  dtR.resetPosition();
+
+  while (true) {
+    double current = BrainInertial.rotation();
+    printf("\033[31m");
+    printf("Inertial %f\n", BrainInertial.rotation(degrees));
+    printf("Error %f\n", error);
+    printf("\033[32m");
+    error = target - current;
+
+    if (fabs(error) < threshold) {
+      dtL.stop();
+      dtR.stop();
+      break; //:D
+    }
+  
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
+
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
+
+    double motorSpeed = (kp * error) + (ki * integral);
+
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
+
+    dtL.spin(forward, motorSpeed, percent);
+    dtR.spin(reverse, motorSpeed, percent);
+
+
+
+    wait(200,msec);
+  }
+
+}
