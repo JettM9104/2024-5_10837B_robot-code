@@ -114,7 +114,7 @@ int main() {
       robot::drivetrain::u = robot::controller::a + robot::controller::b + robot::controller::c;
       robot::drivetrain::r = robot::controller::a - robot::controller::b - robot::controller::c;
       robot::drivetrain::d = robot::controller::a - robot::controller::b + robot::controller::c;
-      robot::drivetrain::l = robot::controllre::a + robot::controller::b - robot::controller::c;
+      robot::drivetrain::l = robot::controller::a + robot::controller::b - robot::controller::c;
     }
     else {
       ApositiveU.stop();
