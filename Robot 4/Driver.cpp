@@ -89,6 +89,11 @@ namespace robot {
     double d;
     double l;
     double k = 1;
+
+    namespace angle {
+      double rotation;
+      double heading;
+    }
   }
   namespace bypass {
     bool a = false; //bypass for driving
