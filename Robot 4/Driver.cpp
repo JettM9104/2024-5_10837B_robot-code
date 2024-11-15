@@ -89,14 +89,9 @@ namespace robot {
     double d;
     double l;
     double k = 1;
-
-    namespace angle {
-      double rotation;
-      double heading;
-    }
   }
   namespace bypass {
-    bool a = false; //bypass for driving
+    bool driving = false; //bypass for driving
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -105,6 +100,10 @@ namespace robot {
     double kp = 1;
     double ki = 1;
     double kd = 1;
+  }
+  namespace angle {
+    double rotation;
+    double heading;
   }
   }
 } 
@@ -123,7 +122,7 @@ int main() {
     robot::controller::c = Controller.AxisC;
     robot::controller::d = Controller.AxisD;
 
-    if (!robot::bypass::a) {
+    if (!robot::bypass::driving) {
       robot::drivetrain::u = robot::controller::a + robot::controller::b + robot::controller::c;
       robot::drivetrain::r = robot::controller::a - robot::controller::b - robot::controller::c;
       robot::drivetrain::d = robot::controller::a - robot::controller::b + robot::controller::c;
