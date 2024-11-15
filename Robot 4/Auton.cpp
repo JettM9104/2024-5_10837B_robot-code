@@ -78,16 +78,102 @@ bool RemoteControlCodeEnabled = true;
 // Allows for easier use of the VEX Library
 using namespace vex;
 
+void driveDiagonal(double direction, double distance, double speed);
+const double pi = 3.1415926;
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+}
+
+void driveDiagonal(double direction, double distance, double speed) {
+    double rotation = distance / (pi * 10);
+    double x_speed = speed * cos(direction);
+    double y_speed = speed * sin(direction);
+
+    double target_x = current_x + distance * cos(direction);
+    double target_y = current_y + distance * sin(direction);
+
+    double traveled_distance = 0;
+    double target_distance = rotation * (pi * 10);
+    double start_time = Brain.Timer.system();
+
+    ApositiveU.spin(forward, x_speed, percent);
+    BpositiveR.spin(forward, y_speed, percent);
+    AnegativeD.spin(reverse, y_speed, percent);
+    bNegativeL.spin(reverse, x_speed, percent);
+
+    while (traveled_distance < target_distance) {
+        double current_time = Brain.Timer.system();
+        traveled_distance = speed * (current_time - start_time);
+
+        double current_x = start_x + traveled_distance * cos(current_direction);
+        double current_y = start_y + traveled_distance * sin(current_direction);
+
+        double current_heading = BrainInertial.heading(degrees);
+        double desired_heading = direction * (180.0 / pi);
+
+        double heading_error = desired_heading - current_heading;
+
+        double correction_factor = 1.0 + (heading_error * 0.1);
+        ApositiveU.spin(forward, x_speed * correction_factor, percent);
+        BpositiveR.spin(forward, y_speed * correction_factor, percent);
+        AnegativeD.spin(reverse, y_speed * correction_factor, percent);
+        bNegativeL.spin(reverse, x_speed * correction_factor, percent);
+    }
+
+    ApositiveU.stop();
+    BpositiveR.stop();
+    AnegativeD.stop();
+    bNegativeL.stop();
+}
+
+void turn(int target, double kp, double ki) {
+
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 1;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
+  error = target-(BrainInertial.rotation(degrees));
+
+  BrainInertial.setRotation(0,degrees);
+  dtL.resetPosition();
+  dtR.resetPosition();
+
   while (true) {
-    Brain.Screen.clearScreen();
-    Brain.Screen.setCursor(1,1);
-    Brain.Screen.print("A: %d\n", Controller.AxisA.position());
-    Brain.Screen.newLine();
-    Brain.Screen.print("B: %d\n", Controller.AxisB.position());
-    wait(100, msec);
+    double current = BrainInertial.rotation();
+    printf("\033[31m");
+    printf("Inertial %f\n", BrainInertial.rotation(degrees));
+    printf("Error %f\n", error);
+    printf("\033[32m");
+    error = target - current;
+
+    if (fabs(error) < threshold) {
+      dtL.stop();
+      dtR.stop();
+      break; //:D
+    }
   
-  }  
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
+
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
+
+    double motorSpeed = (kp * error) + (ki * integral);
+
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
+
+    dtL.spin(forward, motorSpeed, percent);
+    dtR.spin(reverse, motorSpeed, percent);
+
+
+
+    wait(200,msec);
+  }
+
 }
