@@ -29,9 +29,9 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller = controller();
-motor ApositiveU = motor(PORT1, false);
+motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
-motor AnegativeD = motor(PORT7, false);
+motor AnegativeD = motor(PORT7, true);
 motor bNegativeL = motor(PORT12, false);
 
 
@@ -77,11 +77,53 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
+namespace robot {
+  namespace controller {
+    int a; //forwards backwards
+    int b; //left right
+    int c; //turning
+    int d;
+  namespace drivetrain {
+    double u;
+    double r;
+    double d;
+    double l;
+    double k = 1;
+  }
+  namespace bypass {
+    bool a = false; //bypass for driving
+  }
+  }
+} 
 
+// U   R
+//   X
+// L   D
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+
+  while (true) {
+    robot::controller::a = Controller.AxisA;
+    robot::controller::b = Controller.AxisB;
+    robot::controller::c = Controller.AxisC;
+    robot::controller::d = Controller.AxisD;
+
+    if (!robot::bypass::a) {
+      robot::drivetrain::u = robot::controller::a + robot::controller::b + robot::controller::c;
+      robot::drivetrain::r = robot::controller::a - robot::controller::b - robot::controller::c;
+      robot::drivetrain::d = robot::controller::a - robot::controller::b + robot::controller::c;
+      robot::drivetrain::l = robot::controllre::a + robot::controller::b - robot::controller::c;
+    }
+    else {
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
+    }
+  }
+
 }
 
 
