@@ -93,6 +93,9 @@ namespace robot {
   namespace bypass {
     bool a = false; //bypass for driving
   }
+  namespace constants {
+    int maxMotorSpeed = 100;
+  }
   }
 } 
 
@@ -115,6 +118,16 @@ int main() {
       robot::drivetrain::r = robot::controller::a - robot::controller::b - robot::controller::c;
       robot::drivetrain::d = robot::controller::a - robot::controller::b + robot::controller::c;
       robot::drivetrain::l = robot::controller::a + robot::controller::b - robot::controller::c;
+
+      if (robot::drivetrain::u > robot::constants::maxMotorSpeed) {robot::drivetrain::u = robot::constants::maxMotorSpeed; }
+      if (robot::drivetrain::r > robot::constants::maxMotorSpeed) {robot::drivetrain::r = robot::constants::maxMotorSpeed; }
+      if (robot::drivetrain::d > robot::constants::maxMotorSpeed) {robot::drivetrain::d = robot::constants::maxMotorSpeed; }
+      if (robot::drivetrain::l > robot::constants::maxMotorSpeed) {robot::drivetrain::l = robot::constants::maxMotorSpeed; }
+
+      ApositiveU.spin(forward, robot::drivetrain::u, percent);
+      BpositiveR.spin(forward, robot::drivetrain::r, percent);
+      AnegativeD.spin(forward, robot::drivetrain::d, percent);
+      bNegativeL.spin(forward, robot::drivetrain::l, percent);
     }
     else {
       ApositiveU.stop();
