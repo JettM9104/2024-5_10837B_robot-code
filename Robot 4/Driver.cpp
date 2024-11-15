@@ -96,6 +96,11 @@ namespace robot {
   namespace constants {
     int maxMotorSpeed = 100;
   }
+  namespace pid {
+    double kp = 1;
+    double ki = 1;
+    double kd = 1;
+  }
   }
 } 
 
