@@ -77,13 +77,16 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
+void turnto(int heading, double kp, double ki, double kd, double timeout);
+void run();
 namespace robot {
-  namespace controller {
+  namespace contr {
     int a; //forwards backwards
     int b; //left right
     int c; //turning
     int d;
-  namespace drivetrain {
+  }
+  namespace drivet {
     double u;
     double r;
     double d;
@@ -101,42 +104,46 @@ namespace robot {
     double ki = 1;
     double kd = 1;
   }
-  namespace angle {
-    double rotation;
-    double heading;
+  namespace angl {
+    double rot;
+    double head;
+    double limrot;
   }
-  }
-} 
+
+}
 
 // U   R
 //   X
 // L   D
 
+
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
+  thread myThread = thread(run);
+  
   while (true) {
-    robot::controller::a = Controller.AxisA;
-    robot::controller::b = Controller.AxisB;
-    robot::controller::c = Controller.AxisC;
-    robot::controller::d = Controller.AxisD;
+    robot::contr::a = Controller.AxisA.position();
+    robot::contr::b = Controller.AxisB.position();
+    robot::contr::c = Controller.AxisC.position();
+    robot::contr::d = Controller.AxisD.position();
 
     if (!robot::bypass::driving) {
-      robot::drivetrain::u = robot::controller::a + robot::controller::b + robot::controller::c;
-      robot::drivetrain::r = robot::controller::a - robot::controller::b - robot::controller::c;
-      robot::drivetrain::d = robot::controller::a - robot::controller::b + robot::controller::c;
-      robot::drivetrain::l = robot::controller::a + robot::controller::b - robot::controller::c;
+      robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
+      robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
+      robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
+      robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
 
-      if (robot::drivetrain::u > robot::constants::maxMotorSpeed) {robot::drivetrain::u = robot::constants::maxMotorSpeed; }
-      if (robot::drivetrain::r > robot::constants::maxMotorSpeed) {robot::drivetrain::r = robot::constants::maxMotorSpeed; }
-      if (robot::drivetrain::d > robot::constants::maxMotorSpeed) {robot::drivetrain::d = robot::constants::maxMotorSpeed; }
-      if (robot::drivetrain::l > robot::constants::maxMotorSpeed) {robot::drivetrain::l = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::l > robot::constants::maxMotorSpeed) {robot::drivet::l = robot::constants::maxMotorSpeed; }
 
-      ApositiveU.spin(forward, robot::drivetrain::u, percent);
-      BpositiveR.spin(forward, robot::drivetrain::r, percent);
-      AnegativeD.spin(forward, robot::drivetrain::d, percent);
-      bNegativeL.spin(forward, robot::drivetrain::l, percent);
+      ApositiveU.spin(forward, robot::drivet::u, percent);
+      BpositiveR.spin(forward, robot::drivet::r, percent);
+      AnegativeD.spin(forward, robot::drivet::d, percent);
+      bNegativeL.spin(forward, robot::drivet::l, percent);
     }
     else {
       ApositiveU.stop();
@@ -148,4 +155,10 @@ int main() {
 
 }
 
+void turnto(int heading, double kp, double ki, double kd, double timeout) {
+  //
+}
 
+void run() {
+  //
+}
