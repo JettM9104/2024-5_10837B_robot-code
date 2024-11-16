@@ -94,50 +94,6 @@ The driver code is responsible for controlling the robot manually. The robot res
 ### Example Snippet (driver.cpp):
 
 ```cpp
-#include "robot-config.h"
-
-// Tank drive setup
-void tankDrive() {
-    // Left joystick controls left motors
-    leftDriveMotor.spin(vex::directionType::fwd, Controller1.Axis3.position(), vex::velocityUnits::pct);
-    
-    // Right joystick controls right motors
-    rightDriveMotor.spin(vex::directionType::fwd, Controller1.Axis2.position(), vex::velocityUnits::pct);
-}
-
-// Mechanism controls
-void mechanismControl() {
-    if (Controller1.ButtonR1.pressing()) {
-        liftMotor.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);  // Lift up
-    } else if (Controller1.ButtonR2.pressing()) {
-        liftMotor.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);  // Lift down
-    } else {
-        liftMotor.stop(vex::brakeType::hold);  // Stop lift
-    }
-}
-
-int main() {
-    while (true) {
-        tankDrive();
-        mechanismControl();
-        vex::task::sleep(20);  // Sleep to allow time for other tasks
-    }
-}
-```
-
----
-
-## Autonomous Code
-
-The autonomous code is responsible for controlling the robot without manual intervention. This is executed when the robot is in autonomous mode at the start of the match.
-
-### Key Features:
-- Pre-programmed routines that drive the robot, manipulate mechanisms, and complete tasks.
-- Use of sensors (e.g., gyro, encoders, vision) to enhance the robot’s ability to follow specific paths and interact with the field.
-
-### Example Snippet (Drivers.cpp):
-
-```cpp
 namespace robot {
   namespace contr {
     int a; //forwards backwards
@@ -207,7 +163,58 @@ int main() {
       bNegativeL.stop();
     }
   }
+}
+```
 
+---
+
+## Autonomous Code
+
+The autonomous code is responsible for controlling the robot without manual intervention. This is executed when the robot is in autonomous mode at the start of the match.
+
+### Key Features:
+- Pre-programmed routines that drive the robot, manipulate mechanisms, and complete tasks.
+- Use of sensors (e.g., gyro, encoders, vision) to enhance the robot’s ability to follow specific paths and interact with the field.
+
+### Example Snippet (Drivers.cpp):
+
+```cpp
+void turn(double target, double kp, double ki, double kd, double timeout) {
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 2.5;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
+
+  while (true) {
+    error = target - robot::angl::limrot;
+    derivative = error-lastError;
+    if (fabs(error) < threshold) {
+      dtL.stop();
+      dtR.stop();
+      break; //:D
+    }
+  
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
+
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
+
+    double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
+
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
+
+    ApositiveU.spin(forward, motorSpeed, percent);
+    BpositiveR.spin(forward, motorSpeed, percent);
+    AnegativeD.spin(forward, motorSpeed, percent);
+    bNegativeL.spin(forward, motorSpeed, percent);
+    lastError = error;
+  }
 }
 ```
 
