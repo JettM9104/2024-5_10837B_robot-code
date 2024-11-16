@@ -222,19 +222,19 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
 
 ## Setup and Installation
 
-1. **Clone this repository** to your local machine or use the VEXcode V5 IDE to access your robot’s programming environment.
-2. **Install VEXcode V5** if you haven't already.
+1. **Clone this repository** to your local machine or use the VEXcode IQ IDE to access your robot’s programming environment.
+2. **Install VEXcode IQ** if you haven't already.
    - Download VEXcode V5 from the [official website](https://www.vexrobotics.com/vexcode).
-3. **Connect your VEX V5 robot** to your computer via USB cable or wirelessly (if applicable).
-4. **Open the project** in VEXcode V5 and upload it to your robot.
+3. **Connect your VEX IQ robot** to your computer via USB cable or wirelessly (if applicable).
+4. **Open the project** in VEXcode IQ and upload it to your robot.
 5. **Test the code**: Once the code is uploaded, test the robot in both driver and autonomous modes to ensure everything is functioning as expected.
 
 ---
 
 ## Usage
 
-1. Power on the robot and the VEX V5 Controller.
-2. Switch to autonomous mode on the VEX V5 Robot Brain screen.
+1. Power on the robot and the VEX IQ Controller.
+2. Switch to autonomous mode on the VEX IQ Robot Brain screen.
 3. Start the match and watch the robot execute the autonomous routine.
 4. Switch to driver control mode when ready to manually control the robot.
 
