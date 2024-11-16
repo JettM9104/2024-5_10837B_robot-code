@@ -1,11 +1,11 @@
 # 2024-5_10837B_robot-code
 VIQRC - 10837B; Robot Code and Autonomous Code
-
+This code is avaliable to the public.
 
 
 # Robot 10837 B - VEX Robotics Driver and Autonomous Code
 
-This repository contains the driver and autonomous control code for VEX Robotics competition robot 10837 B. The code is designed to control the robot in both autonomous mode and driver control mode. It is written in VEXcode V5 using C++.
+This repository contains the driver and autonomous control code for VEX Robotics competition team 10837B. The code is designed to control the robot in both autonomous mode and driver control mode. It is written in VEXcode IQ using C++.
 
 ## Table of Contents
 
@@ -46,14 +46,38 @@ To use this code, ensure you have the following:
 ## File Structure
 
 ```
-/Robot_10837_B
-  ├── /src
-      ├── driver.cpp          # Code for manual control of the robot
-      ├── autonomous.cpp      # Code for autonomous routines
-      ├── robot-config.cpp    # Hardware configuration and motor/sensor initialization
-      ├── main.cpp            # Entry point of the program
+/.vscode
+  └── /tasks.json
+
+/Robot 2
+  ├── Driver.cpp
+  └── xDriveTest.iqblocks
+
+/Robot 3
+  ├── Auton.cpp
+  └── DriveCode.iqblocks
+
+/Robot 4
+  ├── /Testing
+      └──[empty folder]
+  ├── Auton.cpp
+  └── Driver.cpp
+
+/VEX Files
+  ├── /.vscode
+      ├──c_cpp_properties.json
+      ├──settings.json
+      └──vex_project_settings.json
   ├── /include
-      └── robot-config.h      # Header file for hardware configuration
+      └──vex.h
+  ├── /src
+      └──main.cpp
+  └── /vex
+      └──makefile
+
+.gitignore
+
+README.md (This File)
 ```
 
 ---
@@ -66,37 +90,78 @@ The driver code is responsible for controlling the robot manually. The robot res
 - Tank drive: Left joystick controls the left motors, right joystick controls the right motors.
 - Mechanism control: Additional buttons or joystick inputs to control the lift, intake, and other robot mechanisms.
 
-### Example Snippet (driver.cpp):
+### Example Snippet (Driver.cpp):
 
 ```cpp
-#include "robot-config.h"
+namespace robot {
+  namespace contr {
+    int a; //forwards backwards
+    int b; //left right
+    int c; //turning
+    int d;
+  }
+  namespace drivet {
+    double u;
+    double r;
+    double d;
+    double l;
+    double k = 1;
+  }
+  namespace bypass {
+    bool driving = false; //bypass for driving
+  }
+  namespace constants {
+    int maxMotorSpeed = 100;
+  }
+  namespace pid {
+    double kp = 1;
+    double ki = 1;
+    double kd = 1;
+  }
+  namespace angl {
+    double rot;
+    double head;
+    double limrot;
+  }
+  
 
-// Tank drive setup
-void tankDrive() {
-    // Left joystick controls left motors
-    leftDriveMotor.spin(vex::directionType::fwd, Controller1.Axis3.position(), vex::velocityUnits::pct);
-    
-    // Right joystick controls right motors
-    rightDriveMotor.spin(vex::directionType::fwd, Controller1.Axis2.position(), vex::velocityUnits::pct);
-}
-
-// Mechanism controls
-void mechanismControl() {
-    if (Controller1.ButtonR1.pressing()) {
-        liftMotor.spin(vex::directionType::fwd, 50, vex::velocityUnits::pct);  // Lift up
-    } else if (Controller1.ButtonR2.pressing()) {
-        liftMotor.spin(vex::directionType::rev, 50, vex::velocityUnits::pct);  // Lift down
-    } else {
-        liftMotor.stop(vex::brakeType::hold);  // Stop lift
-    }
 }
 
 int main() {
-    while (true) {
-        tankDrive();
-        mechanismControl();
-        vex::task::sleep(20);  // Sleep to allow time for other tasks
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+
+  thread myThread = thread(run);
+  
+  while (true) {
+    robot::contr::a = Controller.AxisA.position();
+    robot::contr::b = Controller.AxisB.position();
+    robot::contr::c = Controller.AxisC.position();
+    robot::contr::d = Controller.AxisD.position();
+
+    if (!robot::bypass::driving) {
+      robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
+      robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
+      robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
+      robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
+
+      if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::l > robot::constants::maxMotorSpeed) {robot::drivet::l = robot::constants::maxMotorSpeed; }
+
+      ApositiveU.spin(forward, robot::drivet::u, percent);
+      BpositiveR.spin(forward, robot::drivet::r, percent);
+      AnegativeD.spin(forward, robot::drivet::d, percent);
+      bNegativeL.spin(forward, robot::drivet::l, percent);
     }
+    else {
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
+    }
+  }
 }
 ```
 
@@ -110,33 +175,45 @@ The autonomous code is responsible for controlling the robot without manual inte
 - Pre-programmed routines that drive the robot, manipulate mechanisms, and complete tasks.
 - Use of sensors (e.g., gyro, encoders, vision) to enhance the robot’s ability to follow specific paths and interact with the field.
 
-### Example Snippet (autonomous.cpp):
+### Example Snippet (Auton.cpp):
 
 ```cpp
-#include "robot-config.h"
+void turn(double target, double kp, double ki, double kd, double timeout) {
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 2.5;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
 
-void moveForward(int distance) {
-    leftDriveMotor.spinFor(vex::directionType::fwd, distance, vex::distanceUnits::mm, 50, vex::velocityUnits::pct);
-    rightDriveMotor.spinFor(vex::directionType::fwd, distance, vex::distanceUnits::mm, 50, vex::velocityUnits::pct);
-}
+  while (true) {
+    error = target - robot::angl::limrot;
+    derivative = error-lastError;
+    if (fabs(error) < threshold) {
+      dtL.stop();
+      dtR.stop();
+      break; //:D
+    }
+  
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
 
-void turnRight(int angle) {
-    leftDriveMotor.spinFor(vex::directionType::fwd, angle, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
-    rightDriveMotor.spinFor(vex::directionType::rev, angle, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
-}
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
 
-void autonomous() {
-    moveForward(1000);  // Move forward 1000mm
-    vex::task::sleep(500);  // Wait for 500ms
-    
-    turnRight(90);  // Turn right 90 degrees
-    vex::task::sleep(500);
-    
-    moveForward(500);  // Move forward 500mm
-}
+    double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
-int main() {
-    autonomous();  // Run the autonomous code
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
+
+    ApositiveU.spin(forward, motorSpeed, percent);
+    BpositiveR.spin(forward, motorSpeed, percent);
+    AnegativeD.spin(forward, motorSpeed, percent);
+    bNegativeL.spin(forward, motorSpeed, percent);
+    lastError = error;
+  }
 }
 ```
 
@@ -144,19 +221,19 @@ int main() {
 
 ## Setup and Installation
 
-1. **Clone this repository** to your local machine or use the VEXcode V5 IDE to access your robot’s programming environment.
-2. **Install VEXcode V5** if you haven't already.
+1. **Clone this repository** to your local machine or use the VEXcode IQ IDE to access your robot’s programming environment.
+2. **Install VEXcode IQ** if you haven't already.
    - Download VEXcode V5 from the [official website](https://www.vexrobotics.com/vexcode).
-3. **Connect your VEX V5 robot** to your computer via USB cable or wirelessly (if applicable).
-4. **Open the project** in VEXcode V5 and upload it to your robot.
+3. **Connect your VEX IQ robot** to your computer via USB cable or wirelessly (if applicable).
+4. **Open the project** in VEXcode IQ and upload it to your robot.
 5. **Test the code**: Once the code is uploaded, test the robot in both driver and autonomous modes to ensure everything is functioning as expected.
 
 ---
 
 ## Usage
 
-1. Power on the robot and the VEX V5 Controller.
-2. Switch to autonomous mode on the VEX V5 Robot Brain screen.
+1. Power on the robot and the VEX IQ Controller.
+2. Switch to autonomous mode on the VEX IQ Robot Brain screen.
 3. Start the match and watch the robot execute the autonomous routine.
 4. Switch to driver control mode when ready to manually control the robot.
 
@@ -174,4 +251,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Feel free to adjust this template to match the specifics of your robot’s hardware configuration, sensors, or other requirements. Let me know if you'd like me to help with any other details!
+## The Team
+This is VIQRC team 10837B for Rapid Relay 2024-2025.
+
+Jett M.      Main Programmer, creator of repository
+
+Grayson Y.   Main Builder
+
+Charles L.   Main Documentator
+
+---
