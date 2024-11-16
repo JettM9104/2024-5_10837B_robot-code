@@ -110,33 +110,79 @@ The autonomous code is responsible for controlling the robot without manual inte
 - Pre-programmed routines that drive the robot, manipulate mechanisms, and complete tasks.
 - Use of sensors (e.g., gyro, encoders, vision) to enhance the robot’s ability to follow specific paths and interact with the field.
 
-### Example Snippet (autonomous.cpp):
+### Example Snippet (Drivers.cpp):
 
 ```cpp
-#include "robot-config.h"
+namespace robot {
+  namespace contr {
+    int a; //forwards backwards
+    int b; //left right
+    int c; //turning
+    int d;
+  }
+  namespace drivet {
+    double u;
+    double r;
+    double d;
+    double l;
+    double k = 1;
+  }
+  namespace bypass {
+    bool driving = false; //bypass for driving
+  }
+  namespace constants {
+    int maxMotorSpeed = 100;
+  }
+  namespace pid {
+    double kp = 1;
+    double ki = 1;
+    double kd = 1;
+  }
+  namespace angl {
+    double rot;
+    double head;
+    double limrot;
+  }
+  
 
-void moveForward(int distance) {
-    leftDriveMotor.spinFor(vex::directionType::fwd, distance, vex::distanceUnits::mm, 50, vex::velocityUnits::pct);
-    rightDriveMotor.spinFor(vex::directionType::fwd, distance, vex::distanceUnits::mm, 50, vex::velocityUnits::pct);
-}
-
-void turnRight(int angle) {
-    leftDriveMotor.spinFor(vex::directionType::fwd, angle, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
-    rightDriveMotor.spinFor(vex::directionType::rev, angle, vex::rotationUnits::deg, 50, vex::velocityUnits::pct);
-}
-
-void autonomous() {
-    moveForward(1000);  // Move forward 1000mm
-    vex::task::sleep(500);  // Wait for 500ms
-    
-    turnRight(90);  // Turn right 90 degrees
-    vex::task::sleep(500);
-    
-    moveForward(500);  // Move forward 500mm
 }
 
 int main() {
-    autonomous();  // Run the autonomous code
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+
+  thread myThread = thread(run);
+  
+  while (true) {
+    robot::contr::a = Controller.AxisA.position();
+    robot::contr::b = Controller.AxisB.position();
+    robot::contr::c = Controller.AxisC.position();
+    robot::contr::d = Controller.AxisD.position();
+
+    if (!robot::bypass::driving) {
+      robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
+      robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
+      robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
+      robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
+
+      if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
+      if (robot::drivet::l > robot::constants::maxMotorSpeed) {robot::drivet::l = robot::constants::maxMotorSpeed; }
+
+      ApositiveU.spin(forward, robot::drivet::u, percent);
+      BpositiveR.spin(forward, robot::drivet::r, percent);
+      AnegativeD.spin(forward, robot::drivet::d, percent);
+      bNegativeL.spin(forward, robot::drivet::l, percent);
+    }
+    else {
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
+    }
+  }
+
 }
 ```
 
