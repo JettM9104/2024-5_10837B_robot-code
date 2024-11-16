@@ -32,8 +32,10 @@ controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT12, false);
-
+motor bNegativeL = motor(PORT12, false)
+motor shooting1 = motor(PORT2, false);
+motor shooting2 = motor(PORT3, true);
+pneumatic cats = pneumatic(PORT4);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -95,6 +97,8 @@ namespace robot {
   }
   namespace bypass {
     bool driving = false; //bypass for driving
+    bool shooting = false; //bypass for conveyer-catapult motorshare
+    bool pneum = false; //bypass for pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -151,6 +155,37 @@ int main() {
       BpositiveR.stop();
       AnegativeD.stop();
       bNegativeL.stop();
+    }
+
+    if (!robot::bypass::shooting) {
+      if (Controller.ButtonLUp.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
+      }
+      else if (Controller.ButtonLDown.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
+        shooting1.spin(reverse, 100, percent);
+        shooting2.spin(forward, 100, percent);
+      }
+      else if (Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing()) {
+        Brain.playSound(fillup);
+      }
+      else {
+        shooting1.stop();
+        shooting2.stop();
+      }
+    }
+
+    if (!robot::bypass::pneum) {
+      if (Controller.ButtonRUp.pressing()) {
+        cats.extend(cylinder1);
+      }
+      else if (Controller.ButtonLDown.pressing()) {
+        cats.retract(cylinder1)
+      }
+      else {
+        cats.retract(cylinder2);
+        cats.extend(cylinder1);
+      }
     }
   }
 

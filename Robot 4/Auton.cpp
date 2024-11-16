@@ -29,9 +29,9 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller = controller();
-motor ApositiveU = motor(PORT1, false);
+motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
-motor AnegativeD = motor(PORT7, false);
+motor AnegativeD = motor(PORT7, true);
 motor bNegativeL = motor(PORT12, false);
 
 
@@ -77,77 +77,120 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
+void drive();
+void turn(double target, double kp, double ki, double kd, double timeout);
 
-void driveDiagonal(double direction, double distance, double speed);
-const double pi = 3.1415926;
+void run();
+namespace robot {
+  namespace command {
+    int a; //forwards backwards
+    int b; //left right
+    int c; //turning
+    int d;
+  }
+  namespace drivet {
+    double u;
+    double r;
+    double d;
+    double l;
+    double k = 1;
+  }
+  namespace bypass {
+    bool driving = false; //bypass for driving
+  }
+  namespace constants {
+    int maxMotorSpeed = 100;
+  }
+  namespace pid {
+    double kp = 1;
+    double ki = 1;
+    double kd = 1;
+  }
+  namespace angl {
+    double rot;
+    double head;
+    double limrot;
+  }
+  
+
+}
+
+// U   R
+//   X
+// L   D
+
+
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+
+  thread myThread = thread(run);
+  BrainInertial.setHeading(0,degrees);
+  while (true) {
+    //
+    wait(20, msec);
+  }
+
 }
 
-void driveDiagonal(double direction, double distance, double speed) {
-    double rotation = distance / (pi * 10);
-    double x_speed = speed * cos(direction);
-    double y_speed = speed * sin(direction);
+void turnto(int heading, double kp, double ki, double kd, double timeout) {
+  //
+}
 
-    double target_x = current_x + distance * cos(direction);
-    double target_y = current_y + distance * sin(direction);
+void run() {
+  while (true) {
 
-    double traveled_distance = 0;
-    double target_distance = rotation * (pi * 10);
-    double start_time = Brain.Timer.system();
+    robot::angl::head = BrainInertial.heading(degrees);
 
-    ApositiveU.spin(forward, x_speed, percent);
-    BpositiveR.spin(forward, y_speed, percent);
-    AnegativeD.spin(reverse, y_speed, percent);
-    bNegativeL.spin(reverse, x_speed, percent);
-
-    while (traveled_distance < target_distance) {
-        double current_time = Brain.Timer.system();
-        traveled_distance = speed * (current_time - start_time);
-
-        double current_x = start_x + traveled_distance * cos(current_direction);
-        double current_y = start_y + traveled_distance * sin(current_direction);
-
-        double current_heading = BrainInertial.heading(degrees);
-        double desired_heading = direction * (180.0 / pi);
-
-        double heading_error = desired_heading - current_heading;
-
-        double correction_factor = 1.0 + (heading_error * 0.1);
-        ApositiveU.spin(forward, x_speed * correction_factor, percent);
-        BpositiveR.spin(forward, y_speed * correction_factor, percent);
-        AnegativeD.spin(reverse, y_speed * correction_factor, percent);
-        bNegativeL.spin(reverse, x_speed * correction_factor, percent);
+    if (robot::angl::head > 179.9) {
+      robot::angl::limrot = -(360-robot::angl::head);
     }
+    else {
+      robot::angl::limrot = robot::angl::head;
+    }
+  wait(20, msec);
+  }
+}
 
+void drive() {
+  robot::command::a = Controller.AxisA.position();
+  robot::command::b = Controller.AxisB.position();
+  robot::command::c = Controller.AxisC.position();
+  robot::command::d = Controller.AxisD.position();
+
+  if (!robot::bypass::driving) {
+    robot::drivet::u = robot::command::a + robot::command::b + robot::command::c;
+    robot::drivet::r = robot::command::a - robot::command::b - robot::command::c;
+    robot::drivet::d = robot::command::a - robot::command::b + robot::command::c;
+    robot::drivet::l = robot::command::a + robot::command::b - robot::command::c;
+
+    if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
+    if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
+    if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
+    if (robot::drivet::l > robot::constants::maxMotorSpeed) {robot::drivet::l = robot::constants::maxMotorSpeed; }
+
+    ApositiveU.spin(forward, robot::drivet::u, percent);
+    BpositiveR.spin(forward, robot::drivet::r, percent);
+    AnegativeD.spin(forward, robot::drivet::d, percent);
+    bNegativeL.spin(forward, robot::drivet::l, percent);
+  }
+  else {
     ApositiveU.stop();
     BpositiveR.stop();
     AnegativeD.stop();
     bNegativeL.stop();
+  }
 }
-
-void turn(int target, double kp, double ki) {
-
+void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
-  double threshold = 1;
+  double threshold = 2.5;
   double maxIntegral = 50;
   double integralResetZone = 3;
   int maxSpeed = 100;
-  error = target-(BrainInertial.rotation(degrees));
-
-  BrainInertial.setRotation(0,degrees);
-  dtL.resetPosition();
-  dtR.resetPosition();
 
   while (true) {
-    double current = BrainInertial.rotation();
-    printf("\033[31m");
-    printf("Inertial %f\n", BrainInertial.rotation(degrees));
-    printf("Error %f\n", error);
-    printf("\033[32m");
-    error = target - current;
-
+    error = target - robot::angl::limrot;
+    derivative = error-lastError;
     if (fabs(error) < threshold) {
       dtL.stop();
       dtR.stop();
@@ -163,17 +206,16 @@ void turn(int target, double kp, double ki) {
     if (integral > maxIntegral) integral = maxIntegral;
     if (integral < -maxIntegral) integral = -maxIntegral;
 
-    double motorSpeed = (kp * error) + (ki * integral);
+    double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
     if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
     if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
 
-    dtL.spin(forward, motorSpeed, percent);
-    dtR.spin(reverse, motorSpeed, percent);
-
-
-
-    wait(200,msec);
+    ApositiveU.spin(forward, motorSpeed, percent);
+    BpositiveR.spin(forward, motorSpeed, percent);
+    AnegativeD.spin(forward, motorSpeed, percent);
+    bNegativeL.spin(forward, motorSpeed, percent);
+    lastError = error;
   }
-
 }
+
