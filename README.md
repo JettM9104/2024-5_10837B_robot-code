@@ -1,11 +1,11 @@
 # 2024-5_10837B_robot-code
 VIQRC - 10837B; Robot Code and Autonomous Code
-
+This code is avaliable to the public.
 
 
 # Robot 10837 B - VEX Robotics Driver and Autonomous Code
 
-This repository contains the driver and autonomous control code for VEX Robotics competition robot 10837 B. The code is designed to control the robot in both autonomous mode and driver control mode. It is written in VEXcode V5 using C++.
+This repository contains the driver and autonomous control code for VEX Robotics competition team 10837B. The code is designed to control the robot in both autonomous mode and driver control mode. It is written in VEXcode IQ using C++.
 
 ## Table of Contents
 
@@ -46,14 +46,26 @@ To use this code, ensure you have the following:
 ## File Structure
 
 ```
-/Robot_10837_B
-  ├── /src
       ├── driver.cpp          # Code for manual control of the robot
       ├── autonomous.cpp      # Code for autonomous routines
       ├── robot-config.cpp    # Hardware configuration and motor/sensor initialization
-      ├── main.cpp            # Entry point of the program
+      └── main.cpp            # Entry point of the program
   ├── /include
       └── robot-config.h      # Header file for hardware configuration
+/.vscode
+  └── /tasks.json
+/.Robot 2
+  ├── /Driver.cpp
+  └── /xDriveTest.iqblocks
+/.Robot 3
+  ├── /Auton.cpp
+  └── /DriveCode.iqblocks
+/.Robot 4
+  ├── /Testing
+        └──[empty folder]
+  ├── /Auton.cpp
+  └── /Driver.cpp
+
 ```
 
 ---
