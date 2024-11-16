@@ -91,7 +91,7 @@ The driver code is responsible for controlling the robot manually. The robot res
 - Tank drive: Left joystick controls the left motors, right joystick controls the right motors.
 - Mechanism control: Additional buttons or joystick inputs to control the lift, intake, and other robot mechanisms.
 
-### Example Snippet (driver.cpp):
+### Example Snippet (Driver.cpp):
 
 ```cpp
 namespace robot {
@@ -176,7 +176,7 @@ The autonomous code is responsible for controlling the robot without manual inte
 - Pre-programmed routines that drive the robot, manipulate mechanisms, and complete tasks.
 - Use of sensors (e.g., gyro, encoders, vision) to enhance the robot’s ability to follow specific paths and interact with the field.
 
-### Example Snippet (Drivers.cpp):
+### Example Snippet (Auton.cpp):
 
 ```cpp
 void turn(double target, double kp, double ki, double kd, double timeout) {
