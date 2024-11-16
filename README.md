@@ -46,26 +46,39 @@ To use this code, ensure you have the following:
 ## File Structure
 
 ```
-      ├── driver.cpp          # Code for manual control of the robot
-      ├── autonomous.cpp      # Code for autonomous routines
-      ├── robot-config.cpp    # Hardware configuration and motor/sensor initialization
-      └── main.cpp            # Entry point of the program
-  ├── /include
-      └── robot-config.h      # Header file for hardware configuration
 /.vscode
   └── /tasks.json
-/.Robot 2
-  ├── /Driver.cpp
-  └── /xDriveTest.iqblocks
-/.Robot 3
-  ├── /Auton.cpp
-  └── /DriveCode.iqblocks
-/.Robot 4
-  ├── /Testing
-        └──[empty folder]
-  ├── /Auton.cpp
-  └── /Driver.cpp
+/Robot 2
+  ├── Driver.cpp
+  └── xDriveTest.iqblocks
 
+/Robot 3
+  ├── Auton.cpp
+  └── DriveCode.iqblocks
+
+/Robot 4
+  ├── /Testing
+      └──[empty folder]
+  ├── Auton.cpp
+  └── Driver.cpp
+
+/VEX Files
+  ├── /.vscode
+      ├──c_cpp_properties.json
+      ├──settings.json
+      └──vex_project_settings.json
+  ├── /include
+      └──vex.h
+  ├── /src
+      └──main.cpp
+  └── /vex
+      └──makefile
+
+
+Files in Reprisitory:
+
+.gitignore
+README.md (This File)
 ```
 
 ---
