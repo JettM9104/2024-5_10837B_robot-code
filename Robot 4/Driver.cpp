@@ -109,6 +109,7 @@ namespace robot {
     double head;
     double limrot;
   }
+  
 
 }
 
@@ -160,5 +161,15 @@ void turnto(int heading, double kp, double ki, double kd, double timeout) {
 }
 
 void run() {
-  //
+  while (true) {
+
+    robot::angl::head = BrainInertial.heading(degrees);
+
+    if (robot::angl::head > 179.9) {
+      robot::angl::limrot = -(360-robot::angl::head);
+    }
+    else {
+      robot::angl::limrot = robot::angl::head;
+    }
+  }
 }
