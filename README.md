@@ -255,6 +255,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 This is VIQRC team 10837B for Rapid Relay 2024-2025.
 
 Jett M.      Main Programmer, creator of repository
+
 Grayson Y.   Main Builder
+
 Charles L.   Main Documentator
 
+---
