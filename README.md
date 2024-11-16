@@ -48,6 +48,7 @@ To use this code, ensure you have the following:
 ```
 /.vscode
   └── /tasks.json
+
 /Robot 2
   ├── Driver.cpp
   └── xDriveTest.iqblocks
@@ -250,4 +251,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Feel free to adjust this template to match the specifics of your robot’s hardware configuration, sensors, or other requirements. Let me know if you'd like me to help with any other details!
+## The Team
+This is VIQRC team 10837B for Rapid Relay 2024-2025.
+
+Jett M.      Main Programmer, creator of repository
+Grayson Y.   Main Builder
+Charles L.   Main Documentator
+
