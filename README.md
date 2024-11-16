@@ -36,9 +36,9 @@ The autonomous code is programmed to perform specific tasks, such as navigating 
 
 To use this code, ensure you have the following:
 
-- VEX Robotics V5 Robot Brain and VEX V5 motors/sensors
-- VEXcode V5 (VEX's official programming environment for VEX V5 robots)
-- VEX V5 controller
+- VEX Robotics IQ Robot Brain and VEX V5 motors/sensors
+- VEXcode IQ (VEX's official programming environment for VEX V5 robots)
+- VEX IQ controller
 - Basic understanding of VEX Robotics programming and mechanics
 
 ---
