@@ -77,7 +77,9 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
-void turnto(int heading, double kp, double ki, double kd, double timeout);
+void drive();
+void turn(double target, double kp, double ki, double kd, double timeout);
+
 void run();
 namespace robot {
   namespace command {
@@ -177,6 +179,43 @@ void drive() {
     BpositiveR.stop();
     AnegativeD.stop();
     bNegativeL.stop();
+  }
+}
+void turn(double target, double kp, double ki, double kd, double timeout) {
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 2.5;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
+
+  while (true) {
+    error = target - robot::angl::limrot;
+    derivative = error-lastError;
+    if (fabs(error) < threshold) {
+      dtL.stop();
+      dtR.stop();
+      break; //:D
+    }
+  
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
+
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
+
+    double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
+
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
+
+    ApositiveU.spin(forward, motorSpeed, percent);
+    BpositiveR.spin(forward, motorSpeed, percent);
+    AnegativeD.spin(forward, motorSpeed, percent);
+    bNegativeL.spin(forward, motorSpeed, percent);
+    lastError = error;
   }
 }
 
