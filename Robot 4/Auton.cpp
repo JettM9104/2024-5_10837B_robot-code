@@ -34,7 +34,6 @@ motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
 motor bNegativeL = motor(PORT12, false);
 
-
 // generating and setting random seed
 void initializeRandomSeed(){
   wait(100,msec);
@@ -77,7 +76,7 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
-void drive();
+void drive(double dir, double dist);
 void turn(double target, double kp, double ki, double kd, double timeout);
 
 void run();
@@ -152,11 +151,12 @@ void run() {
   }
 }
 
-void drive() {
-  robot::command::a = Controller.AxisA.position();
-  robot::command::b = Controller.AxisB.position();
-  robot::command::c = Controller.AxisC.position();
-  robot::command::d = Controller.AxisD.position();
+void drive(double dir, double dist, double k) {
+  robot::command::a = k * cos(dir) //forward backward
+  robot::command::b = k * sin(dir) //strafing
+  robot::command::c = 0; //rotatoin (don't need)
+
+
 
   if (!robot::bypass::driving) {
     robot::drivet::u = robot::command::a + robot::command::b + robot::command::c;
