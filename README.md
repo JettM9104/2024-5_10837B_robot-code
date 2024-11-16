@@ -74,10 +74,8 @@ To use this code, ensure you have the following:
   └── /vex
       └──makefile
 
-
-Files in Reprisitory:
-
 .gitignore
+
 README.md (This File)
 ```
 
