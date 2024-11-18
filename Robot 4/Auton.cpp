@@ -151,28 +151,77 @@ void run() {
   }
 }
 
-void drive(double dir, double dist, double k) {
+
+
+
+
+void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
+  double error = 0, lastError = 0, integral = 0, derivative = 0;
+  double threshold = 2.5;
+  double maxIntegral = 50;
+  double integralResetZone = 3;
+  int maxSpeed = 100;
+  double average;
+  double current;
+  double maximum;
+  Brain.Timer.reset();
   robot::command::a = k * cos(dir) //forward backward
   robot::command::b = k * sin(dir) //strafing
   robot::command::c = 0; //rotatoin (don't need)
 
+  while (true) {
+    current = (fabs(ApositiveU.position(degrees)) + fabs(BpositiveR.position(degrees)) + fabs(AnegativeD.position(degrees)) + fabs(bNegativeL.position(degrees)))/4
+    error = target - current;
+    derivative = error-lastError;
+    if (fabs(error) < integralResetZone) {
+      integral += error;
+    } else {
+      integral = 0;
+    }
 
+    if (fabs(error) < threshold) {
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
+      break; //:D
+    }
+    
+    if (Brain.Timer.value() > timeout && timeout != 0) {
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
+      break; //:D     
+    }
 
-  if (!robot::bypass::driving) {
+    if (integral > maxIntegral) integral = maxIntegral;
+    if (integral < -maxIntegral) integral = -maxIntegral;
+
+    double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
+
+    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
+    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
     robot::drivet::u = robot::command::a + robot::command::b + robot::command::c;
     robot::drivet::r = robot::command::a - robot::command::b - robot::command::c;
     robot::drivet::d = robot::command::a - robot::command::b + robot::command::c;
     robot::drivet::l = robot::command::a + robot::command::b - robot::command::c;
 
-    if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
-    if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
-    if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
-    if (robot::drivet::l > robot::constants::maxMotorSpeed) {robot::drivet::l = robot::constants::maxMotorSpeed; }
+    if (robot::drivet::u * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::u * motorSpeed; }
+    if (robot::drivet::r * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::r * motorSpeed; }
+    if (robot::drivet::d * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::d * motorSpeed; }
+    if (robot::drivet::l * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::l * motorSpeed; }
+
+    robot::drivet::u *= maximum / (robot::drivet::u * motorSpeed > robot::constants::maxMotorSpeed);
+    robot::drivet::r *= maximum / (robot::drivet::r * motorSpeed > robot::constants::maxMotorSpeed);
+    robot::drivet::d *= maximum / (robot::drivet::d * motorSpeed > robot::constants::maxMotorSpeed);
+    robot::drivet::l *= maximum / (robot::drivet::l * motorSpeed > robot::constants::maxMotorSpeed);
 
     ApositiveU.spin(forward, robot::drivet::u, percent);
     BpositiveR.spin(forward, robot::drivet::r, percent);
     AnegativeD.spin(forward, robot::drivet::d, percent);
     bNegativeL.spin(forward, robot::drivet::l, percent);
+    lastError = error;
   }
   else {
     ApositiveU.stop();
@@ -192,8 +241,10 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
     error = target - robot::angl::limrot;
     derivative = error-lastError;
     if (fabs(error) < threshold) {
-      dtL.stop();
-      dtR.stop();
+      ApositiveU.stop();
+      BpositiveR.stop();
+      AnegativeD.stop();
+      bNegativeL.stop();
       break; //:D
     }
   
