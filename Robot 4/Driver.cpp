@@ -32,7 +32,7 @@ controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT12, false)
+motor bNegativeL = motor(PORT12, false);
 motor shooting1 = motor(PORT2, false);
 motor shooting2 = motor(PORT3, true);
 pneumatic cats = pneumatic(PORT4);
@@ -180,7 +180,7 @@ int main() {
         cats.extend(cylinder1);
       }
       else if (Controller.ButtonLDown.pressing()) {
-        cats.retract(cylinder1)
+        cats.retract(cylinder1);
       }
       else {
         cats.retract(cylinder2);
