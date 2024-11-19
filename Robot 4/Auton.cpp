@@ -165,13 +165,13 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
   double current;
   double maximum;
   Brain.Timer.reset();
-  robot::command::a = k * cos(dir) //forward backward
-  robot::command::b = k * sin(dir) //strafing
+  robot::command::a = k * cos(dir); //forward backward
+  robot::command::b = k * sin(dir); //strafing
   robot::command::c = 0; //rotatoin (don't need)
 
   while (true) {
-    current = (fabs(ApositiveU.position(degrees)) + fabs(BpositiveR.position(degrees)) + fabs(AnegativeD.position(degrees)) + fabs(bNegativeL.position(degrees)))/4
-    error = target - current;
+    current = (fabs(ApositiveU.position(degrees)) + fabs(BpositiveR.position(degrees)) + fabs(AnegativeD.position(degrees)) + fabs(bNegativeL.position(degrees)))/4;
+    error = dist - current;
     derivative = error-lastError;
     if (fabs(error) < integralResetZone) {
       integral += error;
@@ -222,13 +222,13 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     AnegativeD.spin(forward, robot::drivet::d, percent);
     bNegativeL.spin(forward, robot::drivet::l, percent);
     lastError = error;
-  }
-  else {
+
     ApositiveU.stop();
     BpositiveR.stop();
     AnegativeD.stop();
     bNegativeL.stop();
-  }
+  
+}
 }
 void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
@@ -259,9 +259,8 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
 
     double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
-    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
-    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
-
+    if (motorSpeed > maxSpeed) {motorSpeed = maxSpeed; }
+    if (motorSpeed < -maxSpeed) {motorSpeed = -maxSpeed; }
     ApositiveU.spin(forward, motorSpeed, percent);
     BpositiveR.spin(forward, motorSpeed, percent);
     AnegativeD.spin(forward, motorSpeed, percent);
