@@ -122,19 +122,19 @@ namespace robot {
 
       namespace u {
         double error = 0, integral = 0, derivative = 0;
-        double lastError;
+        double lastError = 0;
       }
       namespace r {
         double error = 0, integral = 0, derivative = 0;
-        double lastError;
+        double lastError = 0;
       }
       namespace d {
         double error = 0, integral = 0, derivative = 0;
-        double lastError;
+        double lastError = 0;
       }
       namespace l {
         double error = 0, integral = 0, derivative = 0;
-        double lastError;
+        double lastError = 0;
       }
     }
   }
@@ -194,11 +194,11 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     robot::auton::pid::r::integral = fabs(robot::auton::pid::r::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::r::integral + robot::auton::pid::r::error : 0;
     robot::auton::pid::d::integral = fabs(robot::auton::pid::d::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::d::integral + robot::auton::pid::d::error : 0;
     robot::auton::pid::l::integral = fabs(robot::auton::pid::l::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::l::integral + robot::auton::pid::l::error : 0;
-
-    if (fabs(robot::auton::pid::u::error) > robot::auton::pid::integralResetZone) {robot::auton::pid::u::integral += robot::auton::pid::u::error;} else {robot::auton::pid::u::integral = 0;}
-    if (fabs(robot::auton::pid::r::error) > robot::auton::pid::integralResetZone) {robot::auton::pid::r::integral += robot::auton::pid::r::error;} else {robot::auton::pid::r::integral = 0;}
-    if (fabs(robot::auton::pid::d::error) > robot::auton::pid::integralResetZone) {robot::auton::pid::d::integral += robot::auton::pid::d::error;} else {robot::auton::pid::d::integral = 0;}
-    if (fabs(robot::auton::pid::l::error) > robot::auton::pid::integralResetZone) {robot::auton::pid::l::integral += robot::auton::pid::l::error;} else {robot::auton::pid::l::integral = 0;}
+    
+    robot::auton::pid::u::derivative = robot::auton::pid::u::error - robot::auton::pid::u::lastError;
+    robot::auton::pid::r::derivative = robot::auton::pid::r::error - robot::auton::pid::r::lastError;
+    robot::auton::pid::d::derivative = robot::auton::pid::d::error - robot::auton::pid::d::lastError;
+    robot::auton::pid::l::derivative = robot::auton::pid::l::error - robot::auton::pid::l::lastError;
   }
 }
 void turn(double target, double kp, double ki, double kd, double timeout) {
