@@ -80,6 +80,65 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
 void turn(double target, double kp, double ki, double kd, double timeout);
 
 void run();
+
+// Namespaces for variable organization
+
+// Namespace Tree for better organization
+// robot
+// ├── command
+// │   ├── a (int)
+// │   ├── b (int)
+// │   ├── c (int)
+// │   └── d (int)
+// ├── drivet
+// │   ├── u (double)
+// │   ├── r (double)
+// │   ├── d (double)
+// │   ├── l (double)
+// │   └── k (double, initialized to 1)
+// ├── bypass
+// │   └── driving (bool, initialized to false)
+// ├── constants
+// │   ├── maxMotorSpeed (int, initialized to 100)
+// │   └── pid
+// │       ├── kp (double, initialized to 1)
+// │       ├── ki (double, initialized to 1)
+// │       └── kd (double, initialized to 1)
+// ├── angl
+// │   ├── rot (double)
+// │   ├── head (double)
+// │   └── limrot (double)
+// └── auton
+//     └── pid
+//         ├── threshold (double, initialized to 5)
+//         ├── integralResetZone (double, initialized to 3)
+//         ├── maxSpeed (double, initialized to 100)
+//         ├── u
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         ├── r
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         ├── d
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         └── l
+//             ├── error (double, initialized to 0)
+//             ├── integral (double, initialized to 0)
+//             ├── derivative (double, initialized to 0)
+//             ├── lastError (double, initialized to 0)
+//             └── motorSpeed (double)
+
+
 namespace robot {
   namespace command {
     int a; //forwards backwards
@@ -123,18 +182,22 @@ namespace robot {
       namespace u {
         double error = 0, integral = 0, derivative = 0;
         double lastError = 0;
+        double motorSpeed;
       }
       namespace r {
         double error = 0, integral = 0, derivative = 0;
         double lastError = 0;
+        double motorSpeed;
       }
       namespace d {
         double error = 0, integral = 0, derivative = 0;
         double lastError = 0;
+        double motorSpeed;
       }
       namespace l {
         double error = 0, integral = 0, derivative = 0;
         double lastError = 0;
+        double motorSpeed;
       }
     }
   }
@@ -162,11 +225,9 @@ int main() {
 
 void run() {
   while (true) {
-
     robot::angl::head = BrainInertial.heading(degrees);
-
     robot::angl::limrot = (robot::angl::head > 179.9) ? -(360 - robot::angl::head) : robot::angl::head;
-  wait(20, msec);
+    wait(20, msec);
   }
 }
 
@@ -194,11 +255,14 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     robot::auton::pid::r::integral = fabs(robot::auton::pid::r::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::r::integral + robot::auton::pid::r::error : 0;
     robot::auton::pid::d::integral = fabs(robot::auton::pid::d::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::d::integral + robot::auton::pid::d::error : 0;
     robot::auton::pid::l::integral = fabs(robot::auton::pid::l::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::l::integral + robot::auton::pid::l::error : 0;
-    
+
     robot::auton::pid::u::derivative = robot::auton::pid::u::error - robot::auton::pid::u::lastError;
     robot::auton::pid::r::derivative = robot::auton::pid::r::error - robot::auton::pid::r::lastError;
     robot::auton::pid::d::derivative = robot::auton::pid::d::error - robot::auton::pid::d::lastError;
     robot::auton::pid::l::derivative = robot::auton::pid::l::error - robot::auton::pid::l::lastError;
+    
+    if (((robot::auton::pid::u::error)+(robot::auton::pid::r::error)+(robot::auton::pid::d::error)+(robot::auton::pid::l::error)/(4)) < robot::auton::pid::threshold) {}
+
   }
 }
 void turn(double target, double kp, double ki, double kd, double timeout) {
