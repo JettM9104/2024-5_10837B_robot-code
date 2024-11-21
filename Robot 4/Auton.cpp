@@ -76,7 +76,7 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
-void drive(double dir, double dist);
+void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout);
 void turn(double target, double kp, double ki, double kd, double timeout);
 
 void run();
@@ -126,7 +126,7 @@ int main() {
   thread myThread = thread(run);
   BrainInertial.setHeading(0,degrees);
   while (true) {
-    //
+    drive(90,2000,100,1,0.1,0.1,0);
     wait(20, msec);
   }
 
@@ -221,14 +221,13 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     BpositiveR.spin(forward, robot::drivet::r, percent);
     AnegativeD.spin(forward, robot::drivet::d, percent);
     bNegativeL.spin(forward, robot::drivet::l, percent);
-    lastError = error;
 
-    ApositiveU.stop();
-    BpositiveR.stop();
-    AnegativeD.stop();
-    bNegativeL.stop();
-  
-}
+    lastError = error;
+  }
+  ApositiveU.stop();
+  BpositiveR.stop();
+  AnegativeD.stop();
+  bNegativeL.stop();
 }
 void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
