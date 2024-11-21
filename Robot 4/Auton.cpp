@@ -76,7 +76,7 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
-void drive(double dir, double dist);
+void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout);
 void turn(double target, double kp, double ki, double kd, double timeout);
 
 void run();
@@ -126,7 +126,7 @@ int main() {
   thread myThread = thread(run);
   BrainInertial.setHeading(0,degrees);
   while (true) {
-    //
+    drive(60,2000,100,1,0.1,0.1,0);
     wait(20, msec);
   }
 
@@ -141,12 +141,7 @@ void run() {
 
     robot::angl::head = BrainInertial.heading(degrees);
 
-    if (robot::angl::head > 179.9) {
-      robot::angl::limrot = -(360-robot::angl::head);
-    }
-    else {
-      robot::angl::limrot = robot::angl::head;
-    }
+    robot::angl::limrot = (robot::angl::head > 179.9) ? -(360 - robot::angl::head) : robot::angl::head;
   wait(20, msec);
   }
 }
@@ -157,7 +152,7 @@ void run() {
 
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
-  double threshold = 2.5;
+  double threshold = 5;
   double maxIntegral = 50;
   double integralResetZone = 3;
   int maxSpeed = 100;
@@ -165,19 +160,23 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
   double current;
   double maximum;
   Brain.Timer.reset();
-  robot::command::a = k * cos(dir) //forward backward
-  robot::command::b = k * sin(dir) //strafing
+  robot::command::a = k * cos(dir); //forward backward
+  robot::command::b = k * sin(dir); //strafing
   robot::command::c = 0; //rotatoin (don't need)
 
   while (true) {
-    current = (fabs(ApositiveU.position(degrees)) + fabs(BpositiveR.position(degrees)) + fabs(AnegativeD.position(degrees)) + fabs(bNegativeL.position(degrees)))/4
-    error = target - current;
+    current = (fabs(ApositiveU.position(degrees)) + fabs(BpositiveR.position(degrees)) + fabs(AnegativeD.position(degrees)) + fabs(bNegativeL.position(degrees)))/4;
+    error = dist - current;
     derivative = error-lastError;
     if (fabs(error) < integralResetZone) {
       integral += error;
     } else {
       integral = 0;
     }
+
+
+    // Log the values into the console
+
 
     if (fabs(error) < threshold) {
       ApositiveU.stop();
@@ -211,24 +210,38 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     if (robot::drivet::r * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::r * motorSpeed; }
     if (robot::drivet::d * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::d * motorSpeed; }
     if (robot::drivet::l * motorSpeed > robot::constants::maxMotorSpeed) {maximum = robot::drivet::l * motorSpeed; }
-
+    /*
     robot::drivet::u *= maximum / (robot::drivet::u * motorSpeed > robot::constants::maxMotorSpeed);
     robot::drivet::r *= maximum / (robot::drivet::r * motorSpeed > robot::constants::maxMotorSpeed);
     robot::drivet::d *= maximum / (robot::drivet::d * motorSpeed > robot::constants::maxMotorSpeed);
     robot::drivet::l *= maximum / (robot::drivet::l * motorSpeed > robot::constants::maxMotorSpeed);
+    */
+    robot::drivet::u *= motorSpeed / 100;
+    robot::drivet::r *= motorSpeed / 100;
+    robot::drivet::d *= motorSpeed / 100;
+    robot::drivet::l *= motorSpeed / 100;
+    printf("Error: %f\n", error);
+    printf("Integral: %f\n", integral);
+    printf("Derivative: %f\n", derivative);
+    printf("Command: %f\n", motorSpeed);
+    printf("U Command: %f\n", robot::drivet::u);
+    printf("R Command: %f\n", robot::drivet::r);
+    printf("D Command: %f\n", robot::drivet::d);
+    printf("L Command: %f\n", robot::drivet::l);
+    printf("\n");
 
     ApositiveU.spin(forward, robot::drivet::u, percent);
     BpositiveR.spin(forward, robot::drivet::r, percent);
     AnegativeD.spin(forward, robot::drivet::d, percent);
     bNegativeL.spin(forward, robot::drivet::l, percent);
+
     lastError = error;
+    wait(20, msec);
   }
-  else {
-    ApositiveU.stop();
-    BpositiveR.stop();
-    AnegativeD.stop();
-    bNegativeL.stop();
-  }
+  ApositiveU.stop();
+  BpositiveR.stop();
+  AnegativeD.stop();
+  bNegativeL.stop();
 }
 void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
@@ -259,9 +272,8 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
 
     double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
-    if (motorSpeed > maxSpeed) motorSpeed = maxSpeed;
-    if (motorSpeed < -maxSpeed) motorSpeed = -maxSpeed;
-
+    if (motorSpeed > maxSpeed) {motorSpeed = maxSpeed; }
+    if (motorSpeed < -maxSpeed) {motorSpeed = -maxSpeed; }
     ApositiveU.spin(forward, motorSpeed, percent);
     BpositiveR.spin(forward, motorSpeed, percent);
     AnegativeD.spin(forward, motorSpeed, percent);
