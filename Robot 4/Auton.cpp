@@ -76,70 +76,13 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
+
+// Declaration of Driving Functions
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout);
 void turn(double target, double kp, double ki, double kd, double timeout);
-
-void run();
+void run(); // The code in this function run while the main code is running
 
 // Namespaces for variable organization
-
-// Namespace Tree for better organization
-// robot
-// ├── command
-// │   ├── a (int)
-// │   ├── b (int)
-// │   ├── c (int)
-// │   └── d (int)
-// ├── drivet
-// │   ├── u (double)
-// │   ├── r (double)
-// │   ├── d (double)
-// │   ├── l (double)
-// │   └── k (double, initialized to 1)
-// ├── bypass
-// │   └── driving (bool, initialized to false)
-// ├── constants
-// │   ├── maxMotorSpeed (int, initialized to 100)
-// │   └── pid
-// │       ├── kp (double, initialized to 1)
-// │       ├── ki (double, initialized to 1)
-// │       └── kd (double, initialized to 1)
-// ├── angl
-// │   ├── rot (double)
-// │   ├── head (double)
-// │   └── limrot (double)
-// └── auton
-//     └── pid
-//         ├── threshold (double, initialized to 5)
-//         ├── integralResetZone (double, initialized to 3)
-//         ├── maxSpeed (double, initialized to 100)
-//         ├── maximum (double, initalized to 1)
-//         ├── u
-//         │   ├── error (double, initialized to 0)
-//         │   ├── integral (double, initialized to 0)
-//         │   ├── derivative (double, initialized to 0)
-//         │   ├── lastError (double, initialized to 0)
-//         │   └── motorSpeed (double)
-//         ├── r
-//         │   ├── error (double, initialized to 0)
-//         │   ├── integral (double, initialized to 0)
-//         │   ├── derivative (double, initialized to 0)
-//         │   ├── lastError (double, initialized to 0)
-//         │   └── motorSpeed (double)
-//         ├── d
-//         │   ├── error (double, initialized to 0)
-//         │   ├── integral (double, initialized to 0)
-//         │   ├── derivative (double, initialized to 0)
-//         │   ├── lastError (double, initialized to 0)
-//         │   └── motorSpeed (double)
-//         └── l
-//             ├── error (double, initialized to 0)
-//             ├── integral (double, initialized to 0)
-//             ├── derivative (double, initialized to 0)
-//             ├── lastError (double, initialized to 0)
-//             └── motorSpeed (double)
-
-
 namespace robot {
   namespace command {
     int a; //forwards backwards
@@ -205,13 +148,7 @@ namespace robot {
   }
 }
 
-
-
-// U   R
-//   X
-// L   D
-
-
+// Main Function (Where code is run)
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
@@ -225,6 +162,7 @@ int main() {
 
 }
 
+// Defenition of run()
 void run() {
   while (true) {
     robot::angl::head = BrainInertial.heading(degrees);
@@ -233,6 +171,7 @@ void run() {
   }
 }
 
+// Definiton of drive()
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
   Brain.Timer.reset();
   robot::command::a = cos(dir); //forward backward 0.707
@@ -289,6 +228,7 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
   BnegativeL.stop();
 }
 
+// Definition of turn()
 void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
   double threshold = 2.5;
@@ -325,3 +265,60 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
   }
 }
 
+
+
+// Namespace Tree for better organization
+// robot
+// ├── command
+// │   ├── a (int)
+// │   ├── b (int)
+// │   ├── c (int)
+// │   └── d (int)
+// ├── drivet
+// │   ├── u (double)
+// │   ├── r (double)
+// │   ├── d (double)
+// │   ├── l (double)
+// │   └── k (double, initialized to 1)
+// ├── bypass
+// │   └── driving (bool, initialized to false)
+// ├── constants
+// │   ├── maxMotorSpeed (int, initialized to 100)
+// │   └── pid
+// │       ├── kp (double, initialized to 1)
+// │       ├── ki (double, initialized to 1)
+// │       └── kd (double, initialized to 1)
+// ├── angl
+// │   ├── rot (double)
+// │   ├── head (double)
+// │   └── limrot (double)
+// └── auton
+//     └── pid
+//         ├── threshold (double, initialized to 5)
+//         ├── integralResetZone (double, initialized to 3)
+//         ├── maxSpeed (double, initialized to 100)
+//         ├── maximum (double, initalized to 1)
+//         ├── u
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         ├── r
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         ├── d
+//         │   ├── error (double, initialized to 0)
+//         │   ├── integral (double, initialized to 0)
+//         │   ├── derivative (double, initialized to 0)
+//         │   ├── lastError (double, initialized to 0)
+//         │   └── motorSpeed (double)
+//         └── l
+//             ├── error (double, initialized to 0)
+//             ├── integral (double, initialized to 0)
+//             ├── derivative (double, initialized to 0)
+//             ├── lastError (double, initialized to 0)
+//             └── motorSpeed (double)
