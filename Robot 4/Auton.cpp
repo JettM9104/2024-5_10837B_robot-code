@@ -233,10 +233,6 @@ void run() {
   }
 }
 
-
-
-
-
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
   Brain.Timer.reset();
   robot::command::a = cos(dir); //forward backward 0.707
@@ -308,22 +304,19 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
       BpositiveR.stop();
       AnegativeD.stop();
       BnegativeL.stop();
-      break; //:D
+      break; 
     }
   
-    if (fabs(error) < integralResetZone) {
-      integral += error;
-    } else {
-      integral = 0;
-    }
+    if (fabs(error) < integralResetZone) {integral += error; } else {integral = 0; }
 
-    if (integral > maxIntegral) integral = maxIntegral;
-    if (integral < -maxIntegral) integral = -maxIntegral;
+    if (integral > maxIntegral) {integral = maxIntegral};
+    if (integral < -maxIntegral) {integral = -maxIntegral};
 
     double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
     if (motorSpeed > maxSpeed) {motorSpeed = maxSpeed; }
     if (motorSpeed < -maxSpeed) {motorSpeed = -maxSpeed; }
+
     ApositiveU.spin(forward, motorSpeed, percent);
     BpositiveR.spin(forward, motorSpeed, percent);
     AnegativeD.spin(forward, motorSpeed, percent);
