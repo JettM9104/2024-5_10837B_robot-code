@@ -32,7 +32,7 @@ controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT12, false);
+motor BnegativeL = motor(PORT12, false);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -113,6 +113,7 @@ void run();
 //         ├── threshold (double, initialized to 5)
 //         ├── integralResetZone (double, initialized to 3)
 //         ├── maxSpeed (double, initialized to 100)
+//         ├── maximum (double, initalized to 1)
 //         ├── u
 //         │   ├── error (double, initialized to 0)
 //         │   ├── integral (double, initialized to 0)
@@ -178,6 +179,7 @@ namespace robot {
   namespace auton {
     namespace pid {
       double threshold = 5,  integralResetZone = 3,  maxSpeed = 100;
+      double maximum = 1;
 
       namespace u {
         double error = 0, integral = 0, derivative = 0;
@@ -237,19 +239,30 @@ void run() {
 
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
   Brain.Timer.reset();
-  robot::command::a = k * cos(dir); //forward backward
-  robot::command::b = k * sin(dir); //strafing
-  robot::command::c = 0; //rotatoin (don't need)
+  robot::command::a = cos(dir); //forward backward 0.707
+  robot::command::b = sin(dir); //strafing         0.707
+  robot::command::c = 0; 
+
   robot::drivet::u = robot::command::a + robot::command::b + robot::command::c;
   robot::drivet::r = robot::command::a - robot::command::b - robot::command::c;
   robot::drivet::d = robot::command::a - robot::command::b + robot::command::c;
   robot::drivet::l = robot::command::a + robot::command::b - robot::command::c;
   
+  robot::auton::pid::maximum = robot::drivet::u > robot::auton::pid::maximum ? robot::drivet::u : robot::auton::pid::maximum;
+  robot::auton::pid::maximum = robot::drivet::r > robot::auton::pid::maximum ? robot::drivet::r : robot::auton::pid::maximum;
+  robot::auton::pid::maximum = robot::drivet::d > robot::auton::pid::maximum ? robot::drivet::d : robot::auton::pid::maximum;
+  robot::auton::pid::maximum = robot::drivet::l > robot::auton::pid::maximum ? robot::drivet::l : robot::auton::pid::maximum;
+
+  robot::drivet::u /= robot::auton::pid::maximum;
+  robot::drivet::r /= robot::auton::pid::maximum;
+  robot::drivet::d /= robot::auton::pid::maximum;
+  robot::drivet::l /= robot::auton::pid::maximum;
+
   while (true) {
     robot::auton::pid::u::error = dist - fabs(ApositiveU.position(degrees));
     robot::auton::pid::r::error = dist - fabs(BpositiveR.position(degrees));
     robot::auton::pid::d::error = dist - fabs(AnegativeD.position(degrees));
-    robot::auton::pid::l::error = dist - fabs(bNegativeL.position(degrees));
+    robot::auton::pid::l::error = dist - fabs(BnegativeL.position(degrees));
 
     robot::auton::pid::u::integral = fabs(robot::auton::pid::u::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::u::integral + robot::auton::pid::u::error : 0;
     robot::auton::pid::r::integral = fabs(robot::auton::pid::r::error) > robot::auton::pid::integralResetZone ? robot::auton::pid::r::integral + robot::auton::pid::r::error : 0;
@@ -261,10 +274,25 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     robot::auton::pid::d::derivative = robot::auton::pid::d::error - robot::auton::pid::d::lastError;
     robot::auton::pid::l::derivative = robot::auton::pid::l::error - robot::auton::pid::l::lastError;
     
-    if (((robot::auton::pid::u::error)+(robot::auton::pid::r::error)+(robot::auton::pid::d::error)+(robot::auton::pid::l::error)/(4)) < robot::auton::pid::threshold) {}
+    if (((robot::auton::pid::u::error)+(robot::auton::pid::r::error)+(robot::auton::pid::d::error)+(robot::auton::pid::l::error)/(4)) < robot::auton::pid::threshold) {break; }
+    if ((timeout > Brain.Timer.value()) && (timeout != 0)) {break; }
 
+    robot::auton::pid::u::motorSpeed = (robot::auton::pid::u::error * robot::constants::pid::kp + robot::auton::pid::u::integral * robot::constants::pid::ki + robot::auton::pid::u::derivative * robot::constants::pid::kd) * robot::drivet::u;
+    robot::auton::pid::r::motorSpeed = (robot::auton::pid::r::error * robot::constants::pid::kp + robot::auton::pid::r::integral * robot::constants::pid::ki + robot::auton::pid::r::derivative * robot::constants::pid::kd) * robot::drivet::r;
+    robot::auton::pid::d::motorSpeed = (robot::auton::pid::d::error * robot::constants::pid::kp + robot::auton::pid::d::integral * robot::constants::pid::ki + robot::auton::pid::d::derivative * robot::constants::pid::kd) * robot::drivet::d;
+    robot::auton::pid::l::motorSpeed = (robot::auton::pid::l::error * robot::constants::pid::kp + robot::auton::pid::l::integral * robot::constants::pid::ki + robot::auton::pid::l::derivative * robot::constants::pid::kd) * robot::drivet::l;
+
+    ApositiveU.spin(forward, robot::auton::pid::u::motorSpeed, percent);
+    BpositiveR.spin(forward, robot::auton::pid::r::motorSpeed, percent);
+    AnegativeD.spin(forward, robot::auton::pid::d::motorSpeed, percent);
+    BnegativeL.spin(forward, robot::auton::pid::l::motorSpeed, percent);
   }
+  ApositiveU.stop();
+  BpositiveR.stop();
+  AnegativeD.stop();
+  BnegativeL.stop();
 }
+
 void turn(double target, double kp, double ki, double kd, double timeout) {
   double error = 0, lastError = 0, integral = 0, derivative = 0;
   double threshold = 2.5;
@@ -279,7 +307,7 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
       ApositiveU.stop();
       BpositiveR.stop();
       AnegativeD.stop();
-      bNegativeL.stop();
+      BnegativeL.stop();
       break; //:D
     }
   
@@ -299,7 +327,7 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
     ApositiveU.spin(forward, motorSpeed, percent);
     BpositiveR.spin(forward, motorSpeed, percent);
     AnegativeD.spin(forward, motorSpeed, percent);
-    bNegativeL.spin(forward, motorSpeed, percent);
+    BnegativeL.spin(forward, motorSpeed, percent);
     lastError = error;
   }
 }
