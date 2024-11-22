@@ -30,12 +30,14 @@ brain Brain;
 inertial BrainInertial = inertial();
 controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
-motor BpositiveR = motor(PORT6, false);
+motor BpositiveR = motor(PORT2, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT12, false);
-motor shooting1 = motor(PORT2, false);
-motor shooting2 = motor(PORT3, true);
-pneumatic cats = pneumatic(PORT4);
+motor bNegativeL = motor(PORT8, false);
+motor shooting1 = motor(PORT4, false);
+motor shooting2 = motor(PORT10, true);
+pneumatic cats = pneumatic(PORT5);
+gyro turning = gyro(PORT3);
+distance conveyerSensor = distance(PORT9);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -79,8 +81,9 @@ bool RemoteControlCodeEnabled = true;
 
 // Allows for easier use of the VEX Library
 using namespace vex;
-void turnto(int heading, double kp, double ki, double kd, double timeout);
 void run();
+void init();
+
 namespace robot {
   namespace contr {
     int a; //forwards backwards
@@ -127,7 +130,8 @@ int main() {
   vexcodeInit();
 
   thread myThread = thread(run);
-  
+  init();
+
   while (true) {
     robot::contr::a = Controller.AxisA.position();
     robot::contr::b = Controller.AxisB.position();
@@ -191,8 +195,11 @@ int main() {
 
 }
 
-void turnto(int heading, double kp, double ki, double kd, double timeout) {
-  //
+void init() {
+  ApositiveU.setMaxTorque(100, percent);
+  AnegativeD.setMaxTorque(100, percent);
+  BpositiveR.setMaxTorque(100, percent);
+  bNegativeL.setMaxTorque(100, percent);
 }
 
 void run() {
