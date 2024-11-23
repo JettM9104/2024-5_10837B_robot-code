@@ -28,11 +28,12 @@ brain Brain;
 
 // Robot configuration code.
 inertial BrainInertial = inertial();
-controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
 motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
 motor BnegativeL = motor(PORT12, false);
+controller Controller = controller();
+
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -71,11 +72,6 @@ bool RemoteControlCodeEnabled = true;
 //                                                                            
 //----------------------------------------------------------------------------
 
-// Include the IQ Library
-#include "iq_cpp.h"
-
-// Allows for easier use of the VEX Library
-using namespace vex;
 
 // Declaration of Driving Functions
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout);
@@ -85,10 +81,10 @@ void run(); // The code in this function run while the main code is running
 // Namespaces for variable organization
 namespace robot {
   namespace command {
-    int a; //forwards backwards
-    int b; //left right
-    int c; //turning
-    int d;
+    double a; //forwards backwards
+    double b; //left right
+    double c; //turning
+    double d;
   }
 
   namespace drivet {
@@ -151,15 +147,12 @@ namespace robot {
 // Main Function (Where code is run)
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
+
   vexcodeInit();
 
   thread myThread = thread(run);
   BrainInertial.setHeading(0,degrees);
-  while (true) {
-    drive(60,2000,100,1,0.1,0.1,0);
-    wait(20, msec);
-  }
-
+  drive(60,2000,100,1,0.1,0.1,0);
 }
 
 // Defenition of run()
@@ -174,15 +167,25 @@ void run() {
 // Definiton of drive()
 void drive(double dir, double dist, double k, double kp, double ki, double kd, double timeout) {
   Brain.Timer.reset();
-  robot::command::a = cos(dir); //forward backward 0.707
-  robot::command::b = sin(dir); //strafing         0.707
+  
+  robot::command::a = cos(dir); //forward backward
+  robot::command::b = sin(dir); //strafing
   robot::command::c = 0; 
 
+  printf("A Command: %f\n", robot::command::a);
+  printf("B Command: %f\n", robot::command::b);
+  printf("C Command: %f\n", robot::command::c);
+  
   robot::drivet::u = robot::command::a + robot::command::b + robot::command::c;
   robot::drivet::r = robot::command::a - robot::command::b - robot::command::c;
   robot::drivet::d = robot::command::a - robot::command::b + robot::command::c;
   robot::drivet::l = robot::command::a + robot::command::b - robot::command::c;
-  
+
+  printf("Drivet U: %f\n", robot::drivet::u);
+  printf("Drivet R: %f\n", robot::drivet::r);
+  printf("Drivet D: %f\n", robot::drivet::d);
+  printf("Drivet L: %f\n", robot::drivet::l);
+
   robot::auton::pid::maximum = robot::drivet::u > robot::auton::pid::maximum ? robot::drivet::u : robot::auton::pid::maximum;
   robot::auton::pid::maximum = robot::drivet::r > robot::auton::pid::maximum ? robot::drivet::r : robot::auton::pid::maximum;
   robot::auton::pid::maximum = robot::drivet::d > robot::auton::pid::maximum ? robot::drivet::d : robot::auton::pid::maximum;
@@ -216,11 +219,60 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     robot::auton::pid::r::motorSpeed = (robot::auton::pid::r::error * robot::constants::pid::kp + robot::auton::pid::r::integral * robot::constants::pid::ki + robot::auton::pid::r::derivative * robot::constants::pid::kd) * robot::drivet::r;
     robot::auton::pid::d::motorSpeed = (robot::auton::pid::d::error * robot::constants::pid::kp + robot::auton::pid::d::integral * robot::constants::pid::ki + robot::auton::pid::d::derivative * robot::constants::pid::kd) * robot::drivet::d;
     robot::auton::pid::l::motorSpeed = (robot::auton::pid::l::error * robot::constants::pid::kp + robot::auton::pid::l::integral * robot::constants::pid::ki + robot::auton::pid::l::derivative * robot::constants::pid::kd) * robot::drivet::l;
+    printf("\033[30m");
+    printf("Brain Timer Value: %f\n", Brain.Timer.value());
+    printf("Maximum: %f\n", robot::auton::pid::maximum);
+    printf("\n");
+    printf("\033[34m");
+    printf("U Command: %f\n", robot::auton::pid::u::motorSpeed);
+    printf("\033[32m");
+    printf("U Drivet: %f\n", robot::drivet::u);
+    printf("\033[31m");
+    printf("U Error: %f\n", robot::auton::pid::u::error);
+    printf("U Integral: %f\n", robot::auton::pid::u::integral);
+    printf("U Derivative: %f\n", robot::auton::pid::u::derivative);
+    printf("\n");
 
+    printf("\033[34m");
+    printf("R Command: %f\n", robot::auton::pid::r::motorSpeed);
+    printf("\033[32m");
+    printf("R Drivet: %f\n", robot::drivet::r);
+    printf("\033[31m");
+    printf("R Error: %f\n", robot::auton::pid::r::error);
+    printf("R Integral: %f\n", robot::auton::pid::r::integral);
+    printf("R Derivative: %f\n", robot::auton::pid::r::derivative);
+    printf("\n");
+
+    printf("\033[34m");
+    printf("D Command: %f\n", robot::auton::pid::d::motorSpeed);
+    printf("\033[32m");
+    printf("R Drivet: %f\n", robot::drivet::d);
+    printf("\033[31m");
+    printf("D Error: %f\n", robot::auton::pid::d::error);
+    printf("D Integral: %f\n", robot::auton::pid::d::integral);
+    printf("D Derivative: %f\n", robot::auton::pid::d::derivative);
+    printf("\n");
+
+    printf("\033[34m");
+    printf("L Command: %f\n", robot::auton::pid::l::motorSpeed);
+    printf("\033[32m");
+    printf("L Drivet: %f\n", robot::drivet::l);
+    printf("\033[31m");
+    printf("L Error: %f\n", robot::auton::pid::l::error);
+    printf("L Integral: %f\n", robot::auton::pid::l::integral);
+    printf("L Derivative: %f\n", robot::auton::pid::l::derivative);
+    printf("\n");
+    printf("\n\n\n");
     ApositiveU.spin(forward, robot::auton::pid::u::motorSpeed, percent);
     BpositiveR.spin(forward, robot::auton::pid::r::motorSpeed, percent);
     AnegativeD.spin(forward, robot::auton::pid::d::motorSpeed, percent);
     BnegativeL.spin(forward, robot::auton::pid::l::motorSpeed, percent);
+
+    robot::auton::pid::u::lastError = robot::auton::pid::u::error;
+    robot::auton::pid::r::lastError = robot::auton::pid::r::error;
+    robot::auton::pid::d::lastError = robot::auton::pid::d::error;
+    robot::auton::pid::l::lastError = robot::auton::pid::l::error;
+    wait(20, msec);
   }
   ApositiveU.stop();
   BpositiveR.stop();
@@ -249,8 +301,8 @@ void turn(double target, double kp, double ki, double kd, double timeout) {
   
     if (fabs(error) < integralResetZone) {integral += error; } else {integral = 0; }
 
-    if (integral > maxIntegral) {integral = maxIntegral};
-    if (integral < -maxIntegral) {integral = -maxIntegral};
+    if (integral > maxIntegral) {integral = maxIntegral; }
+    if (integral < -maxIntegral) {integral = -maxIntegral; }
 
     double motorSpeed = (kp * error) + (ki * integral) + (kd * derivative);
 
