@@ -219,10 +219,13 @@ int main() {
         dogs.retract(cylinder1);
       }
     }
+    wait(20, msec);
   }
 }
 
 void init() {
+  shooting1.resetPosition();
+  shooting2.resetPosition();
   ApositiveU.setMaxTorque(100, percent);
   AnegativeD.setMaxTorque(100, percent);
   BpositiveR.setMaxTorque(100, percent);
@@ -258,6 +261,7 @@ void mt() {
       robot::toggle::mt::lift++;
       while (Controller.ButtonRDown.pressing()) {wait(20, msec); }
     }
+    wait(20, msec);
   }
 }
 
@@ -267,6 +271,7 @@ void pu() {
       robot::toggle::pt++;
       while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
     }
+    wait(20, msec);
   }
 }
 
@@ -279,8 +284,17 @@ void autoMT() {
         shooting2.spin(forward, 100, percent);
         if (Controller.ButtonEDown.pressing()) {break; }
         if (conveyerSensor.objectDistance(inches) < 5) {break; }
+        wait(20, msec);
       }
 
+      int a = static_cast<int>(shooting1.position(degrees));
+      int b = static_cast<int>(shooting2.position(degrees));
+
+      int aa = a % 90;
+      int bb = b % 90;
+
+      shooting1.spinToPosition(aa, degrees, false);
+      shooting2.spinToPosition(bb, degrees, true);
       robot::bypass::pneum1 = true;
 
       cats.retract(cylinder2);
@@ -301,6 +315,8 @@ void autoMT() {
       robot::bypass::pneum1 = false;
       cats.extend(cylinder2);
       dogs.extend(cylinder2);
+
     }
+    wait(20, msec);
   }
 }
