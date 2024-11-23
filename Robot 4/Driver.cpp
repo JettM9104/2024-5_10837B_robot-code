@@ -106,7 +106,7 @@ namespace robot {
     bool driving = false; //bypass for driving
     bool shooting = false; //bypass for conveyer-catapult motorshare
     bool pneum1 = false; //bypass for pneumatic
-    bool pneum2 = false // bypass for second pneumatic
+    bool pneum2 = false; // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -178,11 +178,11 @@ int main() {
 
     if (!robot::bypass::shooting) {
       if (Controller.ButtonLUp.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(forward, 100, percent);
-        shooting2.spin(forward, 100, percent);
+        shooting1.spin(reverse, 100, percent);
+        shooting2.spin(reverse, 100, percent);
       }
       else if (Controller.ButtonLDown.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(reverse, 100, percent);
+        shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
       }
       else if (Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing()) {
@@ -209,8 +209,8 @@ int main() {
       }
     }
 
-    if (!robot::bypass:pneum2) {
-      if (robot::toggle::pu % 2) {
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
         dogs.extend(cylinder1);
       }
       else {
