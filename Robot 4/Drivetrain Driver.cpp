@@ -30,9 +30,9 @@ brain Brain;
 inertial BrainInertial = inertial();
 controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
-motor BpositiveR = motor(PORT2, false);
+motor BpositiveR = motor(PORT6, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT8, false);
+motor bNegativeL = motor(PORT12, false);
 motor shooting1 = motor(PORT4, false);
 motor shooting2 = motor(PORT10, true);
 pneumatic cats = pneumatic(PORT5);
@@ -85,7 +85,6 @@ using namespace vex;
 void run();
 void mt();
 void pu();
-void autoMT();
 
 void init();
 
@@ -107,7 +106,7 @@ namespace robot {
     bool driving = false; //bypass for driving
     bool shooting = false; //bypass for conveyer-catapult motorshare
     bool pneum1 = false; //bypass for pneumatic
-    bool pneum2 = false; // bypass for second pneumatic
+    bool pneum2 = false // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -146,7 +145,6 @@ int main() {
   thread myThread = thread(run);
   thread mtLift = thread(mt);
   thread puncher = thread(pu);
-  thread autom = thread(autoMT);
   init();
 
   while (true) {
@@ -180,11 +178,11 @@ int main() {
 
     if (!robot::bypass::shooting) {
       if (Controller.ButtonLUp.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(reverse, 100, percent);
-        shooting2.spin(reverse, 100, percent);
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
       }
       else if (Controller.ButtonLDown.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(forward, 100, percent);
+        shooting1.spin(reverse, 100, percent);
         shooting2.spin(forward, 100, percent);
       }
       else if (Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing()) {
@@ -211,8 +209,8 @@ int main() {
       }
     }
 
-    if (!robot::bypass::pneum2) {
-      if (robot::toggle::pt % 2) {
+    if (!robot::bypass:pneum2) {
+      if (robot::toggle::pu % 2) {
         dogs.extend(cylinder1);
       }
       else {
@@ -264,30 +262,6 @@ void pu() {
     if (Controller.ButtonFUp.pressing()) {
       robot::toggle::pt++;
       while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
-    }
-  }
-}
-
-void autoMT() {
-  while (true) {
-    if (Controller.ButtonEUp.pressing()) {
-      while (true) {
-        shooting1.spin(forward, 20, percent);
-        shooting2.spin(forward, 20, percent);
-        if (Controller.ButtonEDown.pressing()) {break; }
-        if (conveyerSensor.objectDistance(inches) < 2) {break; }
-      }
-      robot::bypass::pneum1 = true;
-
-      cats.extend(cylinder2);
-      dogs.retract(cylinder2);
-      for (int s = 0; i < 40; i++) {
-        shooting1.spin(forward, 100, percent);
-        wait(200, msec);
-        shooting2.spin(reverse, 100, percent);
-        wait(200, msec);
-      }
-      wait(200, msec);
     }
   }
 }
