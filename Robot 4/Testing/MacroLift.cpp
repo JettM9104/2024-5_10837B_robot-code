@@ -123,7 +123,7 @@ namespace robot {
     double limrot;
   }
   namespace toggle {
-    int pt;
+    int pt = 0;
 
     namespace mt {
       int puncher = 0;
@@ -227,6 +227,8 @@ void init() {
   AnegativeD.setMaxTorque(100, percent);
   BpositiveR.setMaxTorque(100, percent);
   bNegativeL.setMaxTorque(100, percent);
+  shooting1.setStopping(hold);
+  shooting2.setStopping(hold);
 }
 
 void run() {
@@ -272,22 +274,33 @@ void autoMT() {
   while (true) {
     if (Controller.ButtonEUp.pressing()) {
       while (true) {
-        shooting1.spin(forward, 20, percent);
-        shooting2.spin(forward, 20, percent);
+        robot::bypass::shooting = true;
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
         if (Controller.ButtonEDown.pressing()) {break; }
-        if (conveyerSensor.objectDistance(inches) < 2) {break; }
+        if (conveyerSensor.objectDistance(inches) < 5) {break; }
       }
+
       robot::bypass::pneum1 = true;
 
-      cats.extend(cylinder2);
+      cats.retract(cylinder2);
       dogs.retract(cylinder2);
-      for (int s = 0; i < 40; i++) {
-        shooting1.spin(forward, 100, percent);
-        wait(200, msec);
-        shooting2.spin(reverse, 100, percent);
-        wait(200, msec);
+      shooting1.stop();
+      shooting2.stop();
+      wait(3, seconds);
+      for (int i = 0; i < 20; i++) {
+        // shooting1.spin(reverse, 100, percent);
+        // shooting2.spin(reverse, 100, percent);
+        // wait(100, msec);
+        // shooting1.spin(forward, 100, percent);
+        // shooting2.spin(forward, 100, percent);
+        // wait(100, msec);
       }
-      wait(200, msec);
+      wait(123123123, msec);
+      robot::bypass::shooting = false;
+      robot::bypass::pneum1 = false;
+      cats.extend(cylinder2);
+      dogs.extend(cylinder2);
     }
   }
 }
