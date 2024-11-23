@@ -83,6 +83,9 @@ bool RemoteControlCodeEnabled = true;
 // Allows for easier use of the VEX Library
 using namespace vex;
 void run();
+void mt();
+void pu();
+
 void init();
 
 namespace robot {
@@ -102,7 +105,8 @@ namespace robot {
   namespace bypass {
     bool driving = false; //bypass for driving
     bool shooting = false; //bypass for conveyer-catapult motorshare
-    bool pneum = false; //bypass for pneumatic
+    bool pneum1 = false; //bypass for pneumatic
+    bool pneum2 = false // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -116,6 +120,14 @@ namespace robot {
     double rot;
     double head;
     double limrot;
+  }
+  namespace toggle {
+    int pt;
+
+    namespace mt {
+      int puncher = 0;
+      int lift = 0;
+    }
   }
   
 
@@ -131,6 +143,8 @@ int main() {
   vexcodeInit();
 
   thread myThread = thread(run);
+  thread mtLift = thread(mt);
+  thread puncher = thread(pu);
   init();
 
   while (true) {
@@ -180,22 +194,30 @@ int main() {
       }
     }
 
-    if (!robot::bypass::pneum) {
-      if (Controller.ButtonRUp.pressing()) {
+    if (!robot::bypass::pneum1) {
+      if (robot::toggle::mt::puncher % 2) {
         cats.extend(cylinder2);
       }
       else {
         cats.retract(cylinder2);
       }
-      if (Controller.ButtonRDown.pressing()) {
+      if (robot::toggle::mt::lift % 2) {
         dogs.retract(cylinder2);
       }
       else {
         dogs.extend(cylinder2);
       }
     }
-  }
 
+    if (!robot::bypass:pneum2) {
+      if (robot::toggle::pu % 2) {
+        dogs.extend(cylinder1);
+      }
+      else {
+        dogs.retract(cylinder1);
+      }
+    }
+  }
 }
 
 void init() {
@@ -217,5 +239,29 @@ void run() {
       robot::angl::limrot = robot::angl::head;
     }
     wait(20, msec);
+  }
+}
+
+void mt() {
+  while (true) {
+    if (Controller.ButtonRUp.pressing()) {
+      //pumcher
+      robot::toggle::mt::puncher++;
+      while (Controller.ButtonRUp.pressing()) {wait(20, msec); }
+    }
+    if (Controller.ButtonRDown.pressing()) { 
+      //lift
+      robot::toggle::mt::lift++;
+      while (Controller.ButtonRDown.pressing()) {wait(20, msec); }
+    }
+  }
+}
+
+void pu() {
+  while (true) {
+    if (Controller.ButtonFUp.pressing()) {
+      robot::toggle::pt++;
+      while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
+    }
   }
 }
