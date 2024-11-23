@@ -36,6 +36,7 @@ motor bNegativeL = motor(PORT8, false);
 motor shooting1 = motor(PORT4, false);
 motor shooting2 = motor(PORT10, true);
 pneumatic cats = pneumatic(PORT5);
+pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
 
@@ -181,14 +182,16 @@ int main() {
 
     if (!robot::bypass::pneum) {
       if (Controller.ButtonRUp.pressing()) {
-        cats.extend(cylinder1);
-      }
-      else if (Controller.ButtonLDown.pressing()) {
-        cats.retract(cylinder1);
+        cats.extend(cylinder2);
       }
       else {
         cats.retract(cylinder2);
-        cats.extend(cylinder1);
+      }
+      if (Controller.ButtonRDown.pressing()) {
+        dogs.retract(cylinder2);
+      }
+      else {
+        dogs.extend(cylinder2);
       }
     }
   }
@@ -213,5 +216,6 @@ void run() {
     else {
       robot::angl::limrot = robot::angl::head;
     }
+    wait(20, msec);
   }
 }
