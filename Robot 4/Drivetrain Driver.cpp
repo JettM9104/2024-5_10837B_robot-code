@@ -85,8 +85,7 @@ bool RemoteControlCodeEnabled = true;
 // Allows for easier use of the VEX Library
 using namespace vex;
 void run();
-void led();
-void pu();
+
 
 void init();
 
@@ -106,33 +105,15 @@ namespace robot {
   }
   namespace bypass {
     bool driving = false; //bypass for driving
-    bool shooting = false; //bypass for conveyer-catapult motorshare
-    bool pneum1 = false; //bypass for pneumatic
-    bool pneum2 = false; // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
-  }
-  namespace pid {
-    double kp = 1;
-    double ki = 1;
-    double kd = 1;
   }
   namespace angl {
     double rot;
     double head;
     double limrot;
   }
-  namespace toggle {
-    int pt;
-
-    namespace mt {
-      int puncher = 0;
-      int lift = 0;
-    }
-  }
-  
-
 }
 
 // U   R
@@ -145,8 +126,6 @@ int main() {
   vexcodeInit();
 
   thread myThread = thread(run);
-  thread touchLED = thread(led);
-  thread puncher = thread(pu);
   init();
 
   while (true) {
@@ -177,48 +156,17 @@ int main() {
       AnegativeD.stop();
       bNegativeL.stop();
     }
-
-    if (!robot::bypass::shooting) {
-      if (Controller.ButtonLUp.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(forward, 100, percent);
-        shooting2.spin(forward, 100, percent);
-      }
-      else if (Controller.ButtonLDown.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
-        shooting1.spin(reverse, 100, percent);
-        shooting2.spin(forward, 100, percent);
-      }
-      else if (Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing()) {
-        Brain.playSound(fillup);
-      }
-      else {
-        shooting1.stop();
-        shooting2.stop();
-      }
+    if (Controller.ButtonRDown.pressing()) {
+      indicator.setColor(red);
+    }
+    else {
+      indicator.setColor(blue_green);
     }
 
-    if (!robot::bypass::pneum1) {
-      if (robot::toggle::mt::puncher % 2) {
-        cats.extend(cylinder2);
-      }
-      else {
-        cats.retract(cylinder2);
-      }
-      if (robot::toggle::mt::lift % 2) {
-        dogs.retract(cylinder2);
-      }
-      else {
-        dogs.extend(cylinder2);
-      }
+    if (Controller.ButtonRUp.pressing()) {
+      Brain.playSound(wrongWaySlow);
     }
-
-    if (!robot::bypass::pneum2) {
-      if (robot::toggle::pt % 2) {
-        dogs.extend(cylinder1);
-      }
-      else {
-        dogs.retract(cylinder1);
-      }
-    }
+    wait(20, msec);
   }
 }
 
@@ -244,23 +192,4 @@ void run() {
   }
 }
 
-void led() {
-  while (true) {
-    if (Controller.ButtonRDown.pressing()) {
-      indicator.setColor(red);
-    }
-    else {
-      indicator.setColor(blue_green);
-    }
-    wait(20, msec);
-  }
-}
 
-void pu() {
-  while (true) {
-    if (Controller.ButtonFUp.pressing()) {
-      robot::toggle::pt++;
-      while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
-    }
-  }
-}
