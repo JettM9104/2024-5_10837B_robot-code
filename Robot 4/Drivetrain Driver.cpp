@@ -39,6 +39,8 @@ pneumatic cats = pneumatic(PORT5);
 pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
+touchled indicator = touchled(PORT8);
+
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -83,7 +85,7 @@ bool RemoteControlCodeEnabled = true;
 // Allows for easier use of the VEX Library
 using namespace vex;
 void run();
-void mt();
+void led();
 void pu();
 
 void init();
@@ -106,7 +108,7 @@ namespace robot {
     bool driving = false; //bypass for driving
     bool shooting = false; //bypass for conveyer-catapult motorshare
     bool pneum1 = false; //bypass for pneumatic
-    bool pneum2 = false // bypass for second pneumatic
+    bool pneum2 = false; // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -143,7 +145,7 @@ int main() {
   vexcodeInit();
 
   thread myThread = thread(run);
-  thread mtLift = thread(mt);
+  thread touchLED = thread(led);
   thread puncher = thread(pu);
   init();
 
@@ -209,8 +211,8 @@ int main() {
       }
     }
 
-    if (!robot::bypass:pneum2) {
-      if (robot::toggle::pu % 2) {
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
         dogs.extend(cylinder1);
       }
       else {
@@ -242,18 +244,15 @@ void run() {
   }
 }
 
-void mt() {
+void led() {
   while (true) {
-    if (Controller.ButtonRUp.pressing()) {
-      //pumcher
-      robot::toggle::mt::puncher++;
-      while (Controller.ButtonRUp.pressing()) {wait(20, msec); }
+    if (Controller.ButtonRDown.pressing()) {
+      indicator.setColor(red);
     }
-    if (Controller.ButtonRDown.pressing()) { 
-      //lift
-      robot::toggle::mt::lift++;
-      while (Controller.ButtonRDown.pressing()) {wait(20, msec); }
+    else {
+      indicator.setColor(blue_green);
     }
+    wait(20, msec);
   }
 }
 
