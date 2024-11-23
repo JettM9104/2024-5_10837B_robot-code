@@ -152,7 +152,10 @@ int main() {
 
   thread myThread = thread(run);
   BrainInertial.setHeading(0,degrees);
-  drive(60,2000,100,1,0.1,0.1,0);
+  drive(90,300,100,1,0.1,0.1,0);
+  drive(0,300,100,1,0.1,0.1,0);
+  drive(-90,300,100,1,0.1,0.1,0);
+  drive(180,300,100,1,0.1,0.1,0);
 }
 
 // Defenition of run()
@@ -171,6 +174,11 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
   robot::command::a = cos(dir); //forward backward
   robot::command::b = sin(dir); //strafing
   robot::command::c = 0; 
+
+  ApositiveU.resetPosition();
+  BpositiveR.resetPosition();
+  AnegativeD.resetPosition();
+  BnegativeL.resetPosition();
 
   printf("A Command: %f\n", robot::command::a);
   printf("B Command: %f\n", robot::command::b);
