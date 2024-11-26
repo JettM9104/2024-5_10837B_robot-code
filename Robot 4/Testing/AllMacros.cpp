@@ -30,17 +30,15 @@ brain Brain;
 inertial BrainInertial = inertial();
 controller Controller = controller();
 motor ApositiveU = motor(PORT1, true);
-motor BpositiveR = motor(PORT6, false);
+motor BpositiveR = motor(PORT2, false);
 motor AnegativeD = motor(PORT7, true);
-motor bNegativeL = motor(PORT12, false);
+motor bNegativeL = motor(PORT8, false);
 motor shooting1 = motor(PORT4, false);
 motor shooting2 = motor(PORT10, true);
 pneumatic cats = pneumatic(PORT5);
 pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
-touchled indicator = touchled(PORT8);
-
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -85,7 +83,10 @@ bool RemoteControlCodeEnabled = true;
 // Allows for easier use of the VEX Library
 using namespace vex;
 void run();
-
+void mt();
+void pu();
+void autoMT();
+void shoot();
 
 void init();
 
@@ -105,27 +106,49 @@ namespace robot {
   }
   namespace bypass {
     bool driving = false; //bypass for driving
+    bool shooting = false; //bypass for conveyer-catapult motorshare
+    bool pneum1 = false; //bypass for pneumatic
+    bool pneum2 = false; // bypass for second pneumatic
   }
   namespace constants {
     int maxMotorSpeed = 100;
+  }
+  namespace pid {
+    double kp = 1;
+    double ki = 1;
+    double kd = 1;
   }
   namespace angl {
     double rot;
     double head;
     double limrot;
   }
+  namespace toggle {
+    int pt = 0;
+    int lift_marco = 0;
+
+    namespace mt {
+      int puncher = 0;
+      int lift = 0;
+    }
+  }
+  
+
 }
 
 // U   R
 //   X
 // L   D
 
-
+int f = 0;
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
   thread myThread = thread(run);
+  thread mtLift = thread(mt);
+  thread puncher = thread(pu);
+  thread autom = thread(autoMT);
   init();
 
   while (true) {
@@ -156,25 +179,64 @@ int main() {
       AnegativeD.stop();
       bNegativeL.stop();
     }
-    if (Controller.ButtonRDown.pressing()) {
-      indicator.setColor(red);
-    }
-    else {
-      indicator.setColor(blue_green);
+
+    if (!robot::bypass::shooting) {
+      if (Controller.ButtonLUp.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
+        shooting1.spin(reverse, 100, percent);
+        shooting2.spin(reverse, 100, percent);
+      }
+      else if (Controller.ButtonLDown.pressing() && !(Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing())) {
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
+      }
+      else if (Controller.ButtonLUp.pressing() && Controller.ButtonLDown.pressing()) {
+        Brain.playSound(fillup);
+      }
+      else {
+        shooting1.stop();
+        shooting2.stop();
+      }
     }
 
-    if (Controller.ButtonRUp.pressing()) {
-      Brain.playSound(wrongWaySlow);
+    if (!robot::bypass::pneum1) {
+      if (robot::toggle::mt::puncher % 2) {
+        cats.extend(cylinder2);
+      }
+      else {
+        cats.retract(cylinder2);
+      }
+      if (robot::toggle::mt::lift % 2) {
+        dogs.retract(cylinder2);
+      }
+      else {
+        dogs.extend(cylinder2);
+      }
+    }
+
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
+        dogs.extend(cylinder1);
+        f=0;
+      }
+      else {
+        dogs.retract(cylinder1);
+        f++;
+        shoot();
+      }
     }
     wait(20, msec);
   }
 }
 
 void init() {
+  shooting1.resetPosition();
+  shooting2.resetPosition();
   ApositiveU.setMaxTorque(100, percent);
   AnegativeD.setMaxTorque(100, percent);
   BpositiveR.setMaxTorque(100, percent);
   bNegativeL.setMaxTorque(100, percent);
+  shooting1.setStopping(hold);
+  shooting2.setStopping(hold);
 }
 
 void run() {
@@ -192,4 +254,89 @@ void run() {
   }
 }
 
+void mt() {
+  while (true) {
+    if (Controller.ButtonRUp.pressing()) {
+      //pumcher
+      robot::toggle::mt::puncher++;
+      while (Controller.ButtonRUp.pressing()) {wait(20, msec); }
+    }
+    if (Controller.ButtonRDown.pressing()) { 
+      //lift
+      robot::toggle::mt::lift++;
+      while (Controller.ButtonRDown.pressing()) {wait(20, msec); }
+    }
+    wait(20, msec);
+  }
+}
 
+void pu() {
+  while (true) {
+    if (Controller.ButtonFUp.pressing()) {
+      robot::toggle::pt++;
+      while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
+    }
+    wait(20, msec);
+  }
+}
+
+void autoMT() {
+  bool quit;
+  while (true) {
+    if (Controller.ButtonEUp.pressing()) {
+      //robot::toggle::lift_marco++;
+      cats.retract(cylinder2);
+      dogs.extend(cylinder2);
+
+      //if (robot::toggle::lift_marco % 2) {
+      //  quit = true;
+      //  break;
+      //}
+
+      while (true) {
+        
+        robot::bypass::shooting = true;
+        robot::bypass::pneum1 = true;
+
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
+        if (Controller.ButtonEDown.pressing()) {quit = true; break; }
+        if (conveyerSensor.objectDistance(mm) < 40) {break; }
+        wait(20, msec);
+      }
+      if (!quit) {
+        shooting1.stop();
+        shooting2.stop();
+
+        dogs.retract(cylinder2);
+        
+        wait(1500, msec);
+
+        dogs.extend(cylinder2);
+      }
+      quit = false;
+      robot::bypass::shooting = false;
+      robot::bypass::pneum1 = false;
+
+
+    }
+    wait(20, msec);
+  }
+}
+
+void shoot() {
+  if (f == 1) {
+    robot::bypass::pneum2 = true;
+    robot::bypass::shooting = true;
+
+    cats.retract(cylinder1);
+    
+    shooting1.spinFor(reverse, 180, degrees, false);
+    shooting2.spinFor(reverse, 179, degrees, false);
+
+    wait(1, seconds);
+    robot::bypass::pneum2 = false;
+    robot::bypass::shooting = false;
+
+}
+}

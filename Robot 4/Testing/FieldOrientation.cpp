@@ -96,6 +96,11 @@ namespace robot {
     int c; //turning
     int d;
   }
+  namespace fieldOrien {
+    double headingRad = 0;
+    double fieldForw;
+    double fieldStra;
+  }
   namespace drivet {
     double u;
     double r;
@@ -108,6 +113,7 @@ namespace robot {
   }
   namespace constants {
     int maxMotorSpeed = 100;
+    double pi = 3.141592;
   }
   namespace angl {
     double rot;
@@ -127,18 +133,24 @@ int main() {
 
   thread myThread = thread(run);
   init();
-
+  
   while (true) {
     robot::contr::a = Controller.AxisA.position();
     robot::contr::b = Controller.AxisB.position();
     robot::contr::c = Controller.AxisC.position();
     robot::contr::d = Controller.AxisD.position();
 
+    robot::fieldOrien::headingRad = BrainInertial.heading(degrees) * robot::constants::pi / 180;
+
+    robot::fieldOrien::fieldForw = robot::contr::a * cos(robot::fieldOrien::headingRad) + robot::contr::b * sin(robot::fieldOrien::headingRad);
+    robot::fieldOrien::fieldStra = -robot::contr::a * sin(robot::fieldOrien::headingRad) + robot::contr::b * cos(robot::fieldOrien::headingRad);
+
+
     if (!robot::bypass::driving) {
-      robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
-      robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
-      robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
-      robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
+      robot::drivet::u = robot::fieldOrien::fieldForw + robot::fieldOrien::fieldStra + robot::contr::c;
+      robot::drivet::r = robot::fieldOrien::fieldForw - robot::fieldOrien::fieldStra - robot::contr::c;
+      robot::drivet::d = robot::fieldOrien::fieldForw - robot::fieldOrien::fieldStra + robot::contr::c;
+      robot::drivet::l = robot::fieldOrien::fieldForw + robot::fieldOrien::fieldStra - robot::contr::c;
 
       if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
       if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
@@ -175,6 +187,8 @@ void init() {
   AnegativeD.setMaxTorque(100, percent);
   BpositiveR.setMaxTorque(100, percent);
   bNegativeL.setMaxTorque(100, percent);
+  BrainInertial.setRotation(0, degrees);
+  BrainInertial.setHeading(0, degrees);
 }
 
 void run() {
