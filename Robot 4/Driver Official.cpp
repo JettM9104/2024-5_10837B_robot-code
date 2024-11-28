@@ -150,7 +150,7 @@ int main() {
     robot::contr::d = Controller.AxisD.position();
 
     if (!robot::bypass::driving) {
-      if (robot::contr::c == 0) {robot::contr::c = - (robot::angl::limrot - robot::angl::save) * robot::pid::kr; }
+      if (robot::contr::c == 0) {robot::contr::c = -(robot::angl::rot - robot::angl::save) * robot::pid::kr; }
       robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
       robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
       robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
@@ -240,8 +240,11 @@ void init() {
 
 void run() {
   while (true) {
-
+    
+    
     robot::angl::head = BrainInertial.heading(degrees);
+    robot::angl::rot = BrainInertial.rotation(degrees);
+
 
     if (robot::angl::head > 179.9) {
       robot::angl::limrot = -(360-robot::angl::head);

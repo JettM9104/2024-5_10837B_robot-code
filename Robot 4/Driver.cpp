@@ -161,6 +161,7 @@ int main() {
       robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
       robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
 
+
       if (robot::drivet::u > robot::constants::maxMotorSpeed) {robot::drivet::u = robot::constants::maxMotorSpeed; }
       if (robot::drivet::r > robot::constants::maxMotorSpeed) {robot::drivet::r = robot::constants::maxMotorSpeed; }
       if (robot::drivet::d > robot::constants::maxMotorSpeed) {robot::drivet::d = robot::constants::maxMotorSpeed; }
