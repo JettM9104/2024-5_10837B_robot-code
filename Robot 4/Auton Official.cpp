@@ -122,7 +122,7 @@ namespace robot {
   
   namespace auton {
     namespace pid {
-      double threshold = 5,  integralResetZone = 3,  maxSpeed = 100;
+      double threshold = 10,  integralResetZone = 3,  maxSpeed = 100;
       double maximum = 1;
       double dirRad;
       double correctionK = 0.006;
@@ -165,7 +165,7 @@ int main() {
   
   BrainInertial.setHeading(0,degrees);
   thread lift = thread(liftMacro);
-  drive(0,100,100,1,0.1,0.1,0);
+  drive(0,100,100,0.4,0.1,0.1,0);
 }
 
 // Defenition of run()
@@ -211,6 +211,8 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
   robot::drivet::r = robot::command::a - robot::command::b - robot::command::c;
   robot::drivet::d = robot::command::a - robot::command::b + robot::command::c;
   robot::drivet::l = robot::command::a + robot::command::b - robot::command::c;
+
+  printf("Drivet U: %f\n", robot::drivet::u)
 
   printf("Drivet U: %f\n", robot::drivet::u);
   printf("Drivet R: %f\n", robot::drivet::r);
@@ -305,7 +307,7 @@ void drive(double dir, double dist, double k, double kp, double ki, double kd, d
     robot::auton::pid::d::derivative = robot::auton::pid::d::error - robot::auton::pid::d::lastError;
     robot::auton::pid::l::derivative = robot::auton::pid::l::error - robot::auton::pid::l::lastError;
     
-    robot::command::c = (robot::angl::rot) * robot::auton::pid::correctionK * -1; 
+    robot::command::c = (robot::angl::rot) * 0 * -1; 
 
     printf("C Command: %f\n", robot::command::c);
     int x = 0;
