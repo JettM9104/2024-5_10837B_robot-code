@@ -151,8 +151,8 @@ namespace robot {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  thread ratch = thread(rat);
-  thread myThread = thread(run);
+  thread rath = thread(rat);
+  thread anglese = thread(run);
   thread mtLift = thread(mt);
   thread puncher = thread(pu);
   thread autom = thread(autoMT);
@@ -246,10 +246,12 @@ int main() {
       else {
         cats.retract(cylinder1);
       }
+
+      printf("%d\n", robot::toggle::ra);
     }
-    }
-    wait(20, msec);
   }
+    wait(20, msec);
+}
 
 
 void init() {
@@ -347,8 +349,12 @@ void autoMT() {
 }
 
 void rat() {
-  if (Controller.ButtonFDown.pressing()) {
-    robot::toggle::ra++;
-    while (Controller.ButtonFDown.pressing()) {wait(20, msec); }
+  while (true) {
+    printf("%d\n", robot::toggle::ra);
+    if (Controller.ButtonFDown.pressing()) {
+      robot::toggle::ra++;
+      while (Controller.ButtonFDown.pressing()) {wait(20, msec); }
+    }
+    wait(20, msec);
   }
 }
