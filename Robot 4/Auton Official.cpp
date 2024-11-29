@@ -125,10 +125,13 @@ namespace robot {
       double threshold = 5,  integralResetZone = 3,  maxSpeed = 100;
       double maximum = 1;
       double dirRad;
-      double correctionK = 1;
+      double correctionK = 2.653;
       int iteration = 0;
       double correction;
       double fCorrection;
+
+
+      double maximum;
 
       namespace r {
         double error = 0, integral = 0, derivative = 0;
@@ -161,6 +164,11 @@ int main() {
 
   thread direction = thread(run);
 
+  for (int i = 3; i >= 0; i--) {
+    wait(1, seconds);
+    printf("%d\n", i);
+    
+  }
   
   BrainInertial.setHeading(0,degrees);
   //thread lift = thread(liftMacro);
@@ -182,6 +190,7 @@ void init() {
   AnegativeD.setStopping(hold);
   BnegativeL.setStopping(hold);
   dogs.retract(cylinder1);
+  printf("\033[2J\n");
 }
 // Definiton of drive()
 void drive(double dist, double k, double kp, double ki, double kd, double timeout) {
@@ -217,6 +226,15 @@ void drive(double dist, double k, double kp, double ki, double kd, double timeou
     robot::auton::correction::d = robot::auton::pid::l::motorSpeed - robot::auton::pid::fCorrection;
     robot::auton::correction::l = robot::auton::pid::l::motorSpeed + robot::auton::pid::fCorrection;
 
+    robot::auton::pid::maximum = robot::auton::correction::u > robot::auton::pid::maximum ? robot::auton::correction::u : robot::auton::pid::maximum;
+    robot::auton::pid::maximum = robot::auton::correction::r > robot::auton::pid::maximum ? robot::auton::correction::r : robot::auton::pid::maximum;
+    robot::auton::pid::maximum = robot::auton::correction::d > robot::auton::pid::maximum ? robot::auton::correction::d : robot::auton::pid::maximum;
+    robot::auton::pid::maximum = robot::auton::correction::l > robot::auton::pid::maximum ? robot::auton::correction::l : robot::auton::pid::maximum;
+
+    robot::drivet::u /= robot::auton::pid::maximum;
+    robot::drivet::r /= robot::auton::pid::maximum;
+    robot::drivet::d /= robot::auton::pid::maximum;
+    robot::drivet::l /= robot::auton::pid::maximum;
     ApositiveU.spin(forward, robot::auton::correction::u, percent);
     BnegativeL.spin(forward, robot::auton::correction::r, percent);
     
