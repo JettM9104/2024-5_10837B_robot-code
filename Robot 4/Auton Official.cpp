@@ -131,7 +131,7 @@ namespace robot {
       double fCorrection;
 
 
-      double maximum;
+      double max;
 
       namespace r {
         double error = 0, integral = 0, derivative = 0;
@@ -226,15 +226,16 @@ void drive(double dist, double k, double kp, double ki, double kd, double timeou
     robot::auton::correction::d = robot::auton::pid::l::motorSpeed - robot::auton::pid::fCorrection;
     robot::auton::correction::l = robot::auton::pid::l::motorSpeed + robot::auton::pid::fCorrection;
 
-    robot::auton::pid::maximum = robot::auton::correction::u > robot::auton::pid::maximum ? robot::auton::correction::u : robot::auton::pid::maximum;
-    robot::auton::pid::maximum = robot::auton::correction::r > robot::auton::pid::maximum ? robot::auton::correction::r : robot::auton::pid::maximum;
-    robot::auton::pid::maximum = robot::auton::correction::d > robot::auton::pid::maximum ? robot::auton::correction::d : robot::auton::pid::maximum;
-    robot::auton::pid::maximum = robot::auton::correction::l > robot::auton::pid::maximum ? robot::auton::correction::l : robot::auton::pid::maximum;
+    robot::auton::pid::max = robot::auton::correction::u > robot::auton::pid::max ? robot::auton::correction::u : robot::auton::pid::max;
+    robot::auton::pid::max = robot::auton::correction::r > robot::auton::pid::max ? robot::auton::correction::r : robot::auton::pid::max;
+    robot::auton::pid::max = robot::auton::correction::d > robot::auton::pid::max ? robot::auton::correction::d : robot::auton::pid::max;
+    robot::auton::pid::max = robot::auton::correction::l > robot::auton::pid::max ? robot::auton::correction::l : robot::auton::pid::max;
 
-    robot::drivet::u /= robot::auton::pid::maximum;
-    robot::drivet::r /= robot::auton::pid::maximum;
-    robot::drivet::d /= robot::auton::pid::maximum;
-    robot::drivet::l /= robot::auton::pid::maximum;
+    robot::auton::correction::u /= robot::auton::pid::max;
+    robot::auton::correction::r /= robot::auton::pid::max;
+    robot::auton::correction::d /= robot::auton::pid::max;
+    robot::auton::correction::l /= robot::auton::pid::max;
+
     ApositiveU.spin(forward, robot::auton::correction::u, percent);
     BnegativeL.spin(forward, robot::auton::correction::r, percent);
     
