@@ -28,6 +28,17 @@ brain Brain;
 
 // Robot configuration code.
 inertial BrainInertial = inertial();
+controller Controller = controller();
+motor ApositiveU = motor(PORT1, true);
+motor BpositiveR = motor(PORT2, false);
+motor AnegativeD = motor(PORT7, true);
+motor bNegativeL = motor(PORT8, false);
+motor shooting1 = motor(PORT4, false);
+motor shooting2 = motor(PORT10, true);
+pneumatic cats = pneumatic(PORT5);
+pneumatic dogs = pneumatic(PORT11);
+gyro turning = gyro(PORT3);
+distance conveyerSensor = distance(PORT9);
 
 
 // generating and setting random seed
@@ -72,6 +83,7 @@ void run();
 void mt();
 void pu();
 void autoMT();
+void rat();
 
 void init();
 
@@ -94,6 +106,8 @@ namespace robot {
     bool shooting = false; //bypass for conveyer-catapult motorshare
     bool pneum1 = false; //bypass for pneumatic
     bool pneum2 = false; // bypass for second pneumatic
+    bool pneum3 = false;
+
   }
   namespace constants {
     int maxMotorSpeed = 100;
@@ -113,6 +127,7 @@ namespace robot {
   }
   namespace toggle {
     int pt = 0;
+    int ra = 0;
 
     namespace mt {
       int puncher = 0;
@@ -136,7 +151,7 @@ namespace robot {
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-
+  thread ratch = thread(rat);
   thread myThread = thread(run);
   thread mtLift = thread(mt);
   thread puncher = thread(pu);
@@ -150,7 +165,7 @@ int main() {
     robot::contr::d = Controller.AxisD.position();
 
     if (!robot::bypass::driving) {
-      if (robot::contr::c == 0) {robot::contr::c = -(robot::angl::rot - robot::angl::save) * robot::pid::kr; }
+      // if (robot::contr::c == 0) {robot::contr::c = -(robot::angl::rot - robot::angl::save) * robot::pid::kr; }
       robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
       robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
       robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
@@ -223,9 +238,19 @@ int main() {
         dogs.retract(cylinder1);
       }
     }
+
+    if (!robot::bypass::pneum3) {
+      if (robot::toggle::ra % 2) {
+        cats.extend(cylinder1);
+      }
+      else {
+        cats.retract(cylinder1);
+      }
+    }
+    }
     wait(20, msec);
   }
-}
+
 
 void init() {
   shooting1.resetPosition();
@@ -321,3 +346,9 @@ void autoMT() {
   }
 }
 
+void rat() {
+  if (Controller.ButtonFDown.pressing()) {
+    robot::toggle::ra++;
+    while (Controller.ButtonFDown.pressing()) {wait(20, msec); }
+  }
+}
