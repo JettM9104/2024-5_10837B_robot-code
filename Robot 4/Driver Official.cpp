@@ -171,17 +171,16 @@ int main() {
       robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
       robot::drivet::l = robot::contr::a + robot::contr::b - robot::contr::c;
       
+      // robot::auton::pid::maximum = robot::drivet::u > robot::auton::pid::maximum ? robot::drivet::u : robot::auton::pid::maximum;
+      // robot::auton::pid::maximum = robot::drivet::r > robot::auton::pid::maximum ? robot::drivet::r : robot::auton::pid::maximum;
+      // robot::auton::pid::maximum = robot::drivet::d > robot::auton::pid::maximum ? robot::drivet::d : robot::auton::pid::maximum;
+      // robot::auton::pid::maximum = robot::drivet::l > robot::auton::pid::maximum ? robot::drivet::l : robot::auton::pid::maximum;
 
+      // robot::drivet::u /= robot::auton::pid::maximum / 100;
+      // robot::drivet::r /= robot::auton::pid::maximum / 100;
+      // robot::drivet::d /= robot::auton::pid::maximum / 100;
+      // robot::drivet::l /= robot::auton::pid::maximum / 100;
 
-      robot::auton::pid::maximum = robot::drivet::u > robot::auton::pid::maximum ? robot::drivet::u : robot::auton::pid::maximum;
-      robot::auton::pid::maximum = robot::drivet::r > robot::auton::pid::maximum ? robot::drivet::r : robot::auton::pid::maximum;
-      robot::auton::pid::maximum = robot::drivet::d > robot::auton::pid::maximum ? robot::drivet::d : robot::auton::pid::maximum;
-      robot::auton::pid::maximum = robot::drivet::l > robot::auton::pid::maximum ? robot::drivet::l : robot::auton::pid::maximum;
-
-      robot::drivet::u /= robot::auton::pid::maximum / 100;
-      robot::drivet::r /= robot::auton::pid::maximum / 100;
-      robot::drivet::d /= robot::auton::pid::maximum / 100;
-      robot::drivet::l /= robot::auton::pid::maximum / 100;
       printf("%f\n", robot::auton::pid::maximum);
       ApositiveU.spin(forward, robot::drivet::u, percent);
       BpositiveR.spin(forward, robot::drivet::r, percent);
