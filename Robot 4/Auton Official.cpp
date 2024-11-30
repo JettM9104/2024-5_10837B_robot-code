@@ -124,7 +124,7 @@ namespace robot {
   
   namespace auton {
     namespace pid {
-      double threshold = 5,  integralResetZone = 3,  maxSpeed = 100;
+      double threshold = 5,  integralResetZone = 3,  maxSpeed = 20;
       double maximum = 1;
       double dirRad;
       double correctionK = 2;
@@ -236,10 +236,12 @@ void drive(double dist, double k, double kp, double ki, double kd, double timeou
     robot::auton::pid::max = robot::auton::correction::d > robot::auton::pid::max ? robot::auton::correction::d : robot::auton::pid::max;
     robot::auton::pid::max = robot::auton::correction::l > robot::auton::pid::max ? robot::auton::correction::l : robot::auton::pid::max;
 
-    robot::auton::correction::u /= robot::auton::pid::maxSpeed / robot::auton::pid::max;
-    robot::auton::correction::r /= robot::auton::pid::maxSpeed / robot::auton::pid::max;
-    robot::auton::correction::d /= robot::auton::pid::maxSpeed / robot::auton::pid::max;
-    robot::auton::correction::l /= robot::auton::pid::maxSpeed / robot::auton::pid::max;
+    printf("%f\n", robot::auton::pid::max);
+
+    robot::auton::correction::u *= robot::auton::pid::maxSpeed / robot::auton::pid::max;
+    robot::auton::correction::r *= robot::auton::pid::maxSpeed / robot::auton::pid::max;
+    robot::auton::correction::d *= robot::auton::pid::maxSpeed / robot::auton::pid::max;
+    robot::auton::correction::l *= robot::auton::pid::maxSpeed / robot::auton::pid::max;
 
     ApositiveU.spin(forward, robot::auton::correction::u, percent);
     BnegativeL.spin(forward, robot::auton::correction::r, percent);
