@@ -328,6 +328,7 @@ void autoMT() {
         wait(20, msec);
       }
       if (!quit) {
+        wait(40, msec);
         shooting1.stop();
         shooting2.stop();
 
