@@ -124,7 +124,7 @@ namespace robot {
   
   namespace auton {
     namespace pid {
-      double threshold = 5,  integralResetZone = 3,  maxSpeed = 100;
+      double threshold = 5,  integralResetZone = 3,  maxSpeed = 50;
       double maximum = 1;
       double dirRad;
       double correctionK = 7;
@@ -178,10 +178,10 @@ int main() {
 
   double dist = 1000;
   double k = 100;
-  double kp = 2.0;
+  double kp = 2.6;
   double ki = 0.02;
-  double kd = 0.2;
-  double timeout = 2.3;
+  double kd = 0.3;
+  double timeout = 3;
   drive(dist,k,kp,ki,kd,timeout);
 }
 
