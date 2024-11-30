@@ -312,14 +312,15 @@ void autoMT() {
   bool quit;
   while (true) {
     if (Controller.ButtonEUp.pressing()) {
+      robot::bypass::shooting = true;
+      robot::bypass::pneum1 = true;
       cats.retract(cylinder2);
       dogs.extend(cylinder2);
 
 
       while (true) {
         
-        robot::bypass::shooting = true;
-        robot::bypass::pneum1 = true;
+
 
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
