@@ -76,7 +76,7 @@ void vexcodeInit() {
 
 double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.1;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle = 0.5, kI_angle = 0.02, kD_angle = 0.2;    // For angular correction
+double kP_angle = 2.3, kI_angle = 0.01, kD_angle = 1;    // For angular correction
 double kP_turn = 0.6, kI_turn = 0.03, kD_turn = 0.4;       // For precise turning
 
 void resetAll(); // Resets all the Encoder Positions
