@@ -79,6 +79,8 @@ void vexcodeInit() {
 
 // Allows for easier use of the VEX Library
 using namespace vex;
+
+int roundn(double roundee, int mult);
 void run();
 void mt();
 void pu();
@@ -159,13 +161,16 @@ int main() {
   init();
 
   while (true) {
-    robot::contr::a = Controller.AxisA.position();
-    robot::contr::b = Controller.AxisB.position();
-    robot::contr::c = Controller.AxisC.position();
-    robot::contr::d = Controller.AxisD.position();
+    robot::contr::a = roundn(Controller.AxisA.position(), 50);
+    robot::contr::b = roundn(Controller.AxisB.position(), 50);
+    robot::contr::c = roundn(Controller.AxisC.position(), 50);
+    robot::contr::d = roundn(Controller.AxisD.position(), 50);
 
     if (!robot::bypass::driving) {
       // if (robot::contr::c == 0) {robot::contr::c = -(robot::angl::rot - robot::angl::save) * robot::pid::kr; }
+
+     
+      if (abs(robot::contr::a) < 10)
       robot::drivet::u = robot::contr::a + robot::contr::b + robot::contr::c;
       robot::drivet::r = robot::contr::a - robot::contr::b - robot::contr::c;
       robot::drivet::d = robot::contr::a - robot::contr::b + robot::contr::c;
@@ -358,4 +363,9 @@ void rat() {
     }
     wait(20, msec);
   }
+}
+
+int round(double roundee, int mult) {
+  if ((static_cast<int>(floor(roundee)) % mult) >= (mult/2)) {return ((floor(roundee / mult)) + 1) * mult; }
+  else {return ((floor(roundee / mult)) + 1) * mult; }
 }
