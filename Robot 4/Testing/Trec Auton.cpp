@@ -74,10 +74,16 @@ void vexcodeInit() {
 //                                                                            
 //----------------------------------------------------------------------------
 
+double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.1;   // For forward/backward
+double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
+double kP_angle = 0.5, kI_angle = 0.02, kD_angle = 0.2;   // For angular correction
+double kP_turn = 0.6, kI_turn = 0.03, kD_turn = 0.4;      // For precise turning
+
 void resetAll(); // Resets all the Encoder Positions
 double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
-void pid(double targetVertical, double targetHorizontal, double maxSpeed = 90); // Strafe and Drive into one function
+void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
+void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
 
 int main() {
     vexcodeInit();
@@ -96,9 +102,9 @@ void resetAll() {
 
 double vertEC() { return (frontLeft.position(degrees) + frontRight.position(degrees) + backLeft.position(degrees) + backRight.position(degrees)) / 4.0 * 3.0; }
 
-double horzEC() { return (-frontLeft.rotation(degrees) + frontRight.rotation(degrees) + backLeft.rotation(degrees) - backRight.rotation(degrees)) / 4.0 * 3.0; }
+double horzEC() { return (-frontLeft.position(degrees) + frontRight.position(degrees) + backLeft.position(degrees) - backRight.position(degrees)) / 4.0 * 3.0; }
 
-void pid(double targetVertical, double targetHorizontal, double maxSpeed = 90, double timeout) {
+void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90) {
   resetAll();
 
   double verticalError, prevVerticalError = 0;
@@ -124,7 +130,7 @@ void pid(double targetVertical, double targetHorizontal, double maxSpeed = 90, d
     horizontalIntegral += horizontalError;
     horizontalDerivative = horizontalError - prevHorizontalError;
 
-    angleError = 0 - gyroSensor.rotation(degrees);
+    angleError = 0 - BrainInertial.rotation(degrees);
 
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
@@ -150,7 +156,7 @@ void pid(double targetVertical, double targetHorizontal, double maxSpeed = 90, d
     backRight.spin(forward, verticalSpeed + horizontalSpeed - correctionSpeed, pct);
 
     if (fabs(verticalError) < 5 && fabs(horizontalError) < 5 && fabs(angleError) < 1) break;
-    if ((Brain.Timer.value() - begin) > timeout && timeout != 0) break;
+    if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevVerticalError = verticalError;
     prevHorizontalError = horizontalError;
@@ -165,14 +171,16 @@ void pid(double targetVertical, double targetHorizontal, double maxSpeed = 90, d
 }
 
 
-void pidTurn(double targetAngle, double maxSpeed = 50, double timeout) {
+void pidTurn(double targetAngle, double timeout, double maxSpeed = 50) {
   resetAll();
 
   double angleError, prevAngleError = 0;
   double angleIntegral = 0, angleDerivative = 0;
 
+  double bT = Brain.Timer.value();
+
   while (true) {
-    angleError = targetAngle - gyroSensor.rotation(degrees);
+    angleError = targetAngle - BrainInertial.rotation(degrees);
 
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
@@ -189,7 +197,7 @@ void pidTurn(double targetAngle, double maxSpeed = 50, double timeout) {
     backRight.spin(reverse, turnSpeed, pct);
 
     if (fabs(angleError) < 1) break;
-    if ((Brain.Timer.value() - begin) > timeout && timeout != 0) break;
+    if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
 
