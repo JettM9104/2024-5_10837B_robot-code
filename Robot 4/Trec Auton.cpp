@@ -94,8 +94,7 @@ int main() {
   BrainInertial.setRotation(0, degrees);
   BrainInertial.setHeading(0, degrees);
 
-  cats.extend(cylinder1);
-  dogs.retract(cylinder1);
+  windPuncher();
 
   // wait(2000, msec); // Wait for calibration to complete
 
@@ -105,10 +104,12 @@ int main() {
 
 void windPuncher() {
   unsigned int tick = 0;
-
+  cats.retract(cylinder1);
+  dogs.extend(cylinder1);
+  wait(2000, msec);
   cats.retract(cylinder1);
   dogs.retract(cylinder1);
-  wait(2000, msec);
+  
 
   while (true){
     tick++;
