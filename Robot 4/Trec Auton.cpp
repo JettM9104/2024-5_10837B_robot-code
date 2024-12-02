@@ -84,27 +84,60 @@ double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
+void windPuncher();
+void shootPuncher();
 
 int main() {
 
     // Initialize Robot Configuration
   vexcodeInit();
-  // while (true) {
-  //   printf("frontLeft: %f\nfrontRight: %f\nbackLeft: %f\nbackRight: %f\n", frontLeft.position(degrees), frontRight.position(degrees), backLeft.position(degrees), backRight.position(degrees));
-    
-  //   wait(20, msec);
-  // }
-
   BrainInertial.setRotation(0, degrees);
   BrainInertial.setHeading(0, degrees);
 
-  wait(2000, msec); // Wait for calibration to complete
+  cats.extend(cylinder1);
+  dogs.retract(cylinder1);
 
-  // Example Usage
-  pid(0, 300, 0); // Move 500 units forward and 300 units right
-  //pidTurn(90, 0);              // Turn 90 degrees clockwise
-  //pid(300, 0, 0); // Move 300 units forward and 200 units left
-  //pidTurn(-90, 0);             // Turn 90 degrees counterclockwise
+  // wait(2000, msec); // Wait for calibration to complete
+
+  // pid(-300, 0, 0);
+  // pidTurn(-90, 0)
+}
+
+void windPuncher() {
+  unsigned int tick = 0;
+
+  cats.retract(cylinder1);
+  dogs.retract(cylinder1);
+  wait(2000, msec);
+
+  while (true){
+    tick++;
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    printf("%f\n", shooting1.current(amp));
+
+    if (tick > 10) {
+      if (shooting1.velocity(percent) < 2) {
+        break;
+      }
+    }
+    wait(20, msec);
+  }
+  wait(100, msec);
+  shooting1.spin(forward, 100, percent);
+  shooting2.spin(forward, 100, percent);
+  wait(700, msec);
+
+  cats.extend(cylinder1);
+  dogs.extend(cylinder1);
+
+  shooting1.spin(reverse, 100, percent);
+  shooting2.spin(reverse, 100, percent);
+
+  wait(200, msec);
+  printf("END%d\n", tick);
+  shooting1.stop();
+  shooting2.stop();
 }
 
 void resetAll() {
@@ -172,7 +205,7 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     backRight.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
 
     if (fabs(verticalError) < 10 && fabs(horizontalError) < 10 && fabs(angleError) < 3) break;
-    //if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
+    if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevVerticalError = verticalError;
     prevHorizontalError = horizontalError;
