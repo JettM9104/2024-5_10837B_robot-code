@@ -77,8 +77,8 @@ void vexcodeInit() {
 double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
 double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
-double kP_angle_drive = 4.8, kI_angle_drive = 0.08, kD_angle_drive = 0.1;
-double kP_turn = 0.4, kI_turn = 0.0012, kD_turn = 0.9;       // For precise turning
+double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
+double kP_turn = 0.4, kI_turn = 0.012, kD_turn = 1;       // For precise turning
 
 double kP_angle, kI_angle, kD_angle;
 
@@ -102,11 +102,14 @@ int main() {
 
 
   init();
+
+  pid(-600, 0, 0);
+
   // wait(2000, msec); // Wait for calibration to complete
-  for (int i = 0; i < 4; i++) {
-    pidTurn(90, 0);
-    wait(2, seconds);
-  }
+  // for (int i = 0; i < 4; i++) {
+  //   pidTurn(90, 0);
+  //   wait(2, seconds);
+  // }
   // pidTurn(-90, 0)
 }
 
