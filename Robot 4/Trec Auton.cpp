@@ -78,7 +78,7 @@ double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backwa
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
 double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.8, kI_angle_drive = 0.08, kD_angle_drive = 0.1;
-double kP_turn = 0.6, kI_turn = 0.06, kD_turn = 0.4;       // For precise turning
+double kP_turn = 0.4, kI_turn = 0.0012, kD_turn = 0.9;       // For precise turning
 
 double kP_angle, kI_angle, kD_angle;
 
@@ -103,8 +103,10 @@ int main() {
 
   init();
   // wait(2000, msec); // Wait for calibration to complete
-
-  pid(-500, 0, 0);
+  for (int i = 0; i < 4; i++) {
+    pidTurn(90, 0);
+    wait(2, seconds);
+  }
   // pidTurn(-90, 0)
 }
 
@@ -287,6 +289,8 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
   while (true) {
     angleError = targetAngle - BrainInertial.rotation(degrees);
 
+    printf("%f\n", angleError);
+
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
 
@@ -298,11 +302,12 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
 
   
     frontLeft.spin(forward, turnSpeed, pct);
-    backLeft.spin(forward, turnSpeed, pct);
+    backLeft.spin(reverse, turnSpeed, pct);
     frontRight.spin(reverse, turnSpeed, pct);
-    backRight.spin(reverse, turnSpeed, pct);
+    backRight.spin(forward, turnSpeed, pct);
 
-    if (fabs(angleError) < 1) break;
+    if (fabs(angleError) < 2) angleIntegral = 0;
+    if (fabs(angleError) < 5) break;
     if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
