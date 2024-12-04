@@ -74,37 +74,89 @@ void vexcodeInit() {
 //                                                                            
 //----------------------------------------------------------------------------
 
-double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.1;    // For forward/backward
+double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle = 0.5, kI_angle = 0.02, kD_angle = 0.2;    // For angular correction
-double kP_turn = 0.6, kI_turn = 0.03, kD_turn = 0.4;       // For precise turning
+double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
+double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
+double kP_turn = 0.4, kI_turn = 0.012, kD_turn = 1;       // For precise turning
+
+double kP_angle, kI_angle, kD_angle;
+
 
 void resetAll(); // Resets all the Encoder Positions
 double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
+void windPuncher();
+void shootPuncher();
+void init();
+
 
 int main() {
 
     // Initialize Robot Configuration
   vexcodeInit();
-  // while (true) {
-  //   printf("frontLeft: %f\nfrontRight: %f\nbackLeft: %f\nbackRight: %f\n", frontLeft.position(degrees), frontRight.position(degrees), backLeft.position(degrees), backRight.position(degrees));
-    
-  //   wait(20, msec);
-  // }
-
   BrainInertial.setRotation(0, degrees);
   BrainInertial.setHeading(0, degrees);
 
-  wait(2000, msec); // Wait for calibration to complete
 
-  // Example Usage
-  pid(0, 300, 0); // Move 500 units forward and 300 units right
-  //pidTurn(90, 0);              // Turn 90 degrees clockwise
-  //pid(300, 0, 0); // Move 300 units forward and 200 units left
-  //pidTurn(-90, 0);             // Turn 90 degrees counterclockwise
+  init();
+
+  pid(-600, 0, 0);
+
+  // wait(2000, msec); // Wait for calibration to complete
+  // for (int i = 0; i < 4; i++) {
+  //   pidTurn(90, 0);
+  //   wait(2, seconds);
+  // }
+  // pidTurn(-90, 0)
+}
+
+
+void init() {
+  frontLeft.setStopping(hold);
+  frontRight.setStopping(hold);
+  backRight.setStopping(hold);
+  backLeft.setStopping(hold);
+}
+void windPuncher() {
+  unsigned int tick = 0;
+  cats.retract(cylinder1);
+  dogs.extend(cylinder1);
+  wait(2000, msec);
+  cats.retract(cylinder1);
+  dogs.retract(cylinder1);
+  
+
+  while (true){
+    tick++;
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    printf("%f\n", shooting1.current(amp));
+
+    if (tick > 10) {
+      if (shooting1.velocity(percent) < 2) {
+        break;
+      }
+    }
+    wait(20, msec);
+  }
+  wait(100, msec);
+  shooting1.spin(forward, 100, percent);
+  shooting2.spin(forward, 100, percent);
+  wait(700, msec);
+
+  cats.extend(cylinder1);
+  dogs.extend(cylinder1);
+
+  shooting1.spin(reverse, 100, percent);
+  shooting2.spin(reverse, 100, percent);
+
+  wait(200, msec);
+  printf("END%d\n", tick);
+  shooting1.stop();
+  shooting2.stop();
 }
 
 void resetAll() {
@@ -122,7 +174,30 @@ double horzEC() { return (-frontLeft.position(degrees) + frontRight.position(deg
 
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed) {
   resetAll();
+  unsigned int tick = 0;
+  int direction;
 
+  if (targetVertical != 0 && targetHorizontal == 0) {
+    kP_angle = kP_angle_drive;
+    kI_angle = kI_angle_drive;
+    kD_angle = kD_angle_drive;
+    
+    direction = 0;
+  }
+  else if (targetVertical == 0 && targetHorizontal != 0) {
+    kP_angle = kP_angle_strafe;
+    kI_angle = kI_angle_strafe;
+    kD_angle = kD_angle_strafe;
+
+    direction = 1;
+  }
+  else {
+    kP_angle = 0;
+    kI_angle = 0;
+    kD_angle = 0;
+
+    direction = 2;
+  }
   double verticalError, prevVerticalError = 0;
   double verticalIntegral = 0, verticalDerivative = 0;
 
@@ -134,7 +209,13 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
   
   float bT = Brain.Timer.value();
 
+  bool drive_completed = false;
+  bool strafe_completed = false;
+  
   while (true) {
+    
+    tick++;
+
     double currentVertical = vertEC();
     double currentHorizontal = horzEC();
     verticalError = targetVertical - currentVertical;
@@ -151,11 +232,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
 
+    if (fabs(verticalError) <= 1) verticalIntegral = 0;
+    if (fabs(horizontalError) <= 1) horizontalError = 0;
+    if (fabs(angleError) <= 1) angleIntegral = 0;
+    
     double verticalSpeed = (verticalError * kP_drive) + (verticalIntegral * kI_drive) +
                            (verticalDerivative * kD_drive);
-    double horizontalSpeed = (horizontalError * kP_strafe) +
+    double horizontalSpeed = ((horizontalError * kP_strafe) +
                              (horizontalIntegral * kI_strafe) +
-                             (horizontalDerivative * kD_strafe);
+                             (horizontalDerivative * kD_strafe)) * -1;
     double correctionSpeed = (angleError * kP_angle) +
                              (angleIntegral * kI_angle) +
                              (angleDerivative * kD_angle);
@@ -171,8 +256,17 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     frontRight.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
     backRight.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
 
-    if (fabs(verticalError) < 10 && fabs(horizontalError) < 10 && fabs(angleError) < 3) break;
-    //if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
+    if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) break;
+
+    if (drive_completed && direction == 0) { break; }
+
+    if (strafe_completed && direction == 1) { break; }
+
+    if (tick > 20) {
+      if (fabs(verticalError) < 20) { kP_drive = 0, kI_drive = 0, kD_drive = 0; drive_completed = true; }
+      if (fabs(horizontalError) < 20) { kP_strafe = 0, kI_strafe = 0, kD_strafe = 0; strafe_completed = true; }
+    }
+    if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevVerticalError = verticalError;
     prevHorizontalError = horizontalError;
@@ -198,6 +292,8 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
   while (true) {
     angleError = targetAngle - BrainInertial.rotation(degrees);
 
+    printf("%f\n", angleError);
+
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
 
@@ -207,12 +303,14 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     if (turnSpeed > maxSpeed) turnSpeed = maxSpeed;
     if (turnSpeed < -maxSpeed) turnSpeed = -maxSpeed;
 
+  
     frontLeft.spin(forward, turnSpeed, pct);
-    backLeft.spin(forward, turnSpeed, pct);
+    backLeft.spin(reverse, turnSpeed, pct);
     frontRight.spin(reverse, turnSpeed, pct);
-    backRight.spin(reverse, turnSpeed, pct);
+    backRight.spin(forward, turnSpeed, pct);
 
-    if (fabs(angleError) < 1) break;
+    if (fabs(angleError) < 2) angleIntegral = 0;
+    if (fabs(angleError) < 5) break;
     if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
