@@ -94,12 +94,9 @@ void init();
 
 
 int main() {
-
-    // Initialize Robot Configuration
+  // Initialize Robot Configuration
   vexcodeInit();
-  BrainInertial.setRotation(0, degrees);
-  BrainInertial.setHeading(0, degrees);
-
+  
 
   init();
 
@@ -164,8 +161,9 @@ void resetAll() {
   frontRight.resetPosition();
   backLeft.resetPosition();
   backRight.resetPosition();
-  BrainInertial.resetRotation();
-  BrainInertial.resetHeading();
+  BrainInertial.setRotation(0, degrees);
+  BrainInertial.setHeading(0, degrees);
+
 }
 
 double vertEC() { return (frontLeft.position(degrees) + frontRight.position(degrees) + backLeft.position(degrees) + backRight.position(degrees)) / 4.0 * 3.0; }
@@ -319,9 +317,9 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
-    printf("Previous Angle Error: %f\n", prevAngleError);
+    printf("Previous Angle Error: %f\n\n\n\n", prevAngleError);
 
-    wait(10, msec);
+    wait(1, msec);
   }
   frontLeft.stop();
   frontRight.stop();
