@@ -78,7 +78,7 @@ double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backwa
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
 double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
-double kP_turn = 0.4, kI_turn = 0.012, kD_turn = 1;       // For precise turning
+double kP_turn = 1, kI_turn = 0.012, kD_turn = 1;       // For precise turning
 
 double kP_angle, kI_angle, kD_angle;
 
@@ -284,7 +284,7 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
 
   double angleError, prevAngleError = 0;
   double angleIntegral = 0, angleDerivative = 0;
-
+  double integralCap = 100; // Cap for the integral term
   double bT = Brain.Timer.value();
 
   while (true) {
@@ -292,6 +292,11 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     printf("Angle Error: %f\n", angleError);
 
     angleIntegral += angleError;
+    
+    // Cap the integral term
+    if (angleIntegral > integralCap) angleIntegral = integralCap;
+    if (angleIntegral < -integralCap) angleIntegral = -integralCap;
+    
     printf("Angle Integral: %f\n", angleIntegral);
 
     angleDerivative = angleError - prevAngleError;
@@ -317,9 +322,9 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
-    printf("Previous Angle Error: %f\n\n\n\n", prevAngleError);
+    printf("Previous Angle Error: %f\n\n\n", prevAngleError);
 
-    wait(1, msec);
+    wait(10, msec);
   }
   frontLeft.stop();
   frontRight.stop();
