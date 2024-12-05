@@ -103,7 +103,7 @@ int main() {
 
   init();
 
-  pid(-600, 0, 0);
+  pidTurn(90, 0);
 
   // wait(2000, msec); // Wait for calibration to complete
   // for (int i = 0; i < 4; i++) {
@@ -292,7 +292,7 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
   while (true) {
     angleError = targetAngle - BrainInertial.rotation(degrees);
 
-    printf("%f\n", angleError);
+    
 
     angleIntegral += angleError;
     angleDerivative = angleError - prevAngleError;
@@ -303,6 +303,7 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     if (turnSpeed > maxSpeed) turnSpeed = maxSpeed;
     if (turnSpeed < -maxSpeed) turnSpeed = -maxSpeed;
 
+    printf("%f\n", turnSpeed);
   
     frontLeft.spin(forward, turnSpeed, pct);
     backLeft.spin(reverse, turnSpeed, pct);
