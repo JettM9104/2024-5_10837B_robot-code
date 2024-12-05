@@ -78,14 +78,16 @@ double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backwa
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
 double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
-double kP_turn = 1, kI_turn = 0.012, kD_turn = 1;       // For precise turning
+double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
 double kP_angle, kI_angle, kD_angle;
 
-
+const double pi = 3.141592;
 void resetAll(); // Resets all the Encoder Positions
 double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
+double turnEC();
+
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
 void windPuncher();
@@ -99,7 +101,8 @@ int main() {
   
 
   init();
-
+  thread winding = thread(windPuncher);
+  
   pidTurn(90, 0);
 
   // wait(2000, msec); // Wait for calibration to complete
@@ -169,6 +172,8 @@ void resetAll() {
 double vertEC() { return (frontLeft.position(degrees) + frontRight.position(degrees) + backLeft.position(degrees) + backRight.position(degrees)) / 4.0 * 3.0; }
 
 double horzEC() { return (-frontLeft.position(degrees) + frontRight.position(degrees) + backLeft.position(degrees) - backRight.position(degrees)) / 4.0 * 3.0; }
+
+double turnEC() { return (frontLeft.position(degrees) - frontRight.position(degrees) - backLeft.position(degrees) + backRight.position(degrees)) / 4.0; }
 
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed) {
   resetAll();
@@ -284,18 +289,21 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
 
   double angleError, prevAngleError = 0;
   double angleIntegral = 0, angleDerivative = 0;
-  double integralCap = 100; // Cap for the integral term
+  double maxIntegral = 100; 
   double bT = Brain.Timer.value();
+  double targetEncoder = pi * 10 * targetAngle / 7.874 / 3;
 
   while (true) {
-    angleError = targetAngle - BrainInertial.rotation(degrees);
+    angleError = targetEncoder - turnEC();
     printf("Angle Error: %f\n", angleError);
+    printf("\033[34m");
+    printf("%f\n", BrainInertial.rotation(degrees));
 
+    printf("\033[30m");
     angleIntegral += angleError;
     
-    // Cap the integral term
-    if (angleIntegral > integralCap) angleIntegral = integralCap;
-    if (angleIntegral < -integralCap) angleIntegral = -integralCap;
+    if (angleIntegral > maxIntegral) angleIntegral = maxIntegral;
+    if (angleIntegral < -maxIntegral) angleIntegral = -maxIntegral;
     
     printf("Angle Integral: %f\n", angleIntegral);
 
@@ -324,7 +332,7 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     prevAngleError = angleError;
     printf("Previous Angle Error: %f\n\n\n", prevAngleError);
 
-    wait(10, msec);
+    wait(20, msec);
   }
   frontLeft.stop();
   frontRight.stop();
