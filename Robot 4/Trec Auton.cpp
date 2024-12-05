@@ -291,19 +291,21 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
 
   while (true) {
     angleError = targetAngle - BrainInertial.rotation(degrees);
-
-    
+    printf("Angle Error: %f\n", angleError);
 
     angleIntegral += angleError;
+    printf("Angle Integral: %f\n", angleIntegral);
+
     angleDerivative = angleError - prevAngleError;
+    printf("Angle Derivative: %f\n", angleDerivative);
 
     double turnSpeed = (angleError * kP_turn) + (angleIntegral * kI_turn) +
                        (angleDerivative * kD_turn);
+    printf("Turn Speed (before limiting): %f\n", turnSpeed);
 
     if (turnSpeed > maxSpeed) turnSpeed = maxSpeed;
     if (turnSpeed < -maxSpeed) turnSpeed = -maxSpeed;
-
-    printf("%f\n", turnSpeed);
+    printf("Turn Speed (after limiting): %f\n", turnSpeed);
   
     frontLeft.spin(forward, turnSpeed, pct);
     backLeft.spin(reverse, turnSpeed, pct);
@@ -311,16 +313,18 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed) {
     backRight.spin(forward, turnSpeed, pct);
 
     if (fabs(angleError) < 2) angleIntegral = 0;
+    printf("Angle Integral (after reset if error < 2): %f\n", angleIntegral);
+
     if (fabs(angleError) < 5) break;
     if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
 
     prevAngleError = angleError;
+    printf("Previous Angle Error: %f\n", prevAngleError);
 
-    wait(20, msec);
+    wait(10, msec);
   }
   frontLeft.stop();
   frontRight.stop();
   backLeft.stop();
   backRight.stop();
 }
-
