@@ -101,9 +101,8 @@ int main() {
   
 
   init();
-  thread winding = thread(windPuncher);
-  
-  pidTurn(90, 0);
+
+  pid(1000,0,0);
 
   // wait(2000, msec); // Wait for calibration to complete
   // for (int i = 0; i < 4; i++) {
