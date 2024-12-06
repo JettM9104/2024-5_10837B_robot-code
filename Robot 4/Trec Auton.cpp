@@ -101,8 +101,10 @@ int main() {
   
 
   init();
-
-  pid(1000,0,0);
+  while (true) {
+    pid(1000,0,2);
+    pid(-1000,0, 2);
+  }
 
   // wait(2000, msec); // Wait for calibration to complete
   // for (int i = 0; i < 4; i++) {
@@ -260,15 +262,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
 
     if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) break;
 
-    if (drive_completed && direction == 0) { break; }
+    if (drive_completed && direction == 0) { printf("break by drive"); break; }
 
-    if (strafe_completed && direction == 1) { break; }
+    if (strafe_completed && direction == 1) { printf("break by strafe"); break; }
 
     if (tick > 20) {
       if (fabs(verticalError) < 20) { kP_drive = 0, kI_drive = 0, kD_drive = 0; drive_completed = true; }
       if (fabs(horizontalError) < 20) { kP_strafe = 0, kI_strafe = 0, kD_strafe = 0; strafe_completed = true; }
     }
-    if ((Brain.Timer.value() - bT) > timeout && timeout != 0) break;
+    if (((Brain.Timer.value() - bT) > timeout) && (timeout != 0)) { printf("break by timeout"); break; }
 
     prevVerticalError = verticalError;
     prevHorizontalError = horizontalError;

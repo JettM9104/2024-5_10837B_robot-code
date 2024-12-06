@@ -192,9 +192,9 @@ int main() {
       // robot::drivet::l /= robot::auton::pid::maximum / 100;
 
       printf("%f\n", robot::auton::pid::maximum);
-      ApositiveU.spin(forward, robot::drivet::u, percent);
+      ApositiveU.spin(forward, robot::drivet::u * 0.8, percent);
       BpositiveR.spin(forward, robot::drivet::r, percent);
-      AnegativeD.spin(forward, robot::drivet::d, percent);
+      AnegativeD.spin(forward, robot::drivet::d * 0.8, percent);
       bNegativeL.spin(forward, robot::drivet::l, percent);
     }
     else {
@@ -239,14 +239,14 @@ int main() {
       }
     }
 
-    // if (!robot::bypass::pneum2) {
-    //   if (robot::toggle::pt % 2) {
-    //     dogs.extend(cylinder1);
-    //   }
-    //   else {
-    //     dogs.retract(cylinder1);
-    //   }
-    // }
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
+        dogs.extend(cylinder1);
+      }
+      else {
+        dogs.retract(cylinder1);
+      }
+    }
 
     if (!robot::bypass::pneum3) {
       if (robot::toggle::ra % 2) {
@@ -319,7 +319,7 @@ void pu() {
 void autoMT() {
   bool quit;
   while (true) {
-    if (Controller.ButtonEUp.pressing() && !robot::util::macroOn) {
+    if (Controller.ButtonEUp.pressing()) {
       robot::util::macroOn = true;
       cats.retract(cylinder2);
       dogs.extend(cylinder2);
@@ -363,7 +363,7 @@ void autoMT() {
 
 void windPuncher() {
   while (true) {
-    if (Controller.ButtonEDown.pressing() && !robot::util::macroOn) {
+    if (Controller.ButtonEDown.pressing()) {
       robot::util::macroOn = true;
       robot::bypass::shooting = true;
       robot::toggle::pt = 0;
@@ -394,7 +394,7 @@ void windPuncher() {
       shooting1.spin(reverse, 100, percent);
       shooting2.spin(reverse, 100, percent);
 
-      wait(250, msec);
+      wait(1000, msec);
 
       shooting1.stop();
       shooting2.stop();
@@ -421,10 +421,10 @@ void rat() {
 void sqbl() {
   bool quit;
   while (true) {
-    if (Controller.ButtonFUp.pressing() && !robot::util::macroOn) {
+    if (Controller.ButtonL3.pressing()) {
 
       robot::util::macroOn = true;
-      while (Controller.ButtonFUp.pressing()) {wait (20, msec); }
+      while (Controller.ButtonL3.pressing()) {wait (20, msec); }
 
       while (true) {
         
@@ -433,7 +433,7 @@ void sqbl() {
 
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
-        if (Controller.ButtonFUp.pressing()) {quit = true; break; }
+        if (Controller.ButtonL3.pressing()) {quit = true; break; }
         if (closerSensor.objectDistance(mm) < 40) { wait(100, msec); break; }
         wait(20, msec);
       }
