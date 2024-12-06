@@ -84,6 +84,7 @@ void mt();
 void pu();
 void autoMT();
 void rat();
+void windPuncher();
 
 void init();
 
@@ -156,6 +157,8 @@ int main() {
   thread mtLift = thread(mt);
   thread puncher = thread(pu);
   thread autom = thread(autoMT);
+
+  thread autoload = thread(windPuncher);
   init();
 
   while (true) {
@@ -245,8 +248,6 @@ int main() {
       else {
         cats.retract(cylinder1);
       }
-
-      printf("%d\n", robot::toggle::ra);
     }
   }
     wait(20, msec);
@@ -312,24 +313,23 @@ void autoMT() {
   bool quit;
   while (true) {
     if (Controller.ButtonEUp.pressing()) {
-      robot::bypass::shooting = true;
-      robot::bypass::pneum1 = true;
       cats.retract(cylinder2);
       dogs.extend(cylinder2);
 
+      while (Controller.ButtonEUp.pressing()) {wait (20, msec); }
 
       while (true) {
         
-
+        robot::bypass::shooting = true;
+        robot::bypass::pneum1 = true;
 
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
-        if (Controller.ButtonEDown.pressing()) {quit = true; break; }
+        if (Controller.ButtonEUp.pressing()) {quit = true; break; }
         if (conveyerSensor.objectDistance(mm) < 40) {break; }
         wait(20, msec);
       }
       if (!quit) {
-        wait(40, msec);
         shooting1.stop();
         shooting2.stop();
 
@@ -347,6 +347,51 @@ void autoMT() {
     }
     wait(20, msec);
   }
+  while (Controller.ButtonEUp.pressing()) {wait (20, msec); }
+}
+
+void windPuncher() {
+  while (true) {
+    if (Controller.ButtonEDown.pressing()) {
+      robot::bypass::shooting = true;
+      robot::toggle::pt = 0;
+      robot::toggle::ra = 0;
+
+      unsigned int tick = 0;
+      while (Controller.ButtonEDown.pressing()) {wait(20, msec);}
+
+
+      while (true){
+        printf("%d\n", tick);
+        tick++;
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
+        printf("%f\n", shooting1.current(amp));
+
+        if (tick > 10) {
+          if (shooting1.velocity(percent) < 2) {
+            break;
+          }
+        }
+        if (Controller.ButtonEDown.pressing()) {break; }
+        wait(20, msec);
+      }
+      robot::toggle::pt = 1;
+      robot::toggle::ra = 1;
+
+      shooting1.spin(reverse, 100, percent);
+      shooting2.spin(reverse, 100, percent);
+
+      wait(1000, msec);
+
+      shooting1.stop();
+      shooting2.stop();
+
+      robot::bypass::shooting = false;
+
+    }
+    wait(20, msec);
+  }
 }
 
 void rat() {
@@ -359,3 +404,4 @@ void rat() {
     wait(20, msec);
   }
 }
+
