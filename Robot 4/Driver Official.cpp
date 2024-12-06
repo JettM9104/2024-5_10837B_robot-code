@@ -434,7 +434,7 @@ void sqbl() {
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
         if (Controller.ButtonL3.pressing()) {quit = true; break; }
-        if (closerSensor.objectDistance(mm) < 40) {break; }
+        if (closerSensor.objectDistance(mm) < 40) { wait(100, msec); break; }
         wait(20, msec);
       }
       robot::toggle::mt::lift = 1;
@@ -456,6 +456,9 @@ void macroLED() {
   while (true) {
     if (robot::util::macroOn) {
       indicator.setColor(yellow);
+    }
+    else if (indicator.pressing()) {
+      indicator.setColor(orange);
     }
     else {
       indicator.setColor(blue_green);
