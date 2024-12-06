@@ -334,7 +334,7 @@ void autoMT() {
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
         if (Controller.ButtonEUp.pressing()) {quit = true; break; }
-        if (conveyerSensor.objectDistance(mm) < 40) {break; }
+        if (conveyerSensor.objectDistance(mm) < 40) { break; }
         wait(20, msec);
       }
       if (!quit) {
@@ -457,9 +457,9 @@ void macroLED() {
     if (robot::util::macroOn) {
       indicator.setColor(yellow);
     }
-    else if (indicator.pressing()) {
-      indicator.setColor(orange);
-    }
+    // else if (indicator.pressing()) {
+    //   indicator.setColor(orange);
+    // }
     else {
       indicator.setColor(blue_green);
     }
