@@ -39,7 +39,8 @@ pneumatic cats = pneumatic(PORT5);
 pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
-
+distance closerSensor = distance(PORT6);
+touchled indicator = touchled(PORT12);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -87,6 +88,7 @@ void rat();
 void windPuncher();
 void sqbl();
 void init();
+void macroLED();
 
 namespace robot {
   namespace contr {
@@ -140,6 +142,10 @@ namespace robot {
       double maximum = 1;
     }
   }
+
+  namespace util {
+    bool macroOn;
+  }
   
 
 }
@@ -159,6 +165,7 @@ int main() {
   thread autom = thread(autoMT);
   thread squeezer = thread(sqbl);
   thread autoload = thread(windPuncher);
+  thread led = thread(macroLED);
   init();
 
   while (true) {
@@ -313,6 +320,7 @@ void autoMT() {
   bool quit;
   while (true) {
     if (Controller.ButtonEUp.pressing()) {
+      robot::util::macroOn = true;
       cats.retract(cylinder2);
       dogs.extend(cylinder2);
 
@@ -342,6 +350,7 @@ void autoMT() {
       quit = false;
       robot::bypass::shooting = false;
       robot::bypass::pneum1 = false;
+      robot::util::macroOn = false;
 
 
     }
@@ -355,6 +364,7 @@ void autoMT() {
 void windPuncher() {
   while (true) {
     if (Controller.ButtonEDown.pressing()) {
+      robot::util::macroOn = true;
       robot::bypass::shooting = true;
       robot::toggle::pt = 0;
       robot::toggle::ra = 0;
@@ -390,6 +400,7 @@ void windPuncher() {
       shooting2.stop();
 
       robot::bypass::shooting = false;
+      robot::util::macroOn = false;
 
     }
     wait(20, msec);
@@ -412,7 +423,7 @@ void sqbl() {
   while (true) {
     if (Controller.ButtonL3.pressing()) {
 
-
+      robot::util::macroOn = true;
       while (Controller.ButtonL3.pressing()) {wait (20, msec); }
 
       while (true) {
@@ -423,7 +434,7 @@ void sqbl() {
         shooting1.spin(forward, 100, percent);
         shooting2.spin(forward, 100, percent);
         if (Controller.ButtonL3.pressing()) {quit = true; break; }
-        if (conveyerSensor.objectDistance(mm) < 40) {break; }
+        if (closerSensor.objectDistance(mm) < 40) {break; }
         wait(20, msec);
       }
       if (!quit) {
@@ -433,11 +444,24 @@ void sqbl() {
       }
       quit = false;
 
-
+      robot::util::macroOn = false;
 
     }
     while (Controller.ButtonL3.pressing()) {wait (20, msec); }
     wait(20, msec);
   }
   
+}
+
+void macroLED() {
+  while (true) {
+    if (robot::util::macroOn) {
+      indicator.setColor(yellow);
+    }
+    else {
+      indicator.setColor(blue);
+    }
+
+    wait(20, msec);
+  }
 }
