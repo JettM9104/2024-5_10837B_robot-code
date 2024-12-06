@@ -85,7 +85,7 @@ void pu();
 void autoMT();
 void rat();
 void windPuncher();
-
+void sqbl();
 void init();
 
 namespace robot {
@@ -157,7 +157,7 @@ int main() {
   thread mtLift = thread(mt);
   thread puncher = thread(pu);
   thread autom = thread(autoMT);
-
+  thread squeezer = thread(sqbl);
   thread autoload = thread(windPuncher);
   init();
 
@@ -345,9 +345,11 @@ void autoMT() {
 
 
     }
+
+    while (Controller.ButtonEUp.pressing()) {wait (20, msec); }
     wait(20, msec);
   }
-  while (Controller.ButtonEUp.pressing()) {wait (20, msec); }
+  
 }
 
 void windPuncher() {
@@ -405,3 +407,37 @@ void rat() {
   }
 }
 
+void sqbl() {
+  bool quit;
+  while (true) {
+    if (Controller.ButtonL3.pressing()) {
+
+
+      while (Controller.ButtonL3.pressing()) {wait (20, msec); }
+
+      while (true) {
+        
+        robot::bypass::shooting = true;
+
+
+        shooting1.spin(forward, 100, percent);
+        shooting2.spin(forward, 100, percent);
+        if (Controller.ButtonL3.pressing()) {quit = true; break; }
+        if (conveyerSensor.objectDistance(mm) < 40) {break; }
+        wait(20, msec);
+      }
+      if (!quit) {
+        shooting1.stop();
+        shooting2.stop();
+
+      }
+      quit = false;
+
+
+
+    }
+    while (Controller.ButtonL3.pressing()) {wait (20, msec); }
+    wait(20, msec);
+  }
+  
+}
