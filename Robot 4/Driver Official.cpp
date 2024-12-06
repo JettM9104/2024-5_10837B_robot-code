@@ -437,14 +437,13 @@ void sqbl() {
         if (closerSensor.objectDistance(mm) < 40) {break; }
         wait(20, msec);
       }
-      if (!quit) {
-        shooting1.stop();
-        shooting2.stop();
-
-      }
+      robot::toggle::mt::lift = 1;
+      shooting1.stop();
+      shooting2.stop();
       quit = false;
 
       robot::util::macroOn = false;
+      robot::bypass::shooting = false;
 
     }
     while (Controller.ButtonL3.pressing()) {wait (20, msec); }
@@ -459,7 +458,7 @@ void macroLED() {
       indicator.setColor(yellow);
     }
     else {
-      indicator.setColor(blue);
+      indicator.setColor(blue_green);
     }
 
     wait(20, msec);
