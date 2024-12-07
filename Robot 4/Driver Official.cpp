@@ -307,13 +307,13 @@ void mt() {
 }
 
 void pu() {
-  while (true) {
-    if (Controller.ButtonFUp.pressing()) {
-      robot::toggle::pt++;
-      while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
-    }
-    wait(20, msec);
-  }
+  // while (true) {
+  //   if (Controller.ButtonFUp.pressing()) {
+  //     robot::toggle::pt++;
+  //     while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
+  //   }
+  //   wait(20, msec);
+  // }
 }
 
 void autoMT() {
