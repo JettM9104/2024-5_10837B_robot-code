@@ -129,7 +129,7 @@ namespace robot {
     double save = 0;
   }
   namespace toggle {
-    int pt = 0;
+    int pt = 1;
     int ra = 0;
 
     namespace mt {
@@ -239,14 +239,14 @@ int main() {
       }
     }
 
-    // if (!robot::bypass::pneum2) {
-    //   if (robot::toggle::pt % 2) {
-    //     dogs.extend(cylinder1);
-    //   }
-    //   else {
-    //     dogs.retract(cylinder1);
-    //   }
-    // }
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
+        dogs.extend(cylinder1);
+      }
+      else {
+        dogs.retract(cylinder1);
+      }
+    }
 
     if (!robot::bypass::pneum3) {
       if (robot::toggle::ra % 2) {
