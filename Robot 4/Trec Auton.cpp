@@ -74,9 +74,9 @@ void vexcodeInit() {
 //                                                                            
 //----------------------------------------------------------------------------
 
-double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
+double kP_drive = 2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
+double kP_angle_strafe = 10, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
@@ -98,20 +98,10 @@ void init();
 int main() {
   // Initialize Robot Configuration
   vexcodeInit();
-  
-
   init();
-  while (true) {
-    pid(1000,0,2);
-    pid(-1000,0, 2);
-  }
 
-  // wait(2000, msec); // Wait for calibration to complete
-  // for (int i = 0; i < 4; i++) {
-  //   pidTurn(90, 0);
-  //   wait(2, seconds);
-  // }
-  // pidTurn(-90, 0)
+
+  pid(0, -200, 0);
 }
 
 
@@ -181,6 +171,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
   unsigned int tick = 0;
   int direction;
 
+  double kP_drive_local = kP_drive;
+  double kI_drive_local = kI_drive;
+  double kD_drive_local = kD_drive;
+
+  double kP_strafe_local = kP_strafe; 
+  double kI_strafe_local = kI_strafe;
+  double kD_strafe_local = kD_strafe;
+
+  
   if (targetVertical != 0 && targetHorizontal == 0) {
     kP_angle = kP_angle_drive;
     kI_angle = kI_angle_drive;
@@ -240,11 +239,11 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     if (fabs(horizontalError) <= 1) horizontalError = 0;
     if (fabs(angleError) <= 1) angleIntegral = 0;
     
-    double verticalSpeed = (verticalError * kP_drive) + (verticalIntegral * kI_drive) +
-                           (verticalDerivative * kD_drive);
-    double horizontalSpeed = ((horizontalError * kP_strafe) +
-                             (horizontalIntegral * kI_strafe) +
-                             (horizontalDerivative * kD_strafe)) * -1;
+    double verticalSpeed = (verticalError * kP_drive_local) + (verticalIntegral * kI_drive_local) +
+                           (verticalDerivative * kD_drive_local);
+    double horizontalSpeed = ((horizontalError * kP_strafe_local) +
+                             (horizontalIntegral * kI_strafe_local) +
+                             (horizontalDerivative * kD_strafe_local)) * -1;
     double correctionSpeed = (angleError * kP_angle) +
                              (angleIntegral * kI_angle) +
                              (angleDerivative * kD_angle);
@@ -255,20 +254,20 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     if (horizontalSpeed > maxSpeed) horizontalSpeed = maxSpeed;
     if (horizontalSpeed < -maxSpeed) horizontalSpeed = -maxSpeed;
 
-    frontLeft.spin(forward, verticalSpeed + horizontalSpeed + correctionSpeed, pct);
-    backLeft.spin(forward, verticalSpeed + horizontalSpeed - correctionSpeed, pct);
-    frontRight.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
-    backRight.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
+    frontLeft.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
+    backLeft.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
+    frontRight.spin(forward, verticalSpeed + horizontalSpeed - correctionSpeed, pct);
+    backRight.spin(forward, verticalSpeed + horizontalSpeed + correctionSpeed, pct);
 
-    if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) break;
+    if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) { printf("break by threshold\n"); break; }
 
     if (drive_completed && direction == 0) { printf("break by drive"); break; }
 
     if (strafe_completed && direction == 1) { printf("break by strafe"); break; }
 
     if (tick > 20) {
-      if (fabs(verticalError) < 20) { kP_drive = 0, kI_drive = 0, kD_drive = 0; drive_completed = true; }
-      if (fabs(horizontalError) < 20) { kP_strafe = 0, kI_strafe = 0, kD_strafe = 0; strafe_completed = true; }
+      if (fabs(verticalError) < 20) { kP_drive_local = 0, kI_drive_local = 0, kD_drive_local = 0; drive_completed = true; }
+      if (fabs(horizontalError) < 20) { kP_strafe_local = 0, kI_strafe_local = 0, kD_strafe_local = 0; strafe_completed = true; }
     }
     if (((Brain.Timer.value() - bT) > timeout) && (timeout != 0)) { printf("break by timeout"); break; }
 
