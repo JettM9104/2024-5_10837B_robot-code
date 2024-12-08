@@ -115,8 +115,38 @@ int main() {
   vexcodeInit();
   init();
 
+  windPuncher();
 
-  pid(0, -200, 0);
+  for (int i = 5; i > 0; --i) {
+    wait(1000, msec);
+    printf("%d\n", i);
+  }
+
+  pid(10000, 0, 2);
+  pid(200, 0, 0.5);
+
+  pid(-100, 0, 1);
+  pid(0, -1000, 2);
+  pid(200, 0, 2);
+
+  thread wind1 = thread(windPuncher);
+
+  wait(1500, msec);
+
+  while (true) {
+    thread ballintake = thread()
+    pid(-8000, 0, 2);
+    wait(2, seconds);
+    pid(10000, 0, 3);
+    pid(0, -200, 0.5);
+
+
+  }
+
+
+
+
+
 }
 
 
@@ -163,6 +193,27 @@ void windPuncher() { // Winds the puncher
   printf("END\n");
   shooting1.stop();
   shooting2.stop();
+}
+
+void liftMacro() {
+  cats.retract(cylinder2);
+  dogs.extend(cylinder2);
+
+  while (true) {
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    if (conveyerSensor.objectDistance(mm) < 40) { break; }
+    wait(20, msec);
+  }
+  shooting1.stop();
+  shooting2.stop();
+
+  dogs.retract(cylinder2);
+  
+  wait(2000, msec);
+
+  dogs.extend(cylinder2);
+
 }
 
 void resetAll() { // Resets all encoder positions
