@@ -270,10 +270,6 @@ void init() {
   bNegativeL.setMaxTorque(100, percent);
   shooting1.setStopping(hold);
   shooting2.setStopping(hold);
-  ApositiveU.setStopping(coast);
-  AnegativeD.setStopping(coast);
-  BpositiveR.setStopping(coast);
-  bNegativeL.setStopping(coast);
 }
 
 void run() {
@@ -346,10 +342,12 @@ void autoMT() {
         shooting2.stop();
 
         dogs.retract(cylinder2);
+        
+        wait(1500, msec);
+
+        dogs.extend(cylinder2);
       }
       quit = false;
-      robot::toggle::mt::puncher = 0;
-      robot::toggle::mt::lift = 1;
       robot::bypass::shooting = false;
       robot::bypass::pneum1 = false;
       robot::util::macroOn = false;
