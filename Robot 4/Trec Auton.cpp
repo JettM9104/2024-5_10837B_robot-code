@@ -74,22 +74,37 @@ void vexcodeInit() {
 //                                                                            
 //----------------------------------------------------------------------------
 
+// Global PID Coefficients
 double kP_drive = 2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
 double kP_angle_strafe = 10, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
+// References to access PID Coefficients more easi;y
+double& kpD = kP_drive, kiD = kI_drive, kdD = kD_drive;
+double& kpS = kP_strafe, kiS = kI_strafe, kdS = kD_strafe;
+double& kpAS = kP_angle_strafe, kiAS = kI_angle_strafe, kdAS = kD_angle_strafe;
+double& kpAD = kP_angle_drive, kiAD = kP_angle_drive, kdAD = kD_angle_drive;
+double& kpT = kP_turn, kiT = kI_turn, kdT = kD_turn;
+
+// Empty global variable (will be changed in pid() function)
 double kP_angle, kI_angle, kD_angle;
 
+// Variables
 const double pi = 3.141592;
+
+// Motor Functions
 void resetAll(); // Resets all the Encoder Positions
 double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
 double turnEC();
 
+// Drive Functions
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
+
+// Macros
 void windPuncher();
 void shootPuncher();
 void init();
@@ -105,13 +120,13 @@ int main() {
 }
 
 
-void init() {
+void init() { // Runs in the beginning of the code
   frontLeft.setStopping(hold);
   frontRight.setStopping(hold);
   backRight.setStopping(hold);
   backLeft.setStopping(hold);
 }
-void windPuncher() {
+void windPuncher() { // Winds the puncher
   unsigned int tick = 0;
   cats.retract(cylinder1);
   dogs.extend(cylinder1);
@@ -145,12 +160,12 @@ void windPuncher() {
   shooting2.spin(reverse, 100, percent);
 
   wait(200, msec);
-  printf("END%d\n", tick);
+  printf("END\n");
   shooting1.stop();
   shooting2.stop();
 }
 
-void resetAll() {
+void resetAll() { // Resets all encoder positions
   frontLeft.resetPosition();
   frontRight.resetPosition();
   backLeft.resetPosition();
@@ -254,10 +269,10 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     if (horizontalSpeed > maxSpeed) horizontalSpeed = maxSpeed;
     if (horizontalSpeed < -maxSpeed) horizontalSpeed = -maxSpeed;
 
-    frontLeft.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
-    backLeft.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
-    frontRight.spin(forward, verticalSpeed + horizontalSpeed - correctionSpeed, pct);
-    backRight.spin(forward, verticalSpeed + horizontalSpeed + correctionSpeed, pct);
+    frontLeft.spin(forward, verticalSpeed + horizontalSpeed + correctionSpeed, pct);
+    backLeft.spin(forward, verticalSpeed + horizontalSpeed - correctionSpeed, pct);
+    frontRight.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
+    backRight.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
 
     if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) { printf("break by threshold\n"); break; }
 
