@@ -343,7 +343,7 @@ void autoMT() {
 
         dogs.retract(cylinder2);
         
-        wait(1500, msec);
+        wait(2000, msec);
 
         dogs.extend(cylinder2);
       }
