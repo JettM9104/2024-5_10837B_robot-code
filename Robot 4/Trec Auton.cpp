@@ -39,7 +39,8 @@ pneumatic cats = pneumatic(PORT5);
 pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
-
+distance closerSensor = distance(PORT6);
+touchled indicator = touchled(PORT12);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -77,7 +78,7 @@ void vexcodeInit() {
 // Global PID Coefficients
 double kP_drive = 2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle_strafe = 10, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
+double kP_angle_strafe = 3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
@@ -107,6 +108,10 @@ void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
 // Macros
 void windPuncher();
 void shootPuncher();
+void squeezeBall();
+void ballSwing();
+
+// Main Functions
 void init();
 
 
@@ -123,22 +128,27 @@ int main() {
   }
 
   pid(10000, 0, 2);
-  pid(200, 0, 0.5);
-
-  pid(-100, 0, 1);
-  pid(0, -1000, 2);
+  pid(0, -300, 0.7);
+  thread wind0 = thread(windPuncher);
+  wait(300, msec);
+  pid(-200, 0, 0.5);
+  pid(0, 10000, 2);
   pid(200, 0, 2);
 
   thread wind1 = thread(windPuncher);
 
-  wait(1500, msec);
+  wait(500, msec);
 
   while (true) {
-    thread ballintake = thread()
+    thread ballintake = thread(squeezeBall);
     pid(-8000, 0, 2);
-    wait(2, seconds);
+    pid(0, 4000, 1);
+    wait(1500, msec);
+    shooting1.spin(forward);
+    shooting2.spin(forward);
+    wait(1, seconds);
     pid(10000, 0, 3);
-    pid(0, -200, 0.5);
+    pid(0, 4000, 1);
 
 
   }
@@ -156,11 +166,12 @@ void init() { // Runs in the beginning of the code
   backRight.setStopping(hold);
   backLeft.setStopping(hold);
 }
+
 void windPuncher() { // Winds the puncher
   unsigned int tick = 0;
   cats.retract(cylinder1);
   dogs.extend(cylinder1);
-  wait(2000, msec);
+  wait(1000, msec);
   cats.retract(cylinder1);
   dogs.retract(cylinder1);
   
@@ -189,13 +200,13 @@ void windPuncher() { // Winds the puncher
   shooting1.spin(reverse, 100, percent);
   shooting2.spin(reverse, 100, percent);
 
-  wait(200, msec);
+  wait(700, msec);
   printf("END\n");
   shooting1.stop();
   shooting2.stop();
 }
 
-void liftMacro() {
+void ballSwing() { // Automatically lifts the mt
   cats.retract(cylinder2);
   dogs.extend(cylinder2);
 
@@ -213,7 +224,18 @@ void liftMacro() {
   wait(2000, msec);
 
   dogs.extend(cylinder2);
+}
 
+void squeezeBall() {
+  while (true) {
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    if (closerSensor.objectDistance(mm) < 40) { wait(100, msec); break; }
+    wait(20, msec);
+  }
+  dogs.retract(cylinder2);
+  shooting1.stop();
+  shooting2.stop();
 }
 
 void resetAll() { // Resets all encoder positions
