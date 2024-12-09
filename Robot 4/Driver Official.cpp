@@ -169,7 +169,7 @@ int main() {
   init();
 
   while (true) {
-    robot::contr::a = Controller.AxisA.position();
+    robot::contr::a = Controller.AxisA.position() * -1;
     robot::contr::b = Controller.AxisB.position();
     robot::contr::c = Controller.AxisC.position();
     robot::contr::d = Controller.AxisD.position();
