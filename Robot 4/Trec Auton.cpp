@@ -78,7 +78,7 @@ void vexcodeInit() {
 // Global PID Coefficients
 double kP_drive = 2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle_strafe = 3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
+double kP_angle_strafe = 1.7, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
@@ -94,6 +94,7 @@ double kP_angle, kI_angle, kD_angle;
 
 // Variables
 const double pi = 3.141592;
+unsigned short int puncher = 0;
 
 // Motor Functions
 void resetAll(); // Resets all the Encoder Positions
@@ -127,31 +128,77 @@ int main() {
     printf("%d\n", i);
   }
 
-  pid(10000, 0, 2);
-  pid(0, -300, 0.7);
+  Brain.Timer.reset();
+
+  dogs.retract(cylinder2);
+  cats.retract(cylinder2);
+
+  pid(5000, 0, 3);
+
+  dogs.extend(cylinder2);
+  cats.extend(cylinder2);
+  pid(-100, 0, 1);
+
+  pid(0, -1000, 1.3);
+
+  pid(1000, 0, 1.3);
   thread wind0 = thread(windPuncher);
   wait(300, msec);
-  pid(-200, 0, 0.5);
+  pid(-500, 0, 1);
   pid(0, 10000, 2);
-  pid(200, 0, 2);
+  pid(800, 0, 2);
 
   thread wind1 = thread(windPuncher);
 
-  wait(500, msec);
+  pid(-2000, 0, 2);
+
+  ballSwing();
+  pid(1900, 0, 1.9);
+
+  thread wind2 = thread(windPuncher);
 
   while (true) {
-    thread ballintake = thread(squeezeBall);
-    pid(-8000, 0, 2);
+    pid(-2200, 0, 2);
     pid(0, 4000, 1);
+    do {
+      if (puncher == 2) {
+        shooting1.spin(reverse);
+        shooting2.spin(reverse);
+      }
+      if (puncher == 3) {
+        shooting1.stop();
+        shooting2.stop();
+      }
+      wait(20, msec);
+    } while (puncher != 3)
+
+    shooting1.stop();
+    shooting2.stop();
+    
     wait(1500, msec);
+
+    squeezeBall();
+    if (Brain.Timer.value() >= 50.0) break;
+
+    shooting1.spin(forward);
+    shooting2.spin(forward);
+    wait(1000, msec);
+
+    shooting1.stop();
+    shooting2.stop();
+    pid(10000, 0, 3);
+    pid(0, 4000, 1);
+    dogs.extend(cylinder2);
     shooting1.spin(forward);
     shooting2.spin(forward);
     wait(1, seconds);
-    pid(10000, 0, 3);
-    pid(0, 4000, 1);
-
-
+    shooting1.stop();
+    shooting2.stop();
   }
+  pid(0, -4000, 2);
+  pid(2300, 0, 2.2);
+  shooting1.spin(forward);
+  shooting2.spin(forward);
 
 
 
@@ -165,10 +212,13 @@ void init() { // Runs in the beginning of the code
   frontRight.setStopping(hold);
   backRight.setStopping(hold);
   backLeft.setStopping(hold);
+  dogs.extend(cylinder2);
+  cats.extend(cylinder2);
 }
 
 void windPuncher() { // Winds the puncher
   unsigned int tick = 0;
+  puncher = 0;
   cats.retract(cylinder1);
   dogs.extend(cylinder1);
   wait(1000, msec);
@@ -177,6 +227,7 @@ void windPuncher() { // Winds the puncher
   
 
   while (true){
+    puncher = 1
     tick++;
     shooting1.spin(forward, 100, percent);
     shooting2.spin(forward, 100, percent);
@@ -189,6 +240,7 @@ void windPuncher() { // Winds the puncher
     }
     wait(20, msec);
   }
+  puncher = 2;
   wait(100, msec);
   shooting1.spin(forward, 100, percent);
   shooting2.spin(forward, 100, percent);
@@ -200,10 +252,11 @@ void windPuncher() { // Winds the puncher
   shooting1.spin(reverse, 100, percent);
   shooting2.spin(reverse, 100, percent);
 
-  wait(700, msec);
+  wait(1500, msec);
   printf("END\n");
   shooting1.stop();
   shooting2.stop();
+  puncher = 3;
 }
 
 void ballSwing() { // Automatically lifts the mt
