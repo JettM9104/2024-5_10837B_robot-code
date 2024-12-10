@@ -169,7 +169,7 @@ int main() {
   init();
 
   while (true) {
-    robot::contr::a = Controller.AxisA.position();
+    robot::contr::a = Controller.AxisA.position() * -1;
     robot::contr::b = Controller.AxisB.position();
     robot::contr::c = Controller.AxisC.position();
     robot::contr::d = Controller.AxisD.position();
@@ -343,7 +343,7 @@ void autoMT() {
 
         dogs.retract(cylinder2);
         
-        wait(1500, msec);
+        wait(2000, msec);
 
         dogs.extend(cylinder2);
       }

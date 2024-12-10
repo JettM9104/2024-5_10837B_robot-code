@@ -39,7 +39,8 @@ pneumatic cats = pneumatic(PORT5);
 pneumatic dogs = pneumatic(PORT11);
 gyro turning = gyro(PORT3);
 distance conveyerSensor = distance(PORT9);
-
+distance closerSensor = distance(PORT6);
+touchled indicator = touchled(PORT12);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -74,63 +75,159 @@ void vexcodeInit() {
 //                                                                            
 //----------------------------------------------------------------------------
 
-double kP_drive = 0.2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
+// Global PID Coefficients
+double kP_drive = 2, kI_drive = 0.01, kD_drive = 0.3;    // For forward/backward
 double kP_strafe = 0.2, kI_strafe = 0.01, kD_strafe = 0.1; // For horizontal movement
-double kP_angle_strafe = 2.3, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
+double kP_angle_strafe = 1.7, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    // For angular correction
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
+// References to access PID Coefficients more easi;y
+double& kpD = kP_drive, kiD = kI_drive, kdD = kD_drive;
+double& kpS = kP_strafe, kiS = kI_strafe, kdS = kD_strafe;
+double& kpAS = kP_angle_strafe, kiAS = kI_angle_strafe, kdAS = kD_angle_strafe;
+double& kpAD = kP_angle_drive, kiAD = kP_angle_drive, kdAD = kD_angle_drive;
+double& kpT = kP_turn, kiT = kI_turn, kdT = kD_turn;
+
+// Empty global variable (will be changed in pid() function)
 double kP_angle, kI_angle, kD_angle;
 
+// Variables
 const double pi = 3.141592;
+unsigned short int puncher = 0;
+
+// Motor Functions
 void resetAll(); // Resets all the Encoder Positions
 double vertEC(); // Returns the average of the Vertical Encoder Positions
 double horzEC(); // Returns the average of the Horizontal Encoder Positions
 double turnEC();
 
+// Drive Functions
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
+
+// Macros
 void windPuncher();
 void shootPuncher();
+void squeezeBall();
+void ballSwing();
+
+// Main Functions
 void init();
 
 
 int main() {
   // Initialize Robot Configuration
   vexcodeInit();
-  
-
   init();
-  while (true) {
-    pid(1000,0,2);
-    pid(-1000,0, 2);
+
+  windPuncher();
+
+  for (int i = 5; i > 0; --i) {
+    wait(1000, msec);
+    printf("%d\n", i);
   }
 
-  // wait(2000, msec); // Wait for calibration to complete
-  // for (int i = 0; i < 4; i++) {
-  //   pidTurn(90, 0);
-  //   wait(2, seconds);
-  // }
-  // pidTurn(-90, 0)
+  Brain.Timer.reset();
+
+  dogs.retract(cylinder2);
+  cats.retract(cylinder2);
+
+  pid(5000, 0, 3);
+
+  dogs.extend(cylinder2);
+  cats.extend(cylinder2);
+  pid(-100, 0, 1);
+
+  pid(0, -1000, 1.3);
+
+  pid(1000, 0, 1.3);
+  thread wind0 = thread(windPuncher);
+  wait(300, msec);
+  pid(-500, 0, 1);
+  pid(0, 10000, 2);
+  pid(800, 0, 2);
+
+  thread wind1 = thread(windPuncher);
+
+  pid(-2000, 0, 2);
+
+  ballSwing();
+  pid(1900, 0, 1.9);
+
+  thread wind2 = thread(windPuncher);
+
+  while (true) {
+    pid(-2200, 0, 2);
+    pid(0, 4000, 1);
+    do {
+      if (puncher == 2) {
+        shooting1.spin(reverse);
+        shooting2.spin(reverse);
+      }
+      if (puncher == 3) {
+        shooting1.stop();
+        shooting2.stop();
+      }
+      wait(20, msec);
+    } while (puncher != 3)
+
+    shooting1.stop();
+    shooting2.stop();
+    
+    wait(1500, msec);
+
+    squeezeBall();
+    if (Brain.Timer.value() >= 50.0) break;
+
+    shooting1.spin(forward);
+    shooting2.spin(forward);
+    wait(1000, msec);
+
+    shooting1.stop();
+    shooting2.stop();
+    pid(10000, 0, 3);
+    pid(0, 4000, 1);
+    dogs.extend(cylinder2);
+    shooting1.spin(forward);
+    shooting2.spin(forward);
+    wait(1, seconds);
+    shooting1.stop();
+    shooting2.stop();
+  }
+  pid(0, -4000, 2);
+  pid(2300, 0, 2.2);
+  shooting1.spin(forward);
+  shooting2.spin(forward);
+
+
+
+
+
 }
 
 
-void init() {
+void init() { // Runs in the beginning of the code
   frontLeft.setStopping(hold);
   frontRight.setStopping(hold);
   backRight.setStopping(hold);
   backLeft.setStopping(hold);
+  dogs.extend(cylinder2);
+  cats.extend(cylinder2);
 }
-void windPuncher() {
+
+void windPuncher() { // Winds the puncher
   unsigned int tick = 0;
+  puncher = 0;
   cats.retract(cylinder1);
   dogs.extend(cylinder1);
-  wait(2000, msec);
+  wait(1000, msec);
   cats.retract(cylinder1);
   dogs.retract(cylinder1);
   
 
   while (true){
+    puncher = 1
     tick++;
     shooting1.spin(forward, 100, percent);
     shooting2.spin(forward, 100, percent);
@@ -143,6 +240,7 @@ void windPuncher() {
     }
     wait(20, msec);
   }
+  puncher = 2;
   wait(100, msec);
   shooting1.spin(forward, 100, percent);
   shooting2.spin(forward, 100, percent);
@@ -154,13 +252,46 @@ void windPuncher() {
   shooting1.spin(reverse, 100, percent);
   shooting2.spin(reverse, 100, percent);
 
-  wait(200, msec);
-  printf("END%d\n", tick);
+  wait(1500, msec);
+  printf("END\n");
+  shooting1.stop();
+  shooting2.stop();
+  puncher = 3;
+}
+
+void ballSwing() { // Automatically lifts the mt
+  cats.retract(cylinder2);
+  dogs.extend(cylinder2);
+
+  while (true) {
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    if (conveyerSensor.objectDistance(mm) < 40) { break; }
+    wait(20, msec);
+  }
+  shooting1.stop();
+  shooting2.stop();
+
+  dogs.retract(cylinder2);
+  
+  wait(2000, msec);
+
+  dogs.extend(cylinder2);
+}
+
+void squeezeBall() {
+  while (true) {
+    shooting1.spin(forward, 100, percent);
+    shooting2.spin(forward, 100, percent);
+    if (closerSensor.objectDistance(mm) < 40) { wait(100, msec); break; }
+    wait(20, msec);
+  }
+  dogs.retract(cylinder2);
   shooting1.stop();
   shooting2.stop();
 }
 
-void resetAll() {
+void resetAll() { // Resets all encoder positions
   frontLeft.resetPosition();
   frontRight.resetPosition();
   backLeft.resetPosition();
@@ -181,6 +312,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
   unsigned int tick = 0;
   int direction;
 
+  double kP_drive_local = kP_drive;
+  double kI_drive_local = kI_drive;
+  double kD_drive_local = kD_drive;
+
+  double kP_strafe_local = kP_strafe; 
+  double kI_strafe_local = kI_strafe;
+  double kD_strafe_local = kD_strafe;
+
+  
   if (targetVertical != 0 && targetHorizontal == 0) {
     kP_angle = kP_angle_drive;
     kI_angle = kI_angle_drive;
@@ -240,11 +380,11 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     if (fabs(horizontalError) <= 1) horizontalError = 0;
     if (fabs(angleError) <= 1) angleIntegral = 0;
     
-    double verticalSpeed = (verticalError * kP_drive) + (verticalIntegral * kI_drive) +
-                           (verticalDerivative * kD_drive);
-    double horizontalSpeed = ((horizontalError * kP_strafe) +
-                             (horizontalIntegral * kI_strafe) +
-                             (horizontalDerivative * kD_strafe)) * -1;
+    double verticalSpeed = (verticalError * kP_drive_local) + (verticalIntegral * kI_drive_local) +
+                           (verticalDerivative * kD_drive_local);
+    double horizontalSpeed = ((horizontalError * kP_strafe_local) +
+                             (horizontalIntegral * kI_strafe_local) +
+                             (horizontalDerivative * kD_strafe_local)) * -1;
     double correctionSpeed = (angleError * kP_angle) +
                              (angleIntegral * kI_angle) +
                              (angleDerivative * kD_angle);
@@ -260,15 +400,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
     frontRight.spin(forward, verticalSpeed - horizontalSpeed - correctionSpeed, pct);
     backRight.spin(forward, verticalSpeed - horizontalSpeed + correctionSpeed, pct);
 
-    if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) break;
+    if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) { printf("break by threshold\n"); break; }
 
     if (drive_completed && direction == 0) { printf("break by drive"); break; }
 
     if (strafe_completed && direction == 1) { printf("break by strafe"); break; }
 
     if (tick > 20) {
-      if (fabs(verticalError) < 20) { kP_drive = 0, kI_drive = 0, kD_drive = 0; drive_completed = true; }
-      if (fabs(horizontalError) < 20) { kP_strafe = 0, kI_strafe = 0, kD_strafe = 0; strafe_completed = true; }
+      if (fabs(verticalError) < 20) { kP_drive_local = 0, kI_drive_local = 0, kD_drive_local = 0; drive_completed = true; }
+      if (fabs(horizontalError) < 20) { kP_strafe_local = 0, kI_strafe_local = 0, kD_strafe_local = 0; strafe_completed = true; }
     }
     if (((Brain.Timer.value() - bT) > timeout) && (timeout != 0)) { printf("break by timeout"); break; }
 
