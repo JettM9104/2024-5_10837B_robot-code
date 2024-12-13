@@ -91,3 +91,18 @@ decrease by 50% net 0.5
 still curved but less
 
 decrease by 80% net 0.2
+minor curving
+
+
+
+prepended additional guide on other side
+
+appeded functions following first function are nonfunctional; attempt to fix:
+after per function, all pid coeffients are set to 0 and must be adjusted; problem solved
+
+strafe tuning:
+
+drift towards backwards
+
+
+kP is now 10; distance is being applied in the wrong dir.
