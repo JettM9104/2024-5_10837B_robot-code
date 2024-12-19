@@ -77,6 +77,8 @@ double& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
 double& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
 double& ckP = pid::correction::kP, ckI = pid::correction::kI, ckD = pid::correction::kD;
 
+// PI!!
+const double pi = 3.1415926;
 
 int main() {
   // run stuff here
@@ -116,7 +118,7 @@ void drive(double distance, double timeout) { // Drive Function
 
   while (true) {
     // Calculate PID Values
-    error = goalDegrees - left.position(degrees)
+    error = goalDegrees - ((left.position(degrees) + right.position(degrees)) / 2);
     integral = error < integralResetZone ? 0 : integral + error;
     derivative = error - lastError;
 
@@ -131,8 +133,8 @@ void drive(double distance, double timeout) { // Drive Function
     correctionFactor = (correctionError * ckP) + (correctionIntegral * ckI) + (correctionDerivative * ckD);
     
     // Calculate Motor Speed
-    leftSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkP)) - correctionFactor;
-    rightSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkP)) + correctionFactor;
+    leftSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD)) - correctionFactor;
+    rightSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD)) + correctionFactor;
 
     // Spin Motors
     left.spin(forward, leftSpeed, percent);
@@ -141,5 +143,55 @@ void drive(double distance, double timeout) { // Drive Function
     // Exit Conditions
     if (fabs(error) < threshold) { break; }
     if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+
+    // Set lastError Values
+    correctionLastError = correctionError;
+    lastError = error;
+
+    wait(20, msec); // Wait so the brain doesnt explode
+  }
+}
+
+void turn(double angle, double timeout) {
+  // Coefficients for PID Drive System
+  double threshold = 5, integralResetZone = 3;
+  double error, integral = 0, derivative;
+  double lastError = 0;
+  double motorSpeed;
+
+  // Saving the values so we don't have to reset the values in the beginning
+  double beginTimer = Brain.Timer.value();
+  double beginInertial = BrainInertial.value();
+
+  // Wheel Distance Calculation
+  double wheelCircum = 200;
+  double gearRatio = 2 / 1;
+  double wheelBase = 200; // Must be same units as wheelCircum
+  double goalDegrees =  (angle / 360) * pi * 10 * wheelBase / 360 * 360 / wheelCircum / 3;
+
+  // Reset Motor Encoder Positions
+  left.resetPosition();
+  right.resetPosition();
+
+  while (true) {
+    // Calculate PID Values
+    error = ((goalDegrees - (left.position(degrees) + right.position(degrees)) / 2) + (angle - BrainInertial.rotation(degrees) + beginInertial)) / 2;
+    integral = error < integralResetZone ? 0 : integral + error;
+    derivative = error - lastError;
+
+    if (fabs(error) < 3) { integral = 0; } // Reset integral when target is almost met
+
+    // Calculate Motor Speed
+    motorSpeed = ((error * tkP) + (integral * tkI) + (derivative * tkD));
+
+    // Spin Motors
+    left.spin(forward, motorSpeed, percent);
+    right.spin(reverse, motorSpeed, percent);
+
+    // Exit Conditions
+    if (fabs(error) < threshold) { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+
+    wait(20, msec); // Wait so the brain doesnt explode
   }
 }
