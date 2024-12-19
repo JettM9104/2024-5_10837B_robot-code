@@ -73,6 +73,7 @@ namespace pid
     namespace correction { double kP, double kI, double kD; }
 }
 
+// Refrences for ease of access of variables
 double& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
 double& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
 double& ckP = pid::correction::kP, ckI = pid::correction::kI, ckD = pid::correction::kD;
@@ -191,6 +192,9 @@ void turn(double angle, double timeout) {
     // Exit Conditions
     if (fabs(error) < threshold) { break; }
     if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+
+    // Set lastError Variable
+    lastError = error;
 
     wait(20, msec); // Wait so the brain doesnt explode
   }
