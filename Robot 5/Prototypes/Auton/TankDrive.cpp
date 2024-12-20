@@ -68,15 +68,15 @@ void turn(double angle, double timeout); // Angle in Degrees, Timeout in Seconds
 // Namespaces for organization of PID Coefficients
 namespace pid
 {
-    namespace drive { double kP, double kI, double kD; }
-    namespace turn { double kP, double kI, double kD; }
-    namespace correction { double kP, double kI, double kD; }
+    namespace drive { float kP, float kI, float kD; }
+    namespace turn { float kP, float kI, float kD; }
+    namespace correction { float kP, float kI, float kD; }
 }
 
 // Refrences for ease of access of variables
-double& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
-double& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
-double& ckP = pid::correction::kP, ckI = pid::correction::kI, ckD = pid::correction::kD;
+float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
+float& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
+float& ckP = pid::correction::kP, ckI = pid::correction::kI, ckD = pid::correction::kD;
 
 // PI!!
 const double pi = 3.1415926;
@@ -167,7 +167,7 @@ void turn(double angle, double timeout) {
   // Wheel Distance Calculation
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
-  double wheelBase = 200; // Must be same units as wheelCircum
+  double wheelBase = 254; // Must be same units as wheelCircum
   double goalDegrees =  (angle / 360) * pi * 10 * wheelBase / 360 * 360 / wheelCircum / 3;
 
   // Reset Motor Encoder Positions
