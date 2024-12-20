@@ -106,12 +106,6 @@ double turnEC();
 void pid(double targetVertical, double targetHorizontal, double timeout, double maxSpeed = 90); // Strafe and Drive into one function
 void pidTurn(double targetAngle, double timeout, double maxSpeed = 50);
 
-// Macros
-void windPuncher();
-void shootPuncher();
-void squeezeBall();
-void ballSwing();
-
 // Main Functions
 void init();
 
@@ -120,175 +114,11 @@ int main() {
   // Initialize Robot Configuration
   vexcodeInit();
   init();
-
-  windPuncher();
-
-  for (int i = 5; i > 0; --i) {
-    wait(1000, msec);
-    printf("%d\n", i);
-  }
-
-  Brain.Timer.reset();
-
-  dogs.retract(cylinder2);
-  cats.retract(cylinder2);
-
-  pid(5000, 0, 3);
-
-  dogs.extend(cylinder2);
-  cats.extend(cylinder2);
-  pid(-100, 0, 1);
-
-  pid(0, -1000, 1.3);
-
-  pid(1000, 0, 1.3);
-  thread wind0 = thread(windPuncher);
-  wait(300, msec);
-  pid(-500, 0, 1);
-  pid(0, 10000, 2);
-  pid(800, 0, 2);
-
-  thread wind1 = thread(windPuncher);
-
-  pid(-2000, 0, 2);
-
-  ballSwing();
-  pid(1900, 0, 1.9);
-
-  thread wind2 = thread(windPuncher);
-
-  while (true) {
-    pid(-2200, 0, 2);
-    pid(0, 4000, 1);
-    do {
-      if (puncher == 2) {
-        shooting1.spin(reverse);
-        shooting2.spin(reverse);
-      }
-      if (puncher == 3) {
-        shooting1.stop();
-        shooting2.stop();
-      }
-      wait(20, msec);
-    } while (puncher != 3)
-
-    shooting1.stop();
-    shooting2.stop();
-    
-    wait(1500, msec);
-
-    squeezeBall();
-    if (Brain.Timer.value() >= 50.0) break;
-
-    shooting1.spin(forward);
-    shooting2.spin(forward);
-    wait(1000, msec);
-
-    shooting1.stop();
-    shooting2.stop();
-    pid(10000, 0, 3);
-    pid(0, 4000, 1);
-    dogs.extend(cylinder2);
-    shooting1.spin(forward);
-    shooting2.spin(forward);
-    wait(1, seconds);
-    shooting1.stop();
-    shooting2.stop();
-  }
-  pid(0, -4000, 2);
-  pid(2300, 0, 2.2);
-  shooting1.spin(forward);
-  shooting2.spin(forward);
-
-
-
-
-
 }
 
 
 void init() { // Runs in the beginning of the code
-  frontLeft.setStopping(hold);
-  frontRight.setStopping(hold);
-  backRight.setStopping(hold);
-  backLeft.setStopping(hold);
-  dogs.extend(cylinder2);
-  cats.extend(cylinder2);
-}
-
-void windPuncher() { // Winds the puncher
-  unsigned int tick = 0;
-  puncher = 0;
-  cats.retract(cylinder1);
-  dogs.extend(cylinder1);
-  wait(1000, msec);
-  cats.retract(cylinder1);
-  dogs.retract(cylinder1);
-  
-
-  while (true){
-    puncher = 1
-    tick++;
-    shooting1.spin(forward, 100, percent);
-    shooting2.spin(forward, 100, percent);
-    printf("%f\n", shooting1.current(amp));
-
-    if (tick > 10) {
-      if (shooting1.velocity(percent) < 2) {
-        break;
-      }
-    }
-    wait(20, msec);
-  }
-  puncher = 2;
-  wait(100, msec);
-  shooting1.spin(forward, 100, percent);
-  shooting2.spin(forward, 100, percent);
-  wait(700, msec);
-
-  cats.extend(cylinder1);
-  dogs.extend(cylinder1);
-
-  shooting1.spin(reverse, 100, percent);
-  shooting2.spin(reverse, 100, percent);
-
-  wait(1500, msec);
-  printf("END\n");
-  shooting1.stop();
-  shooting2.stop();
-  puncher = 3;
-}
-
-void ballSwing() { // Automatically lifts the mt
-  cats.retract(cylinder2);
-  dogs.extend(cylinder2);
-
-  while (true) {
-    shooting1.spin(forward, 100, percent);
-    shooting2.spin(forward, 100, percent);
-    if (conveyerSensor.objectDistance(mm) < 40) { break; }
-    wait(20, msec);
-  }
-  shooting1.stop();
-  shooting2.stop();
-
-  dogs.retract(cylinder2);
-  
-  wait(2000, msec);
-
-  dogs.extend(cylinder2);
-}
-
-void squeezeBall() {
-  while (true) {
-    shooting1.spin(forward, 100, percent);
-    shooting2.spin(forward, 100, percent);
-    if (closerSensor.objectDistance(mm) < 40) { wait(100, msec); break; }
-    wait(20, msec);
-  }
-  dogs.retract(cylinder2);
-  shooting1.stop();
-  shooting2.stop();
+  //initalization code
 }
 
 void resetAll() { // Resets all encoder positions
@@ -320,28 +150,13 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
   double kI_strafe_local = kI_strafe;
   double kD_strafe_local = kD_strafe;
 
+  double movementAngle = atan2(targetHorizontal, targetVertical);
   
-  if (targetVertical != 0 && targetHorizontal == 0) {
-    kP_angle = kP_angle_drive;
-    kI_angle = kI_angle_drive;
-    kD_angle = kD_angle_drive;
-    
-    direction = 0;
-  }
-  else if (targetVertical == 0 && targetHorizontal != 0) {
-    kP_angle = kP_angle_strafe;
-    kI_angle = kI_angle_strafe;
-    kD_angle = kD_angle_strafe;
+  kP_angle = cos(movementAngle) * kP_angle_drive + sin(movementAngle) * kP_angle_strafe;
+  kI_angle = cos(movementAngle) * kI_angle_drive + sin(movementAngle) * kI_angle_strafe;
+  kD_angle = cos(movementAngle) * kD_angle_drive + sin(movementAngle) * kD_angle_strafe;
 
-    direction = 1;
-  }
-  else {
-    kP_angle = 0;
-    kI_angle = 0;
-    kD_angle = 0;
 
-    direction = 2;
-  }
   double verticalError, prevVerticalError = 0;
   double verticalIntegral = 0, verticalDerivative = 0;
 
@@ -402,15 +217,15 @@ void pid(double targetVertical, double targetHorizontal, double timeout, double 
 
     if (fabs(verticalError) < 20 && fabs(horizontalError) < 20 && fabs(angleError) < 3) { printf("break by threshold\n"); break; }
 
-    if (drive_completed && direction == 0) { printf("break by drive"); break; }
+    if (drive_completed && direction == 0) { printf("break by drive\n"); break; }
 
-    if (strafe_completed && direction == 1) { printf("break by strafe"); break; }
+    if (strafe_completed && direction == 1) { printf("break by strafe\n"); break; }
 
     if (tick > 20) {
       if (fabs(verticalError) < 20) { kP_drive_local = 0, kI_drive_local = 0, kD_drive_local = 0; drive_completed = true; }
       if (fabs(horizontalError) < 20) { kP_strafe_local = 0, kI_strafe_local = 0, kD_strafe_local = 0; strafe_completed = true; }
     }
-    if (((Brain.Timer.value() - bT) > timeout) && (timeout != 0)) { printf("break by timeout"); break; }
+    if (((Brain.Timer.value() - bT) > timeout) && (timeout != 0)) { printf("break by timeout\n"); break; }
 
     prevVerticalError = verticalError;
     prevHorizontalError = horizontalError;

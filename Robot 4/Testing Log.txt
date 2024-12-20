@@ -1,0 +1,108 @@
+Completed "Complete Calibraton" (Press and hold both left and right button)
+
+Tested BrainInertial for any flaws; no noticeable flaws
+
+Tested heading for accuracy; ± 2 degrees for turn
+
+Attempted to turn 90 DEGREES, ended 130 (±10) degrees
+
+Attempting to decrease refresh rate to determine flaw; EBD*
+
+Noticed that maxSpeed is set to 50 and the robot is turning faster than usual; testing in console
+
+motor speed did not exceed max speed in testing
+
+line 306 of version 00054c is debug information: print turnspeed into console after capping the motorspeed
+
+
+ebd for refresh rate cont'd: attemped to reduce refresh rate (currently 20ms or 50hz) due to the rate of change being too high; decreased to 10 ms or 100 hz to see change.
+
+same result; conclusion intertial fault or exit statement fault.
+
+testing exit statement fault for threshold: currently set to 5.
+
+Printing turnspeed into console to see result
+
+during this test the robot overshot by 120 degrees ±10
+
+printing every variable into console to see change (version 00055)
+
+robot oscillated violently during testing: noticed that some text in console may have overlapped each other so refresh rate is too fast or due to the fact of the controller not being able to receive
+						which both has affect with refresh rate
+
+						also noticed noticed that derivative may not be functioning properly: set to 0 when not supposed to be
+
+snapshot of console output (native) depicting all described above
+ 
+Angle Error: -124.200134
+Angle Integral: 1390.723877
+Angle Derivative: 0.000000
+Turn Speed (before limiting): -32.99136fore limiting): -39.058974
+Turn Speed (after limiting): -39.058974
+Angle Int991730
+Angle Integral (after reset if error < 2): 399.192810
+Previous Angle Error: -120.880127
+
+although the refresh rate might be too slow because the highest derivative is 36.0 from a change from 29 to -7 where integral does not get a chance to refresh;
+
+
+attempt to fix: make refresh rate faster and see what happens. 
+
+new refresh rate 1ms (1000hz) to see affects.
+
+console completely messed up and robot performance unaffected.
+
+conclusion: canoot be refresh rate problem.
+
+
+in version 00056, changed resetPosition() to setRotation(0, degrees)
+no difference whatsoever;
+
+
+attempted to set kp to 0.001 to find causes:
+
+Cause was integral buildup: highest point 2000 
+integral could not be reset due to the fact seen above: "although the refresh rate might be too slow because the highest derivative is 36.0 from a change from 29 to -7 where integral does not get a chance to refresh;";
+
+
+slowed down (max speed 10): more accurate.
+
+solution: use motor encoders as a backup system
+
+
+distance from opp. wheels: 10 inches; 
+
+distance each encoder has to travel = pi * 10 * angle / 360 * 360 / 7.84 / 3
+
+simplified to  pi * angle / 60
+
+
+
+Added aligment mech;
+
+Center of gravity is moved towards the left; solutions: slow right down (front right, front left) or tune pid perfectly
+
+solution1 attempt:
+
+decrese by 20% (net 0.8)
+still curved towards left
+
+decrease by 50% net 0.5
+still curved but less
+
+decrease by 80% net 0.2
+minor curving
+
+
+
+prepended additional guide on other side
+
+appeded functions following first function are nonfunctional; attempt to fix:
+after per function, all pid coeffients are set to 0 and must be adjusted; problem solved
+
+strafe tuning:
+
+drift towards backwards
+
+
+kP is now 10; distance is being applied in the wrong dir.

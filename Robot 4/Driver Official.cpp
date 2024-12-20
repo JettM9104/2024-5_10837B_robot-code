@@ -129,7 +129,7 @@ namespace robot {
     double save = 0;
   }
   namespace toggle {
-    int pt = 0;
+    int pt = 1;
     int ra = 0;
 
     namespace mt {
@@ -169,7 +169,7 @@ int main() {
   init();
 
   while (true) {
-    robot::contr::a = Controller.AxisA.position();
+    robot::contr::a = Controller.AxisA.position() * -1;
     robot::contr::b = Controller.AxisB.position();
     robot::contr::c = Controller.AxisC.position();
     robot::contr::d = Controller.AxisD.position();
@@ -239,14 +239,14 @@ int main() {
       }
     }
 
-    // if (!robot::bypass::pneum2) {
-    //   if (robot::toggle::pt % 2) {
-    //     dogs.extend(cylinder1);
-    //   }
-    //   else {
-    //     dogs.retract(cylinder1);
-    //   }
-    // }
+    if (!robot::bypass::pneum2) {
+      if (robot::toggle::pt % 2) {
+        dogs.extend(cylinder1);
+      }
+      else {
+        dogs.retract(cylinder1);
+      }
+    }
 
     if (!robot::bypass::pneum3) {
       if (robot::toggle::ra % 2) {
@@ -307,13 +307,13 @@ void mt() {
 }
 
 void pu() {
-  while (true) {
-    if (Controller.ButtonFUp.pressing()) {
-      robot::toggle::pt++;
-      while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
-    }
-    wait(20, msec);
-  }
+  // while (true) {
+  //   if (Controller.ButtonFUp.pressing()) {
+  //     robot::toggle::pt++;
+  //     while (Controller.ButtonFUp.pressing()) {wait(20, msec); }
+  //   }
+  //   wait(20, msec);
+  // }
 }
 
 void autoMT() {
@@ -343,7 +343,7 @@ void autoMT() {
 
         dogs.retract(cylinder2);
         
-        wait(1500, msec);
+        wait(2000, msec);
 
         dogs.extend(cylinder2);
       }
