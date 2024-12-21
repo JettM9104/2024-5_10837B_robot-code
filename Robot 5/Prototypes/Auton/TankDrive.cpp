@@ -29,8 +29,8 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller = controller();
-motor left = motor(PORT1, true);
-motor right = motor(PORT2, false);
+motor leftDrivetrain = motor(PORT1, true);
+motor rightDrivetrain = motor(PORT2, false);
 
 
 // generating and setting random seed
@@ -68,9 +68,9 @@ void turn(double angle, double timeout); // Angle in Degrees, Timeout in Seconds
 // Namespaces for organization of PID Coefficients
 namespace pid
 {
-    namespace drive { float kP, float kI, float kD; }
-    namespace turn { float kP, float kI, float kD; }
-    namespace correction { float kP, float kI, float kD; }
+    namespace drive { float kP, kI, kD; }
+    namespace turn { float kP, kI, kD; }
+    namespace correction { float kP, kI, kD; }
 }
 
 // Refrences for ease of access of variables
@@ -92,7 +92,10 @@ void init() {
   // initalize stuff here
 }
 
-void drive(double distance, double timeout) { // Drive Function
+void drive(double distance, double timeout, directionType dir = forward) { // Drive Function
+  // Direction Parameter
+  if (dir == reverse) { distance *= 1; }
+
   // Coefficients for PID Drive System
   double threshold = 5, integralResetZone = 3;
   double error, integral = 0, derivative;
@@ -114,19 +117,19 @@ void drive(double distance, double timeout) { // Drive Function
   double goalDegrees =  (360 / wheelCircum) / gearRatio;
 
   // Reset Motor Encoder Positions
-  left.resetPosition();
-  right.resetPosition();
-
+  leftDrivetrain.resetPosition();
+  rightDrivetrain.resetPosition();
+  
   while (true) {
     // Calculate PID Values
-    error = goalDegrees - ((left.position(degrees) + right.position(degrees)) / 2);
+    error = goalDegrees - ((leftDrivetrain.position(degrees) + rightDrivetrain.position(degrees)) / 2);
     integral = error < integralResetZone ? 0 : integral + error;
     derivative = error - lastError;
 
     if (fabs(error) < 3) { integral = 0; } // Reset integral when target is almost met
 
     // Correction Calculation
-    correctionError = (right.position(degrees) - left.position(degrees)) + (BrainInertial.rotation(degrees) - beginInertial);
+    correctionError = (rightDrivetrain.position(degrees) - leftDrivetrain.position(degrees)) + (BrainInertial.rotation(degrees) - beginInertial);
     correctionIntegral += correctionError;
     correctionDerivative = correctionError - correctionLastError;
 
@@ -138,8 +141,8 @@ void drive(double distance, double timeout) { // Drive Function
     rightSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD)) + correctionFactor;
 
     // Spin Motors
-    left.spin(forward, leftSpeed, percent);
-    right.spin(forward, rightSpeed, percent);
+    leftDrivetrain.spin(forward, leftSpeed, percent);
+    rightDrivetrain.spin(forward, rightSpeed, percent);
 
     // Exit Conditions
     if (fabs(error) < threshold) { break; }
@@ -153,7 +156,10 @@ void drive(double distance, double timeout) { // Drive Function
   }
 }
 
-void turn(double angle, double timeout) {
+void turn(double angle, double timeout, directionType dir = forward) {
+  // Direction Parameter
+  if (dir == reverse) { angle *= 1; }
+
   // Coefficients for PID Drive System
   double threshold = 5, integralResetZone = 3;
   double error, integral = 0, derivative;
@@ -168,15 +174,16 @@ void turn(double angle, double timeout) {
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
   double wheelBase = 254; // Must be same units as wheelCircum
-  double goalDegrees =  (angle / 360) * pi * 10 * wheelBase / 360 * 360 / wheelCircum / 3;
+  double goalDegrees =  (angle / 360) * pi * 10 * wheelBase / 360 * 360 / wheelCircum / gearRatio;
 
+  
   // Reset Motor Encoder Positions
-  left.resetPosition();
-  right.resetPosition();
+  leftDrivetrain.resetPosition();
+  rightDrivetrain.resetPosition();
 
   while (true) {
     // Calculate PID Values
-    error = ((goalDegrees - (left.position(degrees) + right.position(degrees)) / 2) + (angle - BrainInertial.rotation(degrees) + beginInertial)) / 2;
+    error = ((goalDegrees - (leftDrivetrain.position(degrees) + rightDrivetrain.position(degrees)) / 2) + (angle - BrainInertial.rotation(degrees) + beginInertial)) / 2;
     integral = error < integralResetZone ? 0 : integral + error;
     derivative = error - lastError;
 
@@ -186,8 +193,8 @@ void turn(double angle, double timeout) {
     motorSpeed = ((error * tkP) + (integral * tkI) + (derivative * tkD));
 
     // Spin Motors
-    left.spin(forward, motorSpeed, percent);
-    right.spin(reverse, motorSpeed, percent);
+    leftDrivetrain.spin(forward, motorSpeed, percent);
+    rightDrivetrain.spin(reverse, motorSpeed, percent);
 
     // Exit Conditions
     if (fabs(error) < threshold) { break; }
