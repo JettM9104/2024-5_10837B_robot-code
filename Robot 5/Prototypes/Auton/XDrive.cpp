@@ -82,7 +82,7 @@ double kP_angle_strafe = 1.7, kI_angle_strafe = 0.01, kD_angle_strafe = 1;    //
 double kP_angle_drive = 4.82, kI_angle_drive = 0.018, kD_angle_drive = 0.6;
 double kP_turn = 0.5, kI_turn = 0.012, kD_turn = 1.2;       // For precise turning
 
-// References to access PID Coefficients more easi;y
+// References to access PID Coefficients more easily
 double& kpD = kP_drive, kiD = kI_drive, kdD = kD_drive;
 double& kpS = kP_strafe, kiS = kI_strafe, kdS = kD_strafe;
 double& kpAS = kP_angle_strafe, kiAS = kI_angle_strafe, kdAS = kD_angle_strafe;
