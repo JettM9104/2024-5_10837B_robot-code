@@ -71,4 +71,4 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-int main() { vexcodeInit(); while (true) { leftDrivetrain.spin(Controller.AxisA.position() - Controller.AxisC.position()); rightDrivetrain.spin(Controller.AxisA.position() + Controller.AxisC.position()); } }
+int main() { vexcodeInit(); while (true) { leftDrivetrain.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent); rightDrivetrain.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent); } }
