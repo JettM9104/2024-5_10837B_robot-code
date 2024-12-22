@@ -23,7 +23,7 @@ This repository contains the driver and autonomous control code for VEX Robotics
 
 ## Overview
 
-Robot 10837 B is designed to compete in VEX Robotics competitions. The code supports two primary modes:
+Robot in team 10837 B is designed to compete in VEX Robotics competitions. The code supports two primary modes:
 
 1. **Autonomous Mode**: The robot operates autonomously based on pre-programmed routines.
 2. **Driver Control Mode**: The robot is manually controlled via a VEX controller.
