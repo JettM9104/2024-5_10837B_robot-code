@@ -55,6 +55,7 @@ void vexcodeInit() {
 // Function Declaration
 void init();
 
+// Notes on the code: All units are in mm. 
 // Enum for curve function
 enum dire { l, r };
 
@@ -210,7 +211,7 @@ void turn(double angle, double timeout, directionType dir) {
 
 void curve(double theta, double radius, double timeout, dire dir) {
   // Direction Parameter
-  if (dir == l) { theta *= 1; }
+  if (dir == l) { radius *= 1; }
 
   // Coefficients for PID Drive System
   double Lerror, Lintegral = 0, Lderivative;
@@ -230,8 +231,8 @@ void curve(double theta, double radius, double timeout, dire dir) {
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
   double trackWidth = 254; // Must be same units as wheelCircum
-  double Lgoal = (theta / 360) * (pi * 2 * (radius - (trackWidth / 2))) * 360 / wheelCircum / gearRatio;
-  double Rgoal = (theta / 360) * (pi * 2 * (radius + (trackWidth / 2))) * 360 / wheelCircum / gearRatio;
+  double Lgoal = (theta / 360) * (pi * 2 * (radius - (trackWidth / 2))) * 360 / wheelCircum / gearRatio; // Refrencing Formula D_{L} = \frac{\Theta}{360}\times \left ( 2\times \pi \times \left ( r-\frac{\textrm{wheelbase}}{2} \right ) \right )
+  double Rgoal = (theta / 360) * (pi * 2 * (radius + (trackWidth / 2))) * 360 / wheelCircum / gearRatio; 
 
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
