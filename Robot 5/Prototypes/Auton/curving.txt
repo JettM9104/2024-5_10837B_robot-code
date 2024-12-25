@@ -1,0 +1,2 @@
+theta is the angle used. if theta is possitive, the robot will curve towards the back. If radius is negative, the robot will curve towards the right.
+If none are used, then the robot will automatically drive forwards towards the right.

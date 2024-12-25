@@ -57,12 +57,12 @@ void vexcodeInit() {
 int main() {
   double x = Brain.Battery.voltage(volt);
   double y = Brain.Battery.current(amp);
-  double z = Brain.Battery.capacity(percent);
+  int z = Brain.Battery.capacity(percent);
 
   while (true) {
     Brain.Screen.print("Voltage: %f V\n", x);
     Brain.Screen.print("Current: %f A\n", y);
-    Brain.Screen.print("Capacity: %f %\n", z);
+    Brain.Screen.print("Capacity: %d %\n", z);
     Brain.Screen.print("Wattage: %f W\n", x*y)
 
     while (!Brain.buttonLeft.pressing()) { wait(20, msec); }
