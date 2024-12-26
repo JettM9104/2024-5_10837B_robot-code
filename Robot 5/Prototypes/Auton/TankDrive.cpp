@@ -234,6 +234,16 @@ void curve(double theta, double radius, double timeout, dire dir) {
   double Lgoal = (theta / 360) * (pi * 2 * (radius - (trackWidth / 2))) * 360 / wheelCircum / gearRatio; // Refrencing Formula D_{L} = \frac{\Theta}{360}\times \left ( 2\times \pi \times \left ( r-\frac{\textrm{wheelbase}}{2} \right ) \right )
   double Rgoal = (theta / 360) * (pi * 2 * (radius + (trackWidth / 2))) * 360 / wheelCircum / gearRatio; 
 
+  // Making sure the values will max out at different values so the robot will not drive straight
+  if (Lgoal > Rgoal) {
+    double Lspeed = 100;
+    double Rspeed = Lgoal / 100 * Rgoal;
+  }
+  else {
+    double Rspeed = 100;
+    double Lspeed = Rgoal / 100 * Lgoal;
+  }
+
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
   rightDrivetrain.resetPosition();
@@ -251,8 +261,8 @@ void curve(double theta, double radius, double timeout, dire dir) {
     if (fabs(Rerror) < 3) { Rintegral = 0; }
 
     // Calculate Motor Speed
-    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
-    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
+    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD)) > Lspeed ? Lspeed : ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
+    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD)) > Rspeed ? Rspeed : ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
 
     // Spin Motors
     leftDrivetrain.spin(forward, LmotorSpeed, percent);
