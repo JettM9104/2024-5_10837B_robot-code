@@ -266,7 +266,7 @@ void curve(double theta, double radius, double timeout, dire dir) {
 
     // Spin Motors
     leftDrivetrain.spin(forward, LmotorSpeed, percent);
-    rightDrivetrain.spin(reverse, RmotorSpeed, percent);
+    rightDrivetrain.spin(forward, RmotorSpeed, percent);
 
     // Exit Conditions
     if ((fabs(Lerror) + fabs(Rerror) / 2 < threshold)) { break; }
