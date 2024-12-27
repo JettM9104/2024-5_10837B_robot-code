@@ -62,7 +62,7 @@ enum dire { l, r };
 // Movement Functions
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
 void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
-void curve(double theta, double radius, double timeout, dire dir = r); 
+void curve(double theta, double radius, double timeout, directionType rotation = forward, dire dir = r); 
 
 // Namespaces for organization of PID Coefficients
 namespace pid
@@ -209,9 +209,10 @@ void turn(double angle, double timeout, directionType dir) {
   }
 }
 
-void curve(double theta, double radius, double timeout, dire dir) {
+void curve(double theta, double radius, double timeout, directionType rotation, dire dir) {
   // Direction Parameter
-  if (dir == l) { radius *= 1; }
+  if (dir == l) { radius *= -1; }
+  if (rotation == reverse) { theta *= -1 }
 
   // Coefficients for PID Drive System
   double Lerror, Lintegral = 0, Lderivative;
@@ -276,7 +277,7 @@ void curve(double theta, double radius, double timeout, dire dir) {
     LlastError = Lerror;
     RlastError = Rerror;
 
-    wait(20, msec); // Wait so the brain doesnt explode
+    wait(20, msec); // Wait so the brain doesnt explod
   }
 }
 
