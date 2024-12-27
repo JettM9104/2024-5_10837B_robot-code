@@ -147,8 +147,8 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
     rightDrivetrain.spin(forward, rightSpeed, percent);
 
     // Exit Conditions
-    if (fabs(error) < threshold) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if (fabs(error) < threshold) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Values
     correctionLastError = correctionError;
@@ -199,8 +199,8 @@ void turn(double angle, double timeout, directionType dir) {
     rightDrivetrain.spin(reverse, motorSpeed, percent);
 
     // Exit Conditions
-    if (fabs(error) < threshold) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if (fabs(error) < threshold) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Variable
     lastError = error;
@@ -270,8 +270,8 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
     rightDrivetrain.spin(forward, RmotorSpeed, percent);
 
     // Exit Conditions
-    if ((fabs(Lerror) + fabs(Rerror) / 2 < threshold)) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if ((fabs(Lerror) + fabs(Rerror) / 2 < threshold)) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Variable
     LlastError = Lerror;
