@@ -38,6 +38,7 @@ motor ptoRight = motor(PORT12, true);
 motor conveyerLeft = motor(PORT11, false);
 motor conveyerRight = motor(PORT5, true);
 motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
+distance ballDetector = distance(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -87,12 +88,16 @@ void updateConveyer();
 void updateRatchet();
 void updateCharles();
 void updatePump();
+void liftMacro();
+void shootPuncher();
+void windPuncher();
 
 
 int main() { 
   vexcodeInit(); 
 
   init();
+
   Controller.ButtonRDown.pressed(updatePDGS);
   Controller.ButtonRUp.pressed(updateMetro);
 
@@ -105,6 +110,10 @@ int main() {
 
   Controller.ButtonFDown.pressed(updateCharles);
   Controller.ButtonR3.pressed(updatePump);
+
+  Controller.ButtonEUp.pressed(liftMacro);
+  Controller.ButtonEDown.pressed(shootPuncher);
+  Controller.ButtonL3.pressed(windPuncher);
 
   while (true) { 
     if (!pdgsState) { 
@@ -215,4 +224,68 @@ void updatePump() {
     jett.pumpOff();
     pumpState = 1;
   }
+}
+
+void liftMacro() {
+  if (!pdgsState) { 
+    conveyer.spin(forward, 100, percent);
+    ptoLeft.spin(forward, 100, percent);
+    ptoRight.spin(forward, 100, percent);
+  }
+  else {
+    conveyer.spin(forward, 100, percent);
+  }
+  while (ballDetector.objectDistance(mm) > 100) { wait(5, msec); }
+  if (!pdgsState) { 
+    wait(70, msec);
+  }
+  else {
+    wait(200, msec);
+  }
+  
+  conveyer.stop(); 
+  ptoLeft.stop();
+  ptoRight.stop(); 
+  updateCharles();
+  wait(2, seconds);
+  updateCharles();
+}
+
+void shootPuncher() {
+  grayson.extend(cylinder2);
+  metroState = 1;
+
+  jett.retract(cylinder1);
+  ratchetState = 0;
+
+  conveyer.spin(reverse, 100, percent);
+  wait(200, msec);
+  conveyer.stop();
+
+  wait(800, msec);
+  grayson.retract(cylinder2);
+  metroState = 0;
+
+}
+
+void windPuncher() {
+  grayson.extend(cylinder2);
+  metroState = 1;
+
+  jett.extend(cylinder1);
+  ratchetState = 1;
+  printf("a\n");
+  unsigned int x = 0;
+  do {
+    conveyer.spin(forward, 100, percent);
+    x++;
+    wait(20, msec);
+    printf("b\n");
+  } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+  conveyer.stop();
+  printf("c\n");
+
+  grayson.retract(cylinder2);
+  metroState = 0;
+
 }
