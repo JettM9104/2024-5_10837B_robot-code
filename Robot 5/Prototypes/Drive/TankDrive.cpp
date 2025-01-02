@@ -31,6 +31,8 @@ inertial BrainInertial = inertial();
 controller Controller = controller();
 motor leftDrivetrain = motor(PORT1, false);
 motor rightDrivetrain = motor(PORT2, true);
+pneumatic pdgs = pneumatic(PORT3);
+pneumatic metro = pneumatic(PORT8);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -56,14 +58,7 @@ void vexcodeInit() {
 
 #pragma endregion VEXcode Generated Robot Configuration
 
-//----------------------------------------------------------------------------
-//                                                                            
-//    Module:       main.cpp                                                  
-//    Author:       {author}                                                  
-//    Created:      {date}                                                    
-//    Description:  IQ project                                                
-//                                                                            
-//----------------------------------------------------------------------------
+
 
 // Include the IQ Library
 #include "iq_cpp.h"
@@ -71,4 +66,46 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-int main() { vexcodeInit(); while (true) { leftDrivetrain.spin(Controller.AxisA.position() - Controller.AxisC.position()); rightDrivetrain.spin(Controller.AxisA.position() + Controller.AxisC.position()); } }
+// Variables for the State of the Pneumatic Pistons
+// 0 for Retracted, 1 for Extended
+bool metroState = 0; // Puncher Connection to Conveyer
+bool pdgsState = 0; // Pneumatic Driven Gear Shifter (Drivetrain to Conveyer)
+
+// Function Declarations
+void updateMetro();
+void updatePDGS();
+
+
+int main() { 
+  vexcodeInit(); 
+
+  Controller.ButtonRDown.pressed(updatePDGS);
+  Controller.ButtonRUp.pressed(updateMetro);
+
+  while (true) { 
+    leftDrivetrain.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent); 
+    rightDrivetrain.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+  } 
+}
+
+void updatePDGS() {
+  if (!pdgsState) {
+    pdgs.extend(cylinder1); // Assuming they are connected into one sector, cylinder1
+    metroState = 1;
+  }
+  else {
+    pdgs.retract(cylinder1);
+    metroState = 0;
+  }
+}
+
+void updateMetro() {
+  if (!metroState) {
+    metro.extend(cylinder1); // Assuming they are connected into one sector, cylinder1
+    metroState = 1;
+  }
+  else {
+    metro.retract(cylinder1);
+    metroState = 0;
+  }
+}
