@@ -29,10 +29,15 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller = controller();
-motor leftDrivetrain = motor(PORT1, false);
-motor rightDrivetrain = motor(PORT2, true);
-pneumatic pdgs = pneumatic(PORT3);
-pneumatic metro = pneumatic(PORT8);
+motor leftDrivetrain = motor(PORT9, true);
+motor rightDrivetrain = motor(PORT3, false);
+pneumatic jett = pneumatic(PORT1);
+pneumatic grayson = pneumatic(PORT7);
+motor ptoLeft = motor(PORT6);
+motor ptoRight = motor(PORT12);
+motor conveyerLeft = motor(PORT11, false);
+motor conveyerRight = motor(PORT5, true);
+motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -72,8 +77,10 @@ bool metroState = 0; // Puncher Connection to Conveyer
 bool pdgsState = 0; // Pneumatic Driven Gear Shifter (Drivetrain to Conveyer)
 
 // Function Declarations
+void init();
 void updateMetro();
 void updatePDGS();
+void updateConveyer();
 
 
 int main() { 
@@ -82,30 +89,61 @@ int main() {
   Controller.ButtonRDown.pressed(updatePDGS);
   Controller.ButtonRUp.pressed(updateMetro);
 
+  Controller.ButtonLUp.pressed(updateConveyer);
+  Controller.ButtonLUp.released(updateConveyer);
+  Controller.ButtonLDown.pressed(updateConveyer);
+  Controller.ButtonLDown.released(updateConveyer);
+
   while (true) { 
-    leftDrivetrain.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent); 
-    rightDrivetrain.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+    if (!pdgsState) { 
+      leftDrivetrain.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent); 
+      rightDrivetrain.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+    }
+    else {
+      leftDrivetrain.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent); 
+      rightDrivetrain.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      ptoLeft.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent); 
+      ptoRight.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+    }
+    wait(20, msec);
   } 
 }
 
+void init() {
+  conveyer.setMaxTorque(100, percent);
+}
+
+
 void updatePDGS() {
   if (!pdgsState) {
-    pdgs.extend(cylinder1); // Assuming they are connected into one sector, cylinder1
-    metroState = 1;
+    jett.extend(cylinder2); 
+    pdgsState = 1;
   }
   else {
-    pdgs.retract(cylinder1);
-    metroState = 0;
+    jett.retract(cylinder2);
+    pdgsState = 0;
   }
 }
 
 void updateMetro() {
   if (!metroState) {
-    metro.extend(cylinder1); // Assuming they are connected into one sector, cylinder1
+    grayson.extend(cylinder2);
     metroState = 1;
   }
   else {
-    metro.retract(cylinder1);
+    grayson.retract(cylinder2);
     metroState = 0;
+  }
+}
+
+void updateConveyer() {
+  if (Controller.ButtonLUp.pressing()) {
+    conveyer.spin(forward, 100, percent);
+  }
+  else if (Controller.ButtonLDown.pressing()) {
+    conveyer.spin(reverse, 100, percent);
+  }
+  else {
+    conveyer.stop();
   }
 }
