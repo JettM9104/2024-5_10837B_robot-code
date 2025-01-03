@@ -258,11 +258,11 @@ void shootPuncher() {
   jett.retract(cylinder1);
   ratchetState = 0;
 
-  conveyer.spin(reverse, 100, percent);
+  conveyer.spin(forward, 100, percent);
   wait(200, msec);
   conveyer.stop();
 
-  wait(800, msec);
+  wait(200, msec);
   grayson.retract(cylinder2);
   metroState = 0;
 
@@ -274,7 +274,7 @@ void windPuncher() {
 
   jett.extend(cylinder1);
   ratchetState = 1;
-  printf("a\n");
+  
   unsigned int x = 0;
   do {
     conveyer.spin(forward, 100, percent);
