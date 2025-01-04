@@ -72,6 +72,11 @@ void drive(double distance, double timeout = 0, directionType dir = forward); //
 void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
 void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
 
+// Macros
+void liftMacro();
+void shootPuncher();
+void windPuncher();
+
 // Namespaces for organization of PID Coefficients
 namespace pid
 {
@@ -94,13 +99,34 @@ int main() {
   // run stuff here
   vexcodeInit();
   init();
-  curve(90, 200);
+  conveyer.stop();
+  drive(-10000000, 3);
+  drive(200, 0.3);
+  turn(-90, 2);
+  drive(100000000, 3);
+  shootPuncher();
+  thread wind1 = thread(windPuncher);
+
+  jett.retract(cylinder2);
+  ptoLeft.spin(forward, 100, percent);
+  ptoRight.spin(forward, 100, percent);
+  conveyer.spin(forward, 100, percent);
+  wait(3000, msec);
+  jett.extend(cylinder2);
+  conveyer.stop();
+  turn(33, 2);
+  drive(-914, 3);
+  drive(100000000, 3);
+
+  liftMacro();
+  shootPuncher();
+  conveyer.spin(forward, 100, percent);
 
 }
 
 void init() {
   // initalize stuff here, for example, setstopping to hold, coast, or brake
-  jett.retract(cylinder2); 
+  jett.extend(cylinder2); 
 }
 
 void drive(double distance, double timeout, directionType dir) { // Drive Function
@@ -158,7 +184,9 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
 
     // Spin Motors
     leftDrivetrain.spin(forward, leftSpeed, percent);
+    ptoLeft.spin(forward, leftSpeed, percent);
     rightDrivetrain.spin(forward, rightSpeed, percent);
+    ptoRight.spin(forward, leftSpeed, percent);
 
     // Exit Conditions
     if (fabs(error) < threshold && i >= 10) [[unlikely]] { break; }
@@ -264,15 +292,15 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
   double Lspeed;
   double Rspeed;
   
-  if (Lgoal > Rgoal) {
-    Lspeed = 100;
-    Rspeed = Rgoal / Lgoal * 100;
+  if (Lgoal < Rgoal) {
+    Lspeed = Rgoal / Lgoal * 100;
+    Rspeed = 100;
   }
   else {
     Rspeed = 100;
     Lspeed = Lgoal / Rgoal * 100;
   }
-  printf("the max speed for right is %f and \nthe max speed for left is %f.", Lspeed, Rspeed);
+ // printf("the max speed for right is %f and \nthe max speed for left is %f.", Lspeed, Rspeed);
 
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
@@ -293,15 +321,15 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
     if (fabs(Rerror) < 3) { Rintegral = 0; }
 
     // Calculate Motor Speed
-    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD)) > Lspeed ? Lspeed : ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
-    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD)) > Rspeed ? Rspeed : ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
+    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD)) > 50 ? 50 : ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
+    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD)) > 100 ? 100 : ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
 
     printf("L motor speed: %f\nR motor speed: %f\n\n", LmotorSpeed, RmotorSpeed);
     // Spin Motors
     leftDrivetrain.spin(forward, LmotorSpeed, percent);
-    //ptoLeft.spin(forward, LmotorSpeed, percent);
+    ptoLeft.spin(forward, LmotorSpeed, percent);
     rightDrivetrain.spin(forward, RmotorSpeed, percent);
-    //ptoRight.spin(forward, RmotorSpeed, percent);
+    ptoRight.spin(forward, RmotorSpeed, percent);
 
     // Exit Conditions
     if ((fabs(Lerror) < threshold) && (fabs(Rerror) < threshold)) [[unlikely]] { break; }
@@ -317,4 +345,59 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
   rightDrivetrain.stop();
   ptoLeft.stop();
   ptoRight.stop();
+}
+
+void liftMacro() {
+
+  conveyer.spin(forward, 100, percent);
+
+  wait(200, msec);
+
+  
+  conveyer.stop(); 
+  ptoLeft.stop();
+  ptoRight.stop(); 
+  grayson.extend(cylinder1);
+  wait(2, seconds);
+  grayson.retract(cylinder1);
+
+}
+
+void shootPuncher() {
+  grayson.extend(cylinder2);
+
+
+  jett.retract(cylinder1);
+
+
+  conveyer.spin(forward, 100, percent);
+  wait(200, msec);
+  conveyer.stop();
+
+  wait(200, msec);
+  grayson.retract(cylinder2);
+
+
+}
+
+void windPuncher() {
+  grayson.extend(cylinder2);
+
+
+  jett.extend(cylinder1);
+
+  
+  unsigned int x = 0;
+  do {
+    conveyer.spin(forward, 100, percent);
+    x++;
+    wait(20, msec);
+    printf("b\n");
+  } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+  conveyer.stop();
+  printf("c\n");
+
+  grayson.retract(cylinder2);
+
+
 }
