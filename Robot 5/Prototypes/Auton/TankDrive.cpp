@@ -81,7 +81,7 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.1, kI = 0.1, kD = 0.1; }
-    namespace turn { float kP = 0.25, kI = 0.01, kD = 1.25; }
+    namespace turn { float kP = 0.7, kI = 0.01, kD = 1.25; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
 }
@@ -101,32 +101,45 @@ int main() {
   init();
   conveyer.stop();
   drive(-10000000, 3);
-  drive(200, 0.3);
-  turn(-90, 2);
-  drive(100000000, 3);
-  shootPuncher();
-  thread wind1 = thread(windPuncher);
+  drive(1000, 0.2);
+  Brain.Timer.reset();
+  // while (Brain.Timer.value() < 4) {
+  //   leftDrivetrain.spin(reverse, 100, percent);
+  //   ptoLeft.spin(reverse, 100, percent);
 
-  jett.retract(cylinder2);
-  ptoLeft.spin(forward, 100, percent);
-  ptoRight.spin(forward, 100, percent);
-  conveyer.spin(forward, 100, percent);
-  wait(3000, msec);
-  jett.extend(cylinder2);
-  conveyer.stop();
+  //   rightDrivetrain.setStopping(hold);
+  // }
+  curve(254, 95, 2);
+  rightDrivetrain.setStopping(brake);
+  drive(100000000, 3);
+  //shootPuncher();
+
+  //jett.retract(cylinder2);
+  //ptoLeft.spin(forward, 100, percent);
+  //ptoRight.spin(forward, 100, percent);
+  //conveyer.spin(forward, 100, percent);
+  //jett.extend(cylinder2); 
+  //wait(3000, msec);
+  //jett.extend(cylinder2);
+  //conveyer.stop();
+  //thread wind1 = thread(windPuncher);
+  drive(-9140, 3);
   turn(33, 2);
-  drive(-914, 3);
   drive(100000000, 3);
 
-  liftMacro();
-  shootPuncher();
-  conveyer.spin(forward, 100, percent);
+  // liftMacro();
+  // shootPuncher();
+  // jett.retract(cylinder2);
+  // ptoLeft.spin(forward, 100, percent);
+  // ptoRight.spin(forward, 100, percent);
+  // conveyer.spin(forward, 100, percent);
 
 }
 
 void init() {
   // initalize stuff here, for example, setstopping to hold, coast, or brake
   jett.extend(cylinder2); 
+  jett.pumpOn();
 }
 
 void drive(double distance, double timeout, directionType dir) { // Drive Function
@@ -186,7 +199,7 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
     leftDrivetrain.spin(forward, leftSpeed, percent);
     ptoLeft.spin(forward, leftSpeed, percent);
     rightDrivetrain.spin(forward, rightSpeed, percent);
-    ptoRight.spin(forward, leftSpeed, percent);
+    ptoRight.spin(forward, rightSpeed, percent);
 
     // Exit Conditions
     if (fabs(error) < threshold && i >= 10) [[unlikely]] { break; }
@@ -242,9 +255,9 @@ void turn(double angle, double timeout, directionType dir) {
 
     // Spin Motors
     leftDrivetrain.spin(forward, motorSpeed, percent);
-    rightDrivetrain.spin(reverse, motorSpeed, percent);
+    rightDrivetrain.spin(reverse, 0, percent);
     ptoLeft.spin(forward, motorSpeed, percent);
-    ptoRight.spin(reverse, motorSpeed, percent);
+    ptoRight.spin(reverse, 0 , percent);
 
     // Exit Conditions
     if (fabs(error) < threshold) [[unlikely]] { break; }
