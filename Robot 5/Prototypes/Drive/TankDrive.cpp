@@ -257,10 +257,19 @@ void shootPuncher() {
 
   jett.retract(cylinder1);
   ratchetState = 0;
-
-  conveyer.spin(forward, 100, percent);
+  if (!pdgsState) {
+    conveyer.spin(forward, 100, percent);
+    ptoLeft.spin(forward, 100, percent);
+    ptoRight.spin(forward, 100, percent);
+  }
+  else {
+    conveyer.spin(forward, 100, percent);
+  }
+  
   wait(500, msec);
   conveyer.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
 
   wait(200, msec);
   grayson.retract(cylinder2);
