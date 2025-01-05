@@ -26,8 +26,16 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller = controller();
-motor leftDrivetrain = motor(PORT1, true);
-motor rightDrivetrain = motor(PORT2, false);
+motor leftDrivetrain = motor(PORT9, true);
+motor rightDrivetrain = motor(PORT3, false);
+pneumatic jett = pneumatic(PORT1);
+pneumatic grayson = pneumatic(PORT7);
+motor ptoLeft = motor(PORT6, false);
+motor ptoRight = motor(PORT12, true);
+motor conveyerLeft = motor(PORT11, false);
+motor conveyerRight = motor(PORT5, true);
+motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
+distance ballDetector = distance(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -62,15 +70,20 @@ enum dire { l, r };
 // Movement Functions
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
 void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
-void curve(double theta, double radius, double timeout, dire dir = r); 
+void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
+
+// Macros
+void liftMacro();
+void shootPuncher();
+void windPuncher();
 
 // Namespaces for organization of PID Coefficients
 namespace pid
 {
-    namespace drive { float kP, kI, kD; }
-    namespace turn { float kP, kI, kD; }
-    namespace correction { float kP, kI, kD; }
-    namespace curve { float kP, kI, kD; }
+    namespace drive { float kP = 0.1, kI = 0.1, kD = 0.1; }
+    namespace turn { float kP = 0.7, kI = 0.01, kD = 1.25; }
+    namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
+    namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
 }
 
 // Refrences for ease of access of variables
@@ -86,13 +99,47 @@ int main() {
   // run stuff here
   vexcodeInit();
   init();
-  drive(20, 3);
-  drive(20, 3, reverse);
-  drive(20);
+  conveyer.stop();
+  drive(-10000000, 3);
+  drive(1000, 0.2);
+  Brain.Timer.reset();
+  // while (Brain.Timer.value() < 4) {
+  //   leftDrivetrain.spin(reverse, 100, percent);
+  //   ptoLeft.spin(reverse, 100, percent);
+
+  //   rightDrivetrain.setStopping(hold);
+  // }
+  curve(254, 95, 2);
+  rightDrivetrain.setStopping(brake);
+  drive(100000000, 3);
+  //shootPuncher();
+
+  //jett.retract(cylinder2);
+  //ptoLeft.spin(forward, 100, percent);
+  //ptoRight.spin(forward, 100, percent);
+  //conveyer.spin(forward, 100, percent);
+  //jett.extend(cylinder2); 
+  //wait(3000, msec);
+  //jett.extend(cylinder2);
+  //conveyer.stop();
+  //thread wind1 = thread(windPuncher);
+  drive(-9140, 3);
+  turn(33, 2);
+  drive(100000000, 3);
+
+  // liftMacro();
+  // shootPuncher();
+  // jett.retract(cylinder2);
+  // ptoLeft.spin(forward, 100, percent);
+  // ptoRight.spin(forward, 100, percent);
+  // conveyer.spin(forward, 100, percent);
+
 }
 
 void init() {
   // initalize stuff here, for example, setstopping to hold, coast, or brake
+  jett.extend(cylinder2); 
+  jett.pumpOn();
 }
 
 void drive(double distance, double timeout, directionType dir) { // Drive Function
@@ -116,13 +163,19 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
   // Wheel Distance Calculation
   double wheelCircum = 200; // The units of double "distance" will be the same as wheelCircum
   double gearRatio = 2 / 1;
-  double goalDegrees =  (360 / wheelCircum) / gearRatio;
+  double goalDegrees =  distance * (360 / wheelCircum) / gearRatio;
 
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
   rightDrivetrain.resetPosition();
-  
+
+  // Iteration Count
+  unsigned int i = 0;
+
   while (true) {
+    // Increment the Iteration
+    i++;
+
     // Calculate PID Values
     error = goalDegrees - ((leftDrivetrain.position(degrees) + rightDrivetrain.position(degrees)) / 2);
     integral = error < integralResetZone ? 0 : integral + error;
@@ -144,11 +197,13 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
 
     // Spin Motors
     leftDrivetrain.spin(forward, leftSpeed, percent);
+    ptoLeft.spin(forward, leftSpeed, percent);
     rightDrivetrain.spin(forward, rightSpeed, percent);
+    ptoRight.spin(forward, rightSpeed, percent);
 
     // Exit Conditions
-    if (fabs(error) < threshold) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if (fabs(error) < threshold && i >= 10) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Values
     correctionLastError = correctionError;
@@ -156,13 +211,15 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
 
     wait(20, msec); // Wait so the brain doesnt explode
   }
+  leftDrivetrain.stop();
+  rightDrivetrain.stop();
 }
 
 void turn(double angle, double timeout, directionType dir) {
   // Direction Parameter
   if (dir == reverse) { angle *= 1; }
 
-  // Coefficients for PID Drive System
+  // Variables for PID Drive System
   double threshold = 5, integralResetZone = 3;
   double error, integral = 0, derivative;
   double lastError = 0;
@@ -175,18 +232,20 @@ void turn(double angle, double timeout, directionType dir) {
   // Wheel Distance Calculation
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
-  double trackWidth = 254; // Must be same units as wheelCircum
-  double goalDegrees =  (angle / 360) * pi * 10 * trackWidth / 360 * 360 / wheelCircum / gearRatio;
+  double trackDiam = 200 * sqrt(2); // Must be same units as wheelCircum
+  double goalDegrees =  (angle / 360) * 2 * pi * trackDiam * wheelCircum / 360 / gearRatio;
 
-  
+  printf("GOAL DEGREES EQN %f\n", goalDegrees);
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
   rightDrivetrain.resetPosition();
 
   while (true) {
     // Calculate PID Values
-    error = ((goalDegrees - (leftDrivetrain.position(degrees) + rightDrivetrain.position(degrees)) / 2) + (angle - BrainInertial.rotation(degrees) + beginInertial)) / 2;
+    error = (goalDegrees - (leftDrivetrain.position(degrees) - rightDrivetrain.position(degrees)) / 2);// + (angle - BrainInertial.rotation(degrees) + beginInertial)) / 2;
     integral = error < integralResetZone ? 0 : integral + error;
+
+    printf("%f\n", error);
     derivative = error - lastError;
 
     if (fabs(error) < 3) { integral = 0; } // Reset integral when target is almost met
@@ -196,22 +255,30 @@ void turn(double angle, double timeout, directionType dir) {
 
     // Spin Motors
     leftDrivetrain.spin(forward, motorSpeed, percent);
-    rightDrivetrain.spin(reverse, motorSpeed, percent);
+    rightDrivetrain.spin(reverse, 0, percent);
+    ptoLeft.spin(forward, motorSpeed, percent);
+    ptoRight.spin(reverse, 0 , percent);
 
     // Exit Conditions
-    if (fabs(error) < threshold) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if (fabs(error) < threshold) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Variable
     lastError = error;
+    printf("DERIV %f\n", tkD);
 
     wait(20, msec); // Wait so the brain doesnt explode
   }
+  leftDrivetrain.stop();
+  rightDrivetrain.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
 }
 
-void curve(double theta, double radius, double timeout, dire dir) {
+void curve(double theta, double radius, double timeout, directionType rotation, dire dir) {
   // Direction Parameter
-  if (dir == l) { radius *= 1; }
+  if (dir == l) { radius *= -1; }
+  if (rotation == reverse) { theta *= -1; }
 
   // Coefficients for PID Drive System
   double Lerror, Lintegral = 0, Lderivative;
@@ -222,7 +289,7 @@ void curve(double theta, double radius, double timeout, dire dir) {
   double RlastError = 0;
   double RmotorSpeed;
 
-  double threshold = 5, integralResetZone = 3;
+  double threshold = 10, integralResetZone = 3;
 
   // Saving the values so we don't have to reset the values in the beginning
   double beginTimer = Brain.Timer.value();
@@ -235,14 +302,18 @@ void curve(double theta, double radius, double timeout, dire dir) {
   double Rgoal = (theta / 360) * (pi * 2 * (radius + (trackWidth / 2))) * 360 / wheelCircum / gearRatio; 
 
   // Making sure the values will max out at different values so the robot will not drive straight
-  if (Lgoal > Rgoal) {
-    double Lspeed = 100;
-    double Rspeed = Lgoal / 100 * Rgoal;
+  double Lspeed;
+  double Rspeed;
+  
+  if (Lgoal < Rgoal) {
+    Lspeed = Rgoal / Lgoal * 100;
+    Rspeed = 100;
   }
   else {
-    double Rspeed = 100;
-    double Lspeed = Rgoal / 100 * Lgoal;
+    Rspeed = 100;
+    Lspeed = Lgoal / Rgoal * 100;
   }
+ // printf("the max speed for right is %f and \nthe max speed for left is %f.", Lspeed, Rspeed);
 
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
@@ -253,31 +324,93 @@ void curve(double theta, double radius, double timeout, dire dir) {
     Lerror = Lgoal - (leftDrivetrain.position(degrees));
     Lintegral = Lerror < integralResetZone ? 0 : Lintegral + Lerror;
     Lderivative = Lerror - LlastError;
+
     Rerror = Rgoal - (rightDrivetrain.position(degrees));
     Rintegral = Rerror < integralResetZone ? 0 : Rintegral + Rerror;
     Rderivative = Rerror - RlastError;
+    printf("r error: %f\n", Rerror);
 
     if (fabs(Lerror) < 3) { Lintegral = 0; } // Reset integral when target is almost met
     if (fabs(Rerror) < 3) { Rintegral = 0; }
 
     // Calculate Motor Speed
-    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD)) > Lspeed ? Lspeed : ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
-    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD)) > Rspeed ? Rspeed : ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
+    LmotorSpeed = ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD)) > 50 ? 50 : ((Lerror * ukP) + (Lintegral * ukI) + (Lderivative * ukD));
+    RmotorSpeed = ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD)) > 100 ? 100 : ((Rerror * ukP) + (Rintegral * ukI) + (Rderivative * ukD));
 
+    printf("L motor speed: %f\nR motor speed: %f\n\n", LmotorSpeed, RmotorSpeed);
     // Spin Motors
     leftDrivetrain.spin(forward, LmotorSpeed, percent);
+    ptoLeft.spin(forward, LmotorSpeed, percent);
     rightDrivetrain.spin(forward, RmotorSpeed, percent);
+    ptoRight.spin(forward, RmotorSpeed, percent);
 
     // Exit Conditions
-    if ((fabs(Lerror) + fabs(Rerror) / 2 < threshold)) { break; }
-    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) { break; }
+    if ((fabs(Lerror) < threshold) && (fabs(Rerror) < threshold)) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
 
     // Set lastError Variable
     LlastError = Lerror;
     RlastError = Rerror;
 
-    wait(20, msec); // Wait so the brain doesnt explode
+    wait(20, msec); // Wait so the brain doesnt explod
   }
+  leftDrivetrain.stop();
+  rightDrivetrain.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
 }
 
+void liftMacro() {
 
+  conveyer.spin(forward, 100, percent);
+
+  wait(200, msec);
+
+  
+  conveyer.stop(); 
+  ptoLeft.stop();
+  ptoRight.stop(); 
+  grayson.extend(cylinder1);
+  wait(2, seconds);
+  grayson.retract(cylinder1);
+
+}
+
+void shootPuncher() {
+  grayson.extend(cylinder2);
+
+
+  jett.retract(cylinder1);
+
+
+  conveyer.spin(forward, 100, percent);
+  wait(200, msec);
+  conveyer.stop();
+
+  wait(200, msec);
+  grayson.retract(cylinder2);
+
+
+}
+
+void windPuncher() {
+  grayson.extend(cylinder2);
+
+
+  jett.extend(cylinder1);
+
+  
+  unsigned int x = 0;
+  do {
+    conveyer.spin(forward, 100, percent);
+    x++;
+    wait(20, msec);
+    printf("b\n");
+  } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+  conveyer.stop();
+  printf("c\n");
+
+  grayson.retract(cylinder2);
+
+
+}
