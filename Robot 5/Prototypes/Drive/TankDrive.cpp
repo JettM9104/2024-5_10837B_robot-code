@@ -259,7 +259,7 @@ void shootPuncher() {
   ratchetState = 0;
 
   conveyer.spin(forward, 100, percent);
-  wait(200, msec);
+  wait(500, msec);
   conveyer.stop();
 
   wait(200, msec);
