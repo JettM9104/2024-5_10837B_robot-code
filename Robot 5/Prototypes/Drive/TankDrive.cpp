@@ -227,6 +227,7 @@ void updatePump() {
 }
 
 void liftMacro() {
+  bool cancel = false;
   if (!pdgsState) { 
     conveyer.spin(forward, 100, percent);
     ptoLeft.spin(forward, 100, percent);
@@ -235,28 +236,29 @@ void liftMacro() {
   else {
     conveyer.spin(forward, 100, percent);
   }
-  while (!Controller.ButtonEUp.pressing()) { wait(20, msec); }
+  while (Controller.ButtonEUp.pressing()) { wait(20, msec); }
   while (ballDetector.objectDistance(mm) > 100) { 
-    if (Controller.ButtonEUp.pressing()) { break; } 
+    if (Controller.ButtonEUp.pressing()) { cancel = true; break; } 
     wait(5, msec); 
   }
 
-  if (!pdgsState) { 
-    wait(70, msec);
-  }
-  else {
-    wait(200, msec);
-  }
-  
-  conveyer.stop(); 
-  ptoLeft.stop();
-  ptoRight.stop(); 
+  if (!cancel) {
+    if (!pdgsState) { 
+      wait(70, msec);
+    }
+    else {
+      wait(200, msec);
+    }
+    
+    conveyer.stop(); 
+    ptoLeft.stop();
+    ptoRight.stop(); 
 
-  updateCharles();
-  wait(2, seconds);
-  updateCharles();
+    updateCharles();
+    wait(2, seconds);
+    updateCharles();
+  }
 }
-
 void shootPuncher() {
   grayson.extend(cylinder2);
   metroState = 1;
