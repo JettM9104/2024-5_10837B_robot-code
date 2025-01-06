@@ -286,13 +286,24 @@ void windPuncher() {
   
   unsigned int x = 0;
   do {
-    conveyer.spin(forward, 100, percent);
+    if (!pdgsState) {
+      conveyer.spin(forward, 100, percent);
+      ptoLeft.spin(forward, 100, percent);
+      ptoRight.spin(forward, 100, percent);
+    }
+    else {
+      conveyer.spin(forward, 100, percent);
+    }
     x++;
     wait(20, msec);
-    printf("b\n");
+    
+    if (Controller.ButtonL3.pressing()) {
+      conveyer.stop();
+      break;
+    }
   } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
   conveyer.stop();
-  printf("c\n");
+  
 
   grayson.retract(cylinder2);
   metroState = 0;
