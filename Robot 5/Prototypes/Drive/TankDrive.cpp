@@ -242,6 +242,10 @@ void liftMacro() {
     wait(5, msec); 
   }
 
+  conveyer.stop(); 
+  ptoLeft.stop();
+  ptoRight.stop(); 
+
   if (!cancel) {
     if (!pdgsState) { 
       wait(70, msec);
@@ -249,11 +253,6 @@ void liftMacro() {
     else {
       wait(200, msec);
     }
-    
-    conveyer.stop(); 
-    ptoLeft.stop();
-    ptoRight.stop(); 
-
     updateCharles();
     wait(2, seconds);
     updateCharles();

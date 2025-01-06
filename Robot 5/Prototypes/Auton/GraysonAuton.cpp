@@ -123,18 +123,23 @@ int main() {
   //jett.extend(cylinder2);
   //conveyer.stop();
   //thread wind1 = thread(windPuncher);
-  drive(-45000, 1.5);
-  leftDrivetrain.stop();
+  /////drive(-10000, 2);
   rightDrivetrain.stop();
-  ptoLeft.stop();
+  leftDrivetrain.stop();
   ptoRight.stop();
+  ptoLeft.stop();
+  
 
   Brain.playSound(siren);
 
-  wait(10, seconds);
+  /////wait(2, seconds);
 
-  turn(33, 2);
-  drive(100000000, 3);
+  turn(90, 2);
+  drive(30000, 1.5);
+
+  wait(2, seconds);
+  turn(-60, 2);
+  drive(100000000, 4);
 
   // liftMacro();
   // shootPuncher();
@@ -176,7 +181,7 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
   // Wheel Distance Calculation
   double wheelCircum = 200; // The units of double "distance" will be the same as wheelCircum
   double gearRatio = 2 / 1;
-  double goalDegrees =  distance * (360 / wheelCircum) / gearRatio;
+  double goalDegrees =  distance * (wheelCircum / 360) / gearRatio;
 
   // Reset Motor Encoder Positions
   leftDrivetrain.resetPosition();
@@ -205,8 +210,8 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
     correctionFactor = (correctionError * ckP) + (correctionIntegral * ckI) + (correctionDerivative * ckD);
     
     // Calculate Motor Speed
-    leftSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD)) - correctionFactor;
-    rightSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD)) + correctionFactor;
+    leftSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD));
+    rightSpeed = ((error * dkP) + (integral * dkI) + (derivative * dkD));
 
     // Spin Motors
     leftDrivetrain.spin(forward, leftSpeed, percent);
@@ -224,10 +229,10 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
 
     wait(20, msec); // Wait so the brain doesnt explode
   }
-  leftDrivetrain.stop();
   rightDrivetrain.stop();
-  ptoLeft.stop();
+  leftDrivetrain.stop();
   ptoRight.stop();
+  ptoLeft.stop();
 }
 
 void turn(double angle, double timeout, directionType dir) {
@@ -248,7 +253,7 @@ void turn(double angle, double timeout, directionType dir) {
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
   double trackDiam = 200 * sqrt(2); // Must be same units as wheelCircum
-  double goalDegrees =  (angle / 360) * 2 * pi * trackDiam * wheelCircum / 360 / gearRatio;
+  double goalDegrees =  (angle / 360) * pi * trackDiam * wheelCircum / 360 / gearRatio;
 
   printf("GOAL DEGREES EQN %f\n", goalDegrees);
   // Reset Motor Encoder Positions
@@ -270,9 +275,9 @@ void turn(double angle, double timeout, directionType dir) {
 
     // Spin Motors
     leftDrivetrain.spin(forward, motorSpeed, percent);
-    rightDrivetrain.spin(reverse, 0, percent);
+    rightDrivetrain.spin(reverse, motorSpeed, percent);
     ptoLeft.spin(forward, motorSpeed, percent);
-    ptoRight.spin(reverse, 0 , percent);
+    ptoRight.spin(reverse, motorSpeed , percent);
 
     // Exit Conditions
     if (fabs(error) < threshold) [[unlikely]] { break; }
