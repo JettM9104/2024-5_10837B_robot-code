@@ -235,7 +235,12 @@ void liftMacro() {
   else {
     conveyer.spin(forward, 100, percent);
   }
-  while (ballDetector.objectDistance(mm) > 100) { wait(5, msec); }
+  while (!Controller.ButtonEUp.pressing()) { wait(20, msec); }
+  while (ballDetector.objectDistance(mm) > 100) { 
+    if (Controller.ButtonEUp.pressing()) { break; } 
+    wait(5, msec); 
+  }
+
   if (!pdgsState) { 
     wait(70, msec);
   }
@@ -246,6 +251,7 @@ void liftMacro() {
   conveyer.stop(); 
   ptoLeft.stop();
   ptoRight.stop(); 
+
   updateCharles();
   wait(2, seconds);
   updateCharles();
@@ -283,7 +289,7 @@ void windPuncher() {
 
   jett.extend(cylinder1);
   ratchetState = 1;
-  
+  while (Controller.ButtonL3.pressing()) { wait(20,  msec); }
   unsigned int x = 0;
   do {
     if (!pdgsState) {
@@ -302,8 +308,10 @@ void windPuncher() {
       break;
     }
   } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+
   conveyer.stop();
-  
+  ptoLeft.stop();
+  ptoRight.stop();
 
   grayson.retract(cylinder2);
   metroState = 0;
