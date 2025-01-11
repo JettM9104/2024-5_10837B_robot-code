@@ -69,7 +69,7 @@ enum dire { l, r };
 
 // Movement Functions
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
-void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
+void turn(double angle, double timeout = NULL, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
 void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
 
 // Macros
@@ -81,7 +81,7 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.1, kI = 0.1, kD = 0.1; }
-    namespace turn { float kP = 0.7, kI = 0.01, kD = 1.25; }
+    namespace turn { float kP = 1, kI = 0.01, kD = 0.9; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
 }
@@ -96,67 +96,19 @@ float& ukP = pid::curve::kP, ukI = pid::curve::kI, ukD = pid::curve::kD;
 const double pi = 3.1415926;
 
 int main() {
-  // run stuff here
   vexcodeInit();
   init();
-  conveyer.stop();
-  /////drive(-10000000, 3);
-  /////drive(1000, 0.2);
-  Brain.Timer.reset();
-  // while (Brain.Timer.value() < 4) {
-  //   leftDrivetrain.spin(reverse, 100, percent);
-  //   ptoLeft.spin(reverse, 100, percent);
 
-  //   rightDrivetrain.setStopping(hold);
-  // }
-  /////curve(254, 10, 2);
-  
-  /////drive(100000000, 3);
-  //shootPuncher();
-
-  //jett.retract(cylinder2);
-  //ptoLeft.spin(forward, 100, percent);
-  //ptoRight.spin(forward, 100, percent);
-  //conveyer.spin(forward, 100, percent);
-  //jett.extend(cylinder2); 
-  //wait(3000, msec);
-  //jett.extend(cylinder2);
-  //conveyer.stop();
-  //thread wind1 = thread(windPuncher);
-  /////drive(-10000, 2);
-  rightDrivetrain.stop();
-  leftDrivetrain.stop();
-  ptoRight.stop();
-  ptoLeft.stop();
-  
-
-  Brain.playSound(siren);
-
-  /////wait(2, seconds);
-
-  turn(90, 2);
-  drive(30000, 1.5);
-
-  wait(2, seconds);
-  turn(-60, 2);
-  drive(100000000, 4);
-
-  // liftMacro();
-  // shootPuncher();
-  // jett.retract(cylinder2);
-  // ptoLeft.spin(forward, 100, percent);
-  // ptoRight.spin(forward, 100, percent);
-  // conveyer.spin(forward, 100, percent);
-
+  turn(90);
 }
 
 void init() {
   // initalize stuff here, for example, setstopping to hold, coast, or brake
   jett.extend(cylinder2); 
   jett.pumpOn();
-  rightDrivetrain.setStopping(brake);
-  leftDrivetrain.setStopping(brake);
-  ptoLeft.setStopping(brake);
+  rightDrivetrain.setStopping(hold);
+  leftDrivetrain.setStopping(hold);
+  ptoLeft.setStopping(hold);
   ptoRight.setStopping(brake);
 }
 
@@ -237,7 +189,7 @@ void drive(double distance, double timeout, directionType dir) { // Drive Functi
 
 void turn(double angle, double timeout, directionType dir) {
   // Direction Parameter
-  if (dir == reverse) { angle *= 1; }
+  //if (dir == reverse) { angle *= 1; }
 
   // Variables for PID Drive System
   double threshold = 5, integralResetZone = 3;
@@ -252,8 +204,8 @@ void turn(double angle, double timeout, directionType dir) {
   // Wheel Distance Calculation
   double wheelCircum = 200;
   double gearRatio = 2 / 1;
-  double trackDiam = 200 * sqrt(2); // Must be same units as wheelCircum
-  double goalDegrees =  (angle / 360) * pi * trackDiam * wheelCircum / 360 / gearRatio;
+  double trackDiam = 200; // Must be same units as wheelCircum
+  double goalDegrees =  (angle / 360) * 4 * pi * trackDiam * wheelCircum / 360 / gearRatio;
 
   printf("GOAL DEGREES EQN %f\n", goalDegrees);
   // Reset Motor Encoder Positions
@@ -268,7 +220,7 @@ void turn(double angle, double timeout, directionType dir) {
     printf("%f\n", error);
     derivative = error - lastError;
 
-    if (fabs(error) < 3) { integral = 0; } // Reset integral when target is almost met
+    if (fabs(error) < 3) [[unlikely]] { integral = 0; } // Reset integral when target is almost met
 
     // Calculate Motor Speed
     motorSpeed = ((error * tkP) + (integral * tkI) + (derivative * tkD));
