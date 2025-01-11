@@ -69,8 +69,9 @@ enum dire { l, r };
 
 // Movement Functions
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
-void turn(double angle, double timeout = NULL, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
+void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
 void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
+void decelerate_drive(double distance, double timeout = 0, directionType dir = forward);
 
 // Macros
 void liftMacro();
@@ -80,10 +81,11 @@ void windPuncher();
 // Namespaces for organization of PID Coefficients
 namespace pid
 {
-    namespace drive { float kP = 0.1, kI = 0.1, kD = 0.1; }
-    namespace turn { float kP = 1, kI = 0.01, kD = 0.9; }
+    namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
+    namespace turn { float kP = 1, kI = 0.02, kD = 0.8; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
+    namespace decelerate { float kP = 00, kI = 0.1, kD = 0.1; }
 }
 
 // Refrences for ease of access of variables
@@ -91,6 +93,7 @@ float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
 float& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
 float& ckP = pid::correction::kP, ckI = pid::correction::kI, ckD = pid::correction::kD;
 float& ukP = pid::curve::kP, ukI = pid::curve::kI, ukD = pid::curve::kD;
+float& ekP = pid::decelerate::kP, ekI = pid::decelerate::kI, ekD = pid::decelerate::kD;
 
 // PIEEEEEEEEEEEE!!
 const double pi = 3.1415926;
@@ -99,7 +102,11 @@ int main() {
   vexcodeInit();
   init();
 
-  turn(90);
+  drive(-3200);
+
+  turn(-90);
+
+  decelerate_drive(3577);
 }
 
 void init() {
@@ -109,7 +116,7 @@ void init() {
   rightDrivetrain.setStopping(hold);
   leftDrivetrain.setStopping(hold);
   ptoLeft.setStopping(hold);
-  ptoRight.setStopping(brake);
+  ptoRight.setStopping(hold);
 }
 
 void drive(double distance, double timeout, directionType dir) { // Drive Function
@@ -199,7 +206,6 @@ void turn(double angle, double timeout, directionType dir) {
 
   // Saving the values so we don't have to reset the values in the beginning
   double beginTimer = Brain.Timer.value();
-  double beginInertial = BrainInertial.value();
 
   // Wheel Distance Calculation
   double wheelCircum = 200;
@@ -332,6 +338,81 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
   ptoRight.stop();
 }
 
+void decelerate_drive(double distance, double timeout, directionType dir) { // Drive Function
+  // Direction Parameter
+  if (dir == reverse) { distance *= 1; }
+
+  // Coefficients for PID Drive System
+  double threshold = 5, integralResetZone = 3;
+  double error, integral = 0, derivative;
+  double lastError = 0;
+  double leftSpeed, rightSpeed;
+
+  // Coefficients for PID Correcion System
+  double correctionError, correctionIntegral = 0, correctionDerivative, correctionLastError = 0;
+  double correctionFactor;
+
+  // Saving the values so we don't have to reset the values in the beginning
+  double beginTimer = Brain.Timer.value();
+  double beginInertial = BrainInertial.value();
+
+  // Wheel Distance Calculation
+  double wheelCircum = 200; // The units of double "distance" will be the same as wheelCircum
+  double gearRatio = 2 / 1;
+  double goalDegrees =  distance * (wheelCircum / 360) / gearRatio;
+
+  // Reset Motor Encoder Positions
+  leftDrivetrain.resetPosition();
+  rightDrivetrain.resetPosition();
+
+  // Iteration Count
+  unsigned int i = 0;
+
+  while (true) {
+    // Increment the Iteration
+    i++;
+
+    // Calculate PID Values
+    error = goalDegrees - ((leftDrivetrain.position(degrees) + rightDrivetrain.position(degrees)) / 2);
+    integral = error < integralResetZone ? 0 : integral + error;
+    derivative = error - lastError;
+
+    if (fabs(error) < 3) { integral = 0; } // Reset integral when target is almost met
+
+    // Correction Calculation
+    correctionError = (rightDrivetrain.position(degrees) - leftDrivetrain.position(degrees)) + (BrainInertial.rotation(degrees) - beginInertial);
+    correctionIntegral += correctionError;
+    correctionDerivative = correctionError - correctionLastError;
+
+    // Calculate Correction Factor
+    correctionFactor = (correctionError * ckP) + (correctionIntegral * ckI) + (correctionDerivative * ckD);
+    
+    // Calculate Motor Speed
+    leftSpeed = ((error * ekP) + (integral * ekI) + (derivative * ekD));
+    rightSpeed = ((error * ekP) + (integral * ekI) + (derivative * ekD));
+
+    // Spin Motors
+    leftDrivetrain.spin(forward, leftSpeed, percent);
+    ptoLeft.spin(forward, leftSpeed, percent);
+    rightDrivetrain.spin(forward, rightSpeed, percent);
+    ptoRight.spin(forward, rightSpeed, percent);
+
+    // Exit Conditions
+    if (fabs(error) < threshold && i >= 10) [[unlikely]] { break; }
+    if ((((Brain.Timer.value()) - beginTimer) > timeout) && (timeout != 0)) [[unlikely]] { break; }
+
+    // Set lastError Values
+    correctionLastError = correctionError;
+    lastError = error;
+
+    wait(20, msec); // Wait so the brain doesnt explode
+  }
+  rightDrivetrain.stop();
+  leftDrivetrain.stop();
+  ptoRight.stop();
+  ptoLeft.stop();
+}
+
 void liftMacro() {
 
   conveyer.spin(forward, 100, percent);
@@ -386,3 +467,4 @@ void windPuncher() {
 
 
 }
+
