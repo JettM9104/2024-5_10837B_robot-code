@@ -82,10 +82,10 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-    namespace turn { float kP = 1, kI = 0.02, kD = 0.8; }
+    namespace turn { float kP = 0.88, kI = 0.02, kD = 0.7; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
-    namespace decelerate { float kP = 00, kI = 0.1, kD = 0.1; }
+    namespace decelerate { float kP = 0.1, kI = 0.01, kD = 0.5; }
 }
 
 // Refrences for ease of access of variables
@@ -102,11 +102,57 @@ int main() {
   vexcodeInit();
   init();
 
+  windPuncher();
+
+  jett.extend(cylinder2);
+
+  for (int i = 10; i > 0; i--) {
+    printf("%d\n", i);
+    wait(1, seconds);
+  }
+
   drive(-3200);
 
   turn(-90);
 
-  decelerate_drive(3577);
+  decelerate_drive(3800, 3);
+
+  
+  wait(10000, msec);
+  jett.retract(cylinder2);
+
+  wait(10000, msec);
+  shootPuncher();
+
+  conveyer.spin(forward);
+  ptoLeft.spin(forward);
+  ptoRight.spin(forward);
+  wait(3, seconds);
+
+  jett.extend(cylinder2); 
+
+  drive(-4000);
+
+  turn(35);
+
+  drive(3150);
+  
+  turn(-35);
+
+  drive(2000,2);
+
+  wait(1000, msec);
+
+  jett.retract(cylinder2);
+
+  wait(1000, msec);
+  windPuncher();
+
+  wait(500, msec);
+
+  conveyer.spin(forward);
+  ptoLeft.spin(forward);
+  ptoRight.spin(forward);
 }
 
 void init() {
@@ -117,6 +163,13 @@ void init() {
   leftDrivetrain.setStopping(hold);
   ptoLeft.setStopping(hold);
   ptoRight.setStopping(hold);
+  ptoLeft.setVelocity(100, percent);
+  ptoRight.setVelocity(100, percent);
+  conveyer.setVelocity(100, percent);
+  ptoLeft.setMaxTorque(100, percent);
+  ptoRight.setMaxTorque(100, percent);
+  conveyer.setMaxTorque(100, percent);
+
 }
 
 void drive(double distance, double timeout, directionType dir) { // Drive Function
@@ -435,10 +488,17 @@ void shootPuncher() {
 
   jett.retract(cylinder1);
 
+  jett.retract(cylinder2);
+  
+
 
   conveyer.spin(forward, 100, percent);
-  wait(200, msec);
+  ptoLeft.spin(forward, 100, percent);
+  ptoRight.spin(forward, 100, percent);
+  wait(500, msec);
   conveyer.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
 
   wait(200, msec);
   grayson.retract(cylinder2);
@@ -451,11 +511,16 @@ void windPuncher() {
 
 
   jett.extend(cylinder1);
+  
+  jett.retract(cylinder2);
+
 
   
   unsigned int x = 0;
   do {
     conveyer.spin(forward, 100, percent);
+    ptoLeft.spin(forward, 100, percent);
+    ptoRight.spin(forward, 100, percent);
     x++;
     wait(20, msec);
     printf("b\n");
