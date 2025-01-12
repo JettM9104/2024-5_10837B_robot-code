@@ -117,11 +117,16 @@ int main() {
 
   decelerate_drive(3800, 3);
 
-  
-  wait(10000, msec);
+  wait(500, msec);
+
+  decelerate_drive(200, 0.5);
+
+  wait(2000, msec);
+
   jett.retract(cylinder2);
 
-  wait(10000, msec);
+  wait(2000, msec);
+
   shootPuncher();
 
   conveyer.spin(forward);
@@ -135,7 +140,7 @@ int main() {
 
   turn(35);
 
-  drive(3150);
+  drive(3100);
   
   turn(-35);
 
