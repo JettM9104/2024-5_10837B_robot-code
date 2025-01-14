@@ -71,8 +71,8 @@ enum dire { l, r };
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
 void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
 void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
-void decelerate_drive(double distance, double timeout = 0, directionType dir = forward);
-void decelerate_turn(double angle, double timeout = 0, directionType dir = forward);
+void slow_drive(double distance, double timeout = 0, directionType dir = forward);
+void slow_turn(double angle, double timeout = 0, directionType dir = forward);
 
 // Macros
 void liftMacro();
@@ -83,7 +83,7 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-    namespace turn { float kP = 0.25, kI = 0.1, kD = 2.6; }
+    namespace turn { float kP = 0.35, kI = 0.1, kD = 1.2; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace decelerate { 
@@ -107,103 +107,69 @@ int main() {
   vexcodeInit();
   init();
 
+  // jett.retract(cylinder2); 
 
-  windPuncher();
+  // windPuncher();
 
-  jett.extend(cylinder2);
+  // jett.extend(cylinder2);
 
-  for (int i = 10; i > 0; i--) {
-    printf("%d\n", i);
-    wait(1, seconds);
-  }
+  // wait(2, seconds);
 
-  drive(-3200);
+  // drive(-3200);
 
-  turn(-90);
+  // turn(-90);
 
-  decelerate_drive(3800, 3);
+  // slow_drive(3700, 3);
 
-  wait(500, msec);
+  // wait(500, msec);
 
-  decelerate_drive(200, 0.5);
+  // slow_drive(500, 0.75);
 
-  wait(1000, msec);
+  // wait(1000, msec);
 
   jett.retract(cylinder2);
 
-  wait(1000, msec);
+  wait(2000, msec);
 
   shootPuncher();
 
+  wait(900, msec);
+
   conveyer.spin(forward);
   ptoLeft.spin(forward);
   ptoRight.spin(forward);
+
   wait(3, seconds);
-
-
-  jett.extend(cylinder2); 
-
-  for (int i = 10; i > 0; i--) {
-    printf("%d\n", i);
-    wait(1, seconds);
-  }
-
-
-  // // beginning of marker ---------------------------------
-
-
-  drive(-500);
-  turn(-60);
-  drive(-1800);
-  turn(60);
-
-  wait(200, msec);
-  drive(20000, 2);
-  // // end of marker ----------------------------------------
-
-
-
-
-  // // drive(-2200);
-
-  // // turn(60);
-
-  // // drive(800);
-  
-  // // turn(-60);
-
-  
-  // // drive(100000, 2);
-
-  // // wait(1000, msec);
-
-  // // jett.retract(cylinder2);
-
-  // // wait(1000, msec);
-
-
-  // // marker 2 --------------
-
-  windPuncher();
-
-  wait(500, msec);
-
-
-  conveyer.spin(forward);
-  ptoLeft.spin(forward);
-  ptoRight.spin(forward);
-  while (ballDetector.objectDistance(mm) > 50) { wait(20, msec); }
 
   conveyer.stop();
   ptoLeft.stop();
   ptoRight.stop();
+
+  wait(900, msec);
+
+  jett.extend(cylinder2);
+
+  wait(2000, msec);
+
+  drive(-500);
+  turn(-60);
+  drive(-2000);
+  turn(49);
+
+  wait(200, msec);
+  drive(20000, 2);
+
 
 
 }
 
 void init() {
   // initalize stuff here, for example, setstopping to hold, coast, or brake
-  jett.extend(cylinder2); 
+  conveyer.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
+  leftDrivetrain.stop();
+  rightDrivetrain.stop();
   jett.pumpOn();
   rightDrivetrain.setStopping(hold);
   leftDrivetrain.setStopping(hold);
@@ -438,7 +404,7 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
   ptoRight.stop();
 }
 
-void decelerate_drive(double distance, double timeout, directionType dir) { // Drive Function
+void slow_drive(double distance, double timeout, directionType dir) { // Drive Function
   // Direction Parameter
   if (dir == reverse) { distance *= 1; }
 
@@ -513,7 +479,7 @@ void decelerate_drive(double distance, double timeout, directionType dir) { // D
   ptoLeft.stop();
 }
 
-void decelerate_turn(double angle, double timeout, directionType dir) {
+void slow_turn(double angle, double timeout, directionType dir) {
   // Direction Parameter
   //if (dir == reverse) { angle *= 1; }
 
@@ -629,7 +595,7 @@ void windPuncher() {
     x++;
     wait(20, msec);
     printf("b\n");
-  } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+  } while ((conveyerLeft.velocity(percent) > 15) || (x < 50));
   conveyer.stop();
   ptoLeft.stop();
   ptoRight.stop();
