@@ -71,7 +71,7 @@ enum dire { l, r };
 void drive(double distance, double timeout = 0, directionType dir = forward); // Distance in Units Declared in function, Timeout in Seconds
 void turn(double angle, double timeout = 0, directionType dir = forward); // Angle in Degrees, Timeout in Seconds
 void curve(double theta, double radius, double timeout = 0, directionType rotation = forward, dire dir = r); 
-void slow_drive(double distance, double timeout = 0, directionType dir = forward);
+void slow_drive(double distance, double timeout = 0, directionType dir = forward, bool twoMotor = false);
 void slow_turn(double angle, double timeout = 0, directionType dir = forward);
 
 // Macros
@@ -107,29 +107,65 @@ int main() {
   vexcodeInit();
   init();
 
-  // jett.retract(cylinder2); 
+  ptoLeft.spin(forward, 20, percent);
+  ptoRight.spin(forward, 20, percent);
 
-  // windPuncher();
+  jett.retract(cylinder2); 
 
-  // jett.extend(cylinder2);
 
-  // wait(2, seconds);
+  wait(500, msec);
+  ptoLeft.spin(reverse, 20, percent);
+  ptoRight.spin(reverse, 20, percent);
 
-  // drive(-3200);
+  wait(200, msec);
+  
+  jett.extend(cylinder2);
+  wait(500, msec);
 
-  // turn(-90);
+  ptoLeft.stop();
+  ptoRight.stop();
 
-  // slow_drive(3700, 3);
 
-  // wait(500, msec);
+  jett.retract(cylinder2); 
 
-  // slow_drive(500, 0.75);
+  windPuncher();
 
-  // wait(1000, msec);
+  jett.extend(cylinder2);
+
+  wait(2, seconds);
+
+  drive(-3200);
+
+  turn(-90);
+
+  slow_drive(3700, 3);
+
+  wait(500, msec);
+
+  ptoLeft.spin(forward, 20,percent);
+  ptoRight.spin(forward, 20, percent);
 
   jett.retract(cylinder2);
 
-  wait(2000, msec);
+  wait(800, msec);
+
+  jett.retract(cylinder2);
+
+  slow_drive(500, 0.75, forward, true);
+
+
+  ptoLeft.spin(forward, 20,percent);
+  ptoRight.spin(forward, 20, percent);
+
+  jett.retract(cylinder2);
+
+  wait(1000, msec);
+
+  ptoLeft.stop();
+  ptoRight.stop();
+
+
+
 
   shootPuncher();
 
@@ -157,7 +193,37 @@ int main() {
   turn(49);
 
   wait(200, msec);
-  drive(20000, 2);
+
+  jett.retract(cylinder2);
+
+  ptoLeft.spin(forward, 20, percent);
+  ptoRight.spin(forward, 20, percent);
+
+  slow_drive(20000, 2, forward, true); 
+
+  windPuncher();
+
+  conveyer.spin(forward, 80, percent);
+  ptoLeft.spin(forward, 80, percent);
+  ptoRight.spin(forward, 80, percent);
+
+  while (ballDetector.objectDistance(mm) > 100) { wait(20, msec); }
+
+  grayson.extend(cylinder1);
+
+  wait(1000, msec);
+
+  grayson.retract(cylinder1);
+
+  shootPuncher();
+
+  conveyer.spin(forward, 100, percent);
+  ptoLeft.spin(forward, 100, percent);
+  ptoRight.spin(forward, 100, percent);
+
+
+
+
 
 
 
@@ -404,7 +470,7 @@ void curve(double theta, double radius, double timeout, directionType rotation, 
   ptoRight.stop();
 }
 
-void slow_drive(double distance, double timeout, directionType dir) { // Drive Function
+void slow_drive(double distance, double timeout, directionType dir, bool twoMotor) { // Drive Function
   // Direction Parameter
   if (dir == reverse) { distance *= 1; }
 
@@ -459,9 +525,9 @@ void slow_drive(double distance, double timeout, directionType dir) { // Drive F
 
     // Spin Motors
     leftDrivetrain.spin(forward, leftSpeed, percent);
-    ptoLeft.spin(forward, leftSpeed, percent);
-    rightDrivetrain.spin(forward, rightSpeed, percent);
-    ptoRight.spin(forward, rightSpeed, percent);
+    if (!twoMotor) { ptoLeft.spin(forward, leftSpeed, percent); ptoRight.spin(forward, rightSpeed, percent); }
+    rightDrivetrain.spin(forward, leftSpeed, percent);
+    
 
     // Exit Conditions
     if (fabs(error) < threshold && i >= 10) [[unlikely]] { break; }
