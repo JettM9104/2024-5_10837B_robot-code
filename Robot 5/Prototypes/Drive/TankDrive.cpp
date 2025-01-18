@@ -129,20 +129,25 @@ int main() {
       ptoLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent); 
       ptoRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
+    if (!Controller.ButtonR3.pressing()) {
+      if (macroActive) {
+        indicator.setColor(red);
+      }
+      else {
+        if (pdgsState) {
+          indicator.setColor(yellow);
+        }
+        else  {
+          indicator.setColor(blue_green);
+        }
+      }
+      wait(20, msec);
+    } 
+  }
 
-    if (macroActive) {
-      indicator.setColor(red);
-    }
-    else {
-      if (pdgsState) {
-        indicator.setColor(yellow);
-      }
-      else  {
-        indicator.setColor(blue_green);
-      }
-    }
-    wait(20, msec);
-  } 
+  else {
+    inicator.setColor(green);
+  }
 }
 
 void init() {

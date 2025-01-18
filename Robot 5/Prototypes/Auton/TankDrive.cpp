@@ -36,6 +36,7 @@ motor conveyerLeft = motor(PORT11, false);
 motor conveyerRight = motor(PORT5, true);
 motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
 distance ballDetector = distance(PORT10);
+touchled indicator = touchled(PORT8);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -83,7 +84,7 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-    namespace turn { float kP = 0.35, kI = 0.1, kD = 1.2; }
+    namespace turn { float kP = 0.45, kI = 0.2, kD = 3; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace decelerate { 
@@ -107,6 +108,7 @@ int main() {
   vexcodeInit();
   init();
 
+  while (!indicator.pressing()) {wait(20, msec);}
   windPuncher();
   ptoLeft.spin(forward, 20, percent);
   ptoRight.spin(forward, 20, percent);
@@ -133,83 +135,13 @@ int main() {
 
   jett.extend(cylinder2);
 
-  wait(2, seconds);
 
-  drive(-3200);
+  while (!indicator.pressing()) {wait(20, msec);}
+  drive(-3100);
 
   turn(-90);
 
-  slow_drive(3700, 3);
-
-  wait(500, msec);
-
-  ptoLeft.spin(forward, 20,percent);
-  ptoRight.spin(forward, 20, percent);
-
-  jett.retract(cylinder2);
-
-  wait(800, msec);
-
-  jett.retract(cylinder2);
-
-  slow_drive(500, 0.75, forward, true);
-
-
-  ptoLeft.spin(forward, 20,percent);
-  ptoRight.spin(forward, 20, percent);
-
-  jett.retract(cylinder2);
-
-  wait(1000, msec);
-
-  ptoLeft.stop();
-  ptoRight.stop();
-
-  shootPuncher();
-
-  wait(900, msec);
-
-  conveyer.spin(forward);
-  ptoLeft.spin(forward);
-  ptoRight.spin(forward);
-
-  wait(4, seconds);
-
-  conveyer.stop();
-  ptoLeft.stop();
-  ptoRight.stop();
-
-  windPuncher();
-  ptoLeft.spin(forward, 20, percent);
-  ptoRight.spin(forward, 20, percent);
-
-  jett.retract(cylinder2); 
-
-
-  wait(500, msec);
-  ptoLeft.spin(reverse, 20, percent);
-  ptoRight.spin(reverse, 20, percent);
-
-  wait(200, msec);
-  
-  jett.extend(cylinder2);
-  wait(500, msec);
-
-  ptoLeft.stop();
-  ptoRight.stop();
-
-
-  jett.retract(cylinder2); 
-
-  windPuncher();
-
-  jett.extend(cylinder2);
-
-  wait(2, seconds);
-
-  drive(-3200);
-
-  turn(90);
+  grayson.extend(cylinder1);
 
   slow_drive(3700, 3);
 
@@ -236,6 +168,8 @@ int main() {
 
   ptoLeft.stop();
   ptoRight.stop();
+  grayson.retract(cylinder1);
+
 
   shootPuncher();
 
@@ -245,11 +179,7 @@ int main() {
   ptoLeft.spin(forward);
   ptoRight.spin(forward);
 
-  wait(4, seconds);
 
-  conveyer.stop();
-  ptoLeft.stop();
-  ptoRight.stop();
 }
 
 void init() {
