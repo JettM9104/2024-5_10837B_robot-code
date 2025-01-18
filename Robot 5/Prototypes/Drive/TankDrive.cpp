@@ -39,6 +39,7 @@ motor conveyerLeft = motor(PORT11, false);
 motor conveyerRight = motor(PORT5, true);
 motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
 distance ballDetector = distance(PORT10);
+touchled indicator = touchled(PORT8);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -79,6 +80,8 @@ bool pdgsState = 0; // Pneumatic Driven Gear Shifter (Drivetrain to Conveyer)
 bool ratchetState = 0;
 bool charlesState = 0;
 bool pumpState = 1;
+
+bool macroActive;
 
 // Function Declarations
 void init();
@@ -125,6 +128,18 @@ int main() {
       rightDrivetrain.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
       ptoLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent); 
       ptoRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+    }
+
+    if (macroActive) {
+      indicator.setColor(red);
+    }
+    else {
+      if (pdgsState) {
+        indicator.setColor(yellow);
+      }
+      else  {
+        indicator.setColor(blue_green);
+      }
     }
     wait(20, msec);
   } 
@@ -228,6 +243,7 @@ void updatePump() {
 
 void liftMacro() {
   bool cancel = false;
+  macroActive = true;
   if (!pdgsState) { 
     conveyer.spin(forward, 100, percent);
     ptoLeft.spin(forward, 100, percent);
@@ -257,8 +273,10 @@ void liftMacro() {
     wait(2, seconds);
     updateCharles();
   }
+  macroActive = false;
 }
 void shootPuncher() {
+  macroActive = true;
   grayson.extend(cylinder2);
   metroState = 1;
 
@@ -281,12 +299,14 @@ void shootPuncher() {
   wait(200, msec);
   grayson.retract(cylinder2);
   metroState = 0;
+  macroActive = false;
 
 }
 
 void windPuncher() {
   grayson.extend(cylinder2);
   metroState = 1;
+  macroActive = true;
 
   jett.extend(cylinder1);
   ratchetState = 1;
@@ -316,5 +336,6 @@ void windPuncher() {
 
   grayson.retract(cylinder2);
   metroState = 0;
+  macroActive = false;
 
 }

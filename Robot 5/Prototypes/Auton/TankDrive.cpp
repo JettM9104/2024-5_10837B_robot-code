@@ -107,6 +107,7 @@ int main() {
   vexcodeInit();
   init();
 
+  windPuncher();
   ptoLeft.spin(forward, 20, percent);
   ptoRight.spin(forward, 20, percent);
 
@@ -164,8 +165,77 @@ int main() {
   ptoLeft.stop();
   ptoRight.stop();
 
+  shootPuncher();
+
+  wait(900, msec);
+
+  conveyer.spin(forward);
+  ptoLeft.spin(forward);
+  ptoRight.spin(forward);
+
+  wait(4, seconds);
+
+  conveyer.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
+
+  windPuncher();
+  ptoLeft.spin(forward, 20, percent);
+  ptoRight.spin(forward, 20, percent);
+
+  jett.retract(cylinder2); 
 
 
+  wait(500, msec);
+  ptoLeft.spin(reverse, 20, percent);
+  ptoRight.spin(reverse, 20, percent);
+
+  wait(200, msec);
+  
+  jett.extend(cylinder2);
+  wait(500, msec);
+
+  ptoLeft.stop();
+  ptoRight.stop();
+
+
+  jett.retract(cylinder2); 
+
+  windPuncher();
+
+  jett.extend(cylinder2);
+
+  wait(2, seconds);
+
+  drive(-3200);
+
+  turn(90);
+
+  slow_drive(3700, 3);
+
+  wait(500, msec);
+
+  ptoLeft.spin(forward, 20,percent);
+  ptoRight.spin(forward, 20, percent);
+
+  jett.retract(cylinder2);
+
+  wait(800, msec);
+
+  jett.retract(cylinder2);
+
+  slow_drive(500, 0.75, forward, true);
+
+
+  ptoLeft.spin(forward, 20,percent);
+  ptoRight.spin(forward, 20, percent);
+
+  jett.retract(cylinder2);
+
+  wait(1000, msec);
+
+  ptoLeft.stop();
+  ptoRight.stop();
 
   shootPuncher();
 
@@ -175,58 +245,11 @@ int main() {
   ptoLeft.spin(forward);
   ptoRight.spin(forward);
 
-  wait(3, seconds);
+  wait(4, seconds);
 
   conveyer.stop();
   ptoLeft.stop();
   ptoRight.stop();
-
-  wait(900, msec);
-
-  jett.extend(cylinder2);
-
-  wait(2000, msec);
-
-  drive(-500);
-  turn(-60);
-  drive(-2000);
-  turn(49);
-
-  wait(200, msec);
-
-  jett.retract(cylinder2);
-
-  ptoLeft.spin(forward, 20, percent);
-  ptoRight.spin(forward, 20, percent);
-
-  slow_drive(20000, 2, forward, true); 
-
-  windPuncher();
-
-  conveyer.spin(forward, 80, percent);
-  ptoLeft.spin(forward, 80, percent);
-  ptoRight.spin(forward, 80, percent);
-
-  while (ballDetector.objectDistance(mm) > 100) { wait(20, msec); }
-
-  grayson.extend(cylinder1);
-
-  wait(1000, msec);
-
-  grayson.retract(cylinder1);
-
-  shootPuncher();
-
-  conveyer.spin(forward, 100, percent);
-  ptoLeft.spin(forward, 100, percent);
-  ptoRight.spin(forward, 100, percent);
-
-
-
-
-
-
-
 }
 
 void init() {
