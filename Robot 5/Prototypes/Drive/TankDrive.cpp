@@ -132,8 +132,9 @@ int main() {
     if (!Controller.ButtonR3.pressing()) {
       if (macroActive) {
         indicator.setColor(red);
+
       }
-      else {
+      if (!macroActive) {
         if (pdgsState) {
           indicator.setColor(yellow);
         }
@@ -141,7 +142,7 @@ int main() {
           indicator.setColor(blue_green);
         }
       }
-      wait(20, msec);
+
     } 
   }
 
