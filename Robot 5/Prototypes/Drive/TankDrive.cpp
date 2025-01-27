@@ -39,6 +39,7 @@ motor conveyerLeft = motor(PORT11, false);
 motor conveyerRight = motor(PORT5, true);
 motor_group conveyer = motor_group(conveyerLeft, conveyerRight);
 distance ballDetector = distance(PORT10);
+touchled indicator = touchled(PORT8);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -79,6 +80,8 @@ bool pdgsState = 0; // Pneumatic Driven Gear Shifter (Drivetrain to Conveyer)
 bool ratchetState = 0;
 bool charlesState = 0;
 bool pumpState = 1;
+
+bool macroActive;
 
 // Function Declarations
 void init();
@@ -126,8 +129,26 @@ int main() {
       ptoLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent); 
       ptoRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
-    wait(20, msec);
-  } 
+    if (!Controller.ButtonR3.pressing()) {
+      if (macroActive) {
+        indicator.setColor(red);
+
+      }
+      if (!macroActive) {
+        if (pdgsState) {
+          indicator.setColor(yellow);
+        }
+        else  {
+          indicator.setColor(blue_green);
+        }
+      }
+
+    } 
+  }
+
+  else {
+    inicator.setColor(green);
+  }
 }
 
 void init() {
@@ -227,6 +248,8 @@ void updatePump() {
 }
 
 void liftMacro() {
+  bool cancel = false;
+  macroActive = true;
   if (!pdgsState) { 
     conveyer.spin(forward, 100, percent);
     ptoLeft.spin(forward, 100, percent);
@@ -235,57 +258,90 @@ void liftMacro() {
   else {
     conveyer.spin(forward, 100, percent);
   }
-  while (ballDetector.objectDistance(mm) > 100) { wait(5, msec); }
-  if (!pdgsState) { 
-    wait(70, msec);
+  while (Controller.ButtonEUp.pressing()) { wait(20, msec); }
+  while (ballDetector.objectDistance(mm) > 100) { 
+    if (Controller.ButtonEUp.pressing()) { cancel = true; break; } 
+    wait(5, msec); 
   }
-  else {
-    wait(200, msec);
-  }
-  
+
   conveyer.stop(); 
   ptoLeft.stop();
   ptoRight.stop(); 
-  updateCharles();
-  wait(2, seconds);
-  updateCharles();
-}
 
+  if (!cancel) {
+    if (!pdgsState) { 
+      wait(70, msec);
+    }
+    else {
+      wait(200, msec);
+    }
+    updateCharles();
+    wait(2, seconds);
+    updateCharles();
+  }
+  macroActive = false;
+}
 void shootPuncher() {
+  macroActive = true;
   grayson.extend(cylinder2);
   metroState = 1;
 
   jett.retract(cylinder1);
   ratchetState = 0;
-
-  conveyer.spin(forward, 100, percent);
+  if (!pdgsState) {
+    conveyer.spin(forward, 100, percent);
+    ptoLeft.spin(forward, 100, percent);
+    ptoRight.spin(forward, 100, percent);
+  }
+  else {
+    conveyer.spin(forward, 100, percent);
+  }
+  
   wait(500, msec);
   conveyer.stop();
+  ptoLeft.stop();
+  ptoRight.stop();
 
   wait(200, msec);
   grayson.retract(cylinder2);
   metroState = 0;
+  macroActive = false;
 
 }
 
 void windPuncher() {
   grayson.extend(cylinder2);
   metroState = 1;
+  macroActive = true;
 
   jett.extend(cylinder1);
   ratchetState = 1;
-  
+  while (Controller.ButtonL3.pressing()) { wait(20,  msec); }
   unsigned int x = 0;
   do {
-    conveyer.spin(forward, 100, percent);
+    if (!pdgsState) {
+      conveyer.spin(forward, 100, percent);
+      ptoLeft.spin(forward, 100, percent);
+      ptoRight.spin(forward, 100, percent);
+    }
+    else {
+      conveyer.spin(forward, 100, percent);
+    }
     x++;
     wait(20, msec);
-    printf("b\n");
+    
+    if (Controller.ButtonL3.pressing()) {
+      conveyer.stop();
+      break;
+    }
   } while ((conveyerLeft.velocity(percent) > 3) || (x < 10));
+
   conveyer.stop();
-  printf("c\n");
+  ptoLeft.stop();
+  ptoRight.stop();
 
   grayson.retract(cylinder2);
   metroState = 0;
+  macroActive = false;
 
 }

@@ -1,0 +1,20 @@
+Major Changes
+If the commit is the first commit of the day it is a Major Change
+If the commit includes writing or deleting a one or more file(s) with contents it is a Major Change
+If the commit includes creating a folder with files it is a Major Change
+
+Minor Changes
+If the commit includes creating a folder without files it is a Minor Change
+If the commit includes creating an empty file it is a Minor Change
+If the commit includes modifying base files like (.DS_STORE, .gitIgnore, etc.)
+
+Minor Changes include a letter after the last Major Change.
+
+e.g.
+
+00091 Major Change
+00091b Minor Change
+00091c Minor Change
+
+00092 Major Change
+...

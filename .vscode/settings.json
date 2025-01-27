@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "complex": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "system_error": "cpp",
+        "atomic": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp"
     }
 }
