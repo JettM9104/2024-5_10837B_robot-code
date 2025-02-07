@@ -6,7 +6,7 @@ If the commit includes creating a folder with files it is a Major Change
 Minor Changes
 If the commit includes creating a folder without files it is a Minor Change
 If the commit includes creating an empty file it is a Minor Change
-If the commit includes modifying base files like (.DS_STORE, .gitIgnore, etc.)
+If the commit includes modifying base files like (.DS_STORE, .gitIgnore, etc.) it is completely ignored with other changes but if it is standalone it is a Minor Change.
 
 Minor Changes include a letter after the last Major Change.
 
