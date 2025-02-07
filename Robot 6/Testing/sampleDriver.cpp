@@ -28,8 +28,8 @@ inertial BrainInertial = inertial();
 controller Controller = controller();
 motor leftDrive = motor(PORT2, true);
 motor rightDrive = motor(PORT4, false);
-motor pdgsLeft = motor(PORT3, true);
-motor pdgsRight = motor(PORT6, false);
+motor pdgsLeft = motor(PORT3, false);
+motor pdgsRight = motor(PORT6, true);
 motor metroLeft = motor(PORT1, true);
 motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
@@ -57,65 +57,107 @@ void vexcodeInit() {
   initializeRandomSeed(); 
 }
 
+
 #pragma endregion VEXcode Generated Robot Configuration
 
 enum drive {tankdrive, splitarcade};
 
 drive drivetype = tankdrive;
+
 bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
 
-void updatePDGS();
-void updateMetro();
-void updateMotor1();
+void updateSPTO();
+void updateMPTO();
+void updateCPTO();
+void updateMPTOmotors();
+
 
 int main() {
   vexcodeInit();
 
-  Controller.ButtonRDown.pressed(updatePDGS);
-  Controller.ButtonRUp.pressed(updateMetro);
+  Controller.ButtonRDown.pressed(updateMPTO);
+  Controller.ButtonEDown.pressed(updateSPTO);
+  Controller.ButtonFUp.pressed(updateCPTO);
 
-  Controller.ButtonLUp.pressed(updateMotor1);
-  Controller.ButtonLUp.released(updateMotor1);
-  Controller.ButtonLDown.pressed(updateMotor1);
-  Controller.ButtonLDown.released(updateMotor1);
+  Controller.ButtonLUp.pressed(updateMPTOmotors);
+  Controller.ButtonLUp.released(updateMPTOmotors);
+  Controller.ButtonLDown.pressed(updateMPTOmotors);
+  Controller.ButtonLDown.released(updateMPTOmotors);
 
+  while (true) {
+    leftDrive.spin(forward, Controller.AxisA.position(), percent);
+    rightDrive.spin(forward, Controller.AxisD.position(), percent);
+    wait(20, msec);
 
+  }
 }
 void updateSPTO() {
+  printf("updated spto");
   if (!sPTO) {
-    pneum1.extend(cylinder1);
+    pneum2.extend(cylinder2);
     sPTO = 1;
   }
   else {
-    pneum1.retract(cylinder1);
+    pneum2.retract(cylinder2);
     sPTO = 0;
   }
 }
 
 void updateMPTO() {
   if (!mPTO) {
-    pneum1.extend(cylinder2);
+    pneum2.extend(cylinder1);
     mPTO = 1;
   }
   else {
-    pneum1.retract(cylinder2);
+    pneum2.retract(cylinder1);
     mPTO = 0;
   }
 }
 
 void updateCPTO() {
   if (!cPTO) {
-    pneum2.extend(cylinder2);
+    pneum1.extend(cylinder1);
     cPTO = 1;
   }
   else {
-    pneum2.retract(cylinder2);
+    pneum1.retract(cylinder1);
     cPTO = 0;
   }
 }
 
-void updateMotor1() {
-  
+void updateMPTOmotors() {
+  if (Controller.ButtonLDown.pressing()) {
+    if (mPTO) {
+      metroLeft.spin(forward, 100, percent);
+      metroRight.spin(forward, 100, percent);
+    }
+    else {
+      pdgsLeft.spin(reverse, 100, percent);
+      pdgsRight.spin(reverse, 100, percent);
+      metroLeft.spin(reverse, 100, percent);
+      metroRight.spin(reverse, 100, percent);
+    }
+  }
+  else if (Controller.ButtonLUp.pressing()) {
+    if (mPTO) {
+      metroLeft.spin(reverse, 100, percent);
+      metroRight.spin(reverse, 100, percent);
+    }
+    else {
+      pdgsLeft.spin(forward, 100, percent);
+      pdgsRight.spin(forward, 100, percent);
+      metroLeft.spin(forward, 100, percent);
+      metroRight.spin(forward, 100, percent);
+    }
+  }
+  else {
+    metroLeft.stop();
+    metroRight.stop();
+    pdgsLeft.stop();
+    pdgsRight.stop();
+  }
+
 }
+
