@@ -73,10 +73,12 @@ void updateMPTO();
 void updateCPTO();
 void updateMPTOmotors();
 
+void init();
 
 int main() {
   vexcodeInit();
 
+  init();
   Controller.ButtonRDown.pressed(updateMPTO);
   Controller.ButtonRUp.pressed(updateSPTO);
   Controller.ButtonFUp.pressed(updateCPTO);
@@ -114,6 +116,11 @@ int main() {
     wait(20, msec);
 
   }
+}
+
+void init() {
+  leftDrive.setMaxTorque(100, percent);
+  rightDrive.setMaxTorque(100, percent);
 }
 void updateSPTO() {
   printf("updated spto");
