@@ -8,6 +8,7 @@ enum axisType {xaxis, yaxis, zaxis};
 enum timeUnit {msec, seconds};
 enum dir {forward, reverse};
 enum speedUnit {rpm, percent};
+enum cylinder {cylinder1, cylinder2};
 
 // Class representing an inertial sensor
 class inertial {
@@ -57,7 +58,7 @@ public:
 class axis {
 public:
   int position() { return 0; }
-}
+};
 // Class representing the controller with buttons
 class controller {
 public:
@@ -71,6 +72,11 @@ public:
   button ButtonFDown;
   button ButtonL3;
   button ButtonR3;
+
+  axis AxisA;
+  axis AxisB;
+  axis AxisC;
+  axis AxisD;
 
   controller() = default;
   
@@ -101,9 +107,15 @@ public:
     this->reversed = reversed;
   }
 
+  motor(port portnumber, double gearRatio, bool reversed = false) {}
+
   void spin(dir direction) {}
   
   void spin(dir direction, double speed, speedUnit unit) {}
+
+  void setMaxTorque(double max, speedUnit unit) {}
+
+  void stop() {}
 };
 
 // Class representing the brain (main processing unit of the robot)
@@ -121,6 +133,9 @@ public:
   pneumatic(port portnumber) {
     this->portnumber = portnumber;
   }
+
+  void extend(cylinder cyl) {}
+  void retract(cylinder cyl) {}
 };
 
 // Class representing a touch LED
@@ -134,7 +149,34 @@ public:
   }
 };
 
+class motor_group {
+private:
+  motor motor1;
+  motor motor2;
+
+public:
+  // Constructor that initializes two motors with specified ports and options
+  motor_group(motor motor1, motor motor2) : motor1(motor1), motor2(motor2) { }
+
+  void spin(dir direction) {
+    motor1.spin(direction);
+    motor2.spin(direction);
+  }
+
+  void spin(dir direction, double speed, speedUnit unit) {
+    motor1.spin(direction, speed, unit);
+    motor2.spin(direction, speed, unit);
+  }
+
+  void stop() {
+    motor1.stop();
+    motor2.stop();
+  }
+};
+
+
 // Wait function that waits for a specified time
 void wait(double time, timeUnit unit) {}
+
 
 } // namespace vex
