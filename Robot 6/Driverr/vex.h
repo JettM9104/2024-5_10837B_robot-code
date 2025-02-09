@@ -9,6 +9,9 @@ enum timeUnit {msec, seconds};
 enum dir {forward, reverse};
 enum speedUnit {rpm, percent};
 enum cylinder {cylinder1, cylinder2};
+enum degreesUnits {degrees};
+enum stopping {coast, brake, hold};
+enum distanceUnits {mm, inches};
 
 // Class representing an inertial sensor
 class inertial {
@@ -24,6 +27,12 @@ public:
     // Return a dummy value for acceleration (this would interact with actual hardware)
     return 0.0; 
   }
+
+  void setHeading(double angle, degreesUnits unit) {}
+
+  void setRotation(double angle, degreesUnits unit) {}
+  double heading(degreesUnits unit) { return 0.0; }
+  double rotation(degreesUnits unit) { return 0.0; }
 };
 
 // Class representing a button
@@ -100,6 +109,7 @@ class motor {
 private:
   port portnumber;
   bool reversed;
+  stopping stopp;
 
 public:
   motor(port portnumber, bool reversed = false) {
@@ -115,13 +125,28 @@ public:
 
   void setMaxTorque(double max, speedUnit unit) {}
 
+  void setStopping(stopping sto) { stopp = sto; }
+
+  double position(degreesUnits unit) { return 0.0; }
   void stop() {}
+};
+
+
+class timer {
+public:
+  // no constuctor
+
+  void reset() {}
+
+  double value() { return 0.0; }
 };
 
 // Class representing the brain (main processing unit of the robot)
 class brain {
 public:
   brain() = default;
+
+  timer Timer;
 };
 
 // Class representing a pneumatic device
@@ -172,6 +197,36 @@ public:
     motor1.stop();
     motor2.stop();
   }
+};
+
+class bumper {
+private:
+  port portnumber;
+
+public:
+  bumper(port portnumber) : portnumber(portnumber) { }
+};
+
+class distance {
+private:
+  port portnumber;
+
+public:
+  distance(port portnumber) : portnumber(portnumber) { }
+  double objectDistance(distanceUnits unit) { return 0.0; }
+};
+
+class gyro {
+private:
+  port portnumber;
+
+public:
+  gyro(port portnumber) : portnumber(portnumber) { }
+};
+
+class thread {
+public:
+  thread(std::function<void()> callback) {}
 };
 
 
