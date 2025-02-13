@@ -62,24 +62,29 @@ void vexcodeInit() {
 
 enum drive {tankdrive, splitarcade, driveoff};
 
-drive drivetype = tankdrive;
+drive drivetype = splitarcade;
 
 bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
+bool blocker = 0;
 
 void updateSPTO();
 void updateMPTO();
 void updateCPTO();
+void updateIndex();
 void updateMPTOmotors();
 
+void init();
 
 int main() {
   vexcodeInit();
 
-  Controller.ButtonRDown.pressed(updateMPTO);
-  Controller.ButtonRUp.pressed(updateSPTO);
+  init();
+  Controller.ButtonRUp.pressed(updateMPTO);
+  Controller.ButtonRDown.pressed(updateSPTO);
   Controller.ButtonFUp.pressed(updateCPTO);
+  Controller.ButtonFDown.pressed(updateIndex);
 
   Controller.ButtonLUp.pressed(updateMPTOmotors);
   Controller.ButtonLUp.released(updateMPTOmotors);
@@ -93,6 +98,7 @@ int main() {
   updateSPTO();
   updateCPTO();
 
+
   while (true) {
     if (drivetype == tankdrive) {
       leftDrive.spin(forward, Controller.AxisA.position(), percent);
@@ -103,17 +109,22 @@ int main() {
       }
     }
     else if (drivetype == splitarcade) {
-      leftDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
-      rightDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
       if (sPTO) {
-        pdgsLeft.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
-        pdgsRight.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+        pdgsLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+        pdgsRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
       }
     }
-    printf("%d\n", sPTO);
+
     wait(20, msec);
 
   }
+}
+
+void init() {
+  leftDrive.setMaxTorque(100, percent);
+  rightDrive.setMaxTorque(100, percent);
 }
 void updateSPTO() {
   printf("updated spto");
@@ -146,6 +157,17 @@ void updateCPTO() {
   else {
     pneum1.retract(cylinder1);
     cPTO = 0;
+  }
+}
+
+void updateIndex() {
+  if (!blocker) {
+    pneum1.extend(cylinder2);
+    blocker = 1;
+  }
+  else {
+    pneum1.retract(cylinder2);
+    blocker = 0;
   }
 }
 
