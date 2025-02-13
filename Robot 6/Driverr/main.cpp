@@ -81,8 +81,8 @@ int main() {
   vexcodeInit();
 
   init();
-  Controller.ButtonRDown.pressed(updateMPTO);
-  Controller.ButtonRUp.pressed(updateSPTO);
+  Controller.ButtonRUp.pressed(updateMPTO);
+  Controller.ButtonRDown.pressed(updateSPTO);
   Controller.ButtonFUp.pressed(updateCPTO);
   Controller.ButtonFDown.pressed(updateIndex);
 
