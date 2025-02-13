@@ -84,7 +84,7 @@ void windPuncher();
 namespace pid
 {
     namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-    namespace turn { float kP = 0.45, kI = 0.2, kD = 3; }
+    namespace turn { float kP = 0.7, kI = 0.2, kD = 6.97; }
     namespace correction { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace curve { float kP = 0.1, kI = 0.1, kD = 0.1; }
     namespace decelerate { 
@@ -137,13 +137,13 @@ int main() {
 
 
   while (!indicator.pressing()) {wait(20, msec);}
-  drive(-3100);
+  drive(-3250);
 
   turn(-90);
 
   grayson.extend(cylinder1);
 
-  slow_drive(3700, 3);
+  slow_drive(3300, 3);
 
   wait(500, msec);
 
@@ -190,10 +190,10 @@ void init() {
   leftDrivetrain.stop();
   rightDrivetrain.stop();
   jett.pumpOn();
-  rightDrivetrain.setStopping(hold);
-  leftDrivetrain.setStopping(hold);
-  ptoLeft.setStopping(hold);
-  ptoRight.setStopping(hold);
+  rightDrivetrain.setStopping(coast);
+  leftDrivetrain.setStopping(coast);
+  ptoLeft.setStopping(coast);
+  ptoRight.setStopping(coast);
   ptoLeft.setVelocity(100, percent);
   ptoRight.setVelocity(100, percent);
   conveyer.setVelocity(100, percent);
