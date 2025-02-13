@@ -28,13 +28,14 @@ inertial BrainInertial = inertial();
 controller Controller = controller();
 motor leftDrivetrain = motor(PORT2, true);
 motor rightDrivetrain = motor(PORT4, false);
-motor pdgsLeft = motor(PORT3, false);
-motor pdgsRight = motor(PORT6, true);
+motor ptoLeft = motor(PORT3, false);
+motor ptoRight = motor(PORT6, true);
 motor metroLeft = motor(PORT1, true);
 motor metroRight = motor(PORT5, false);
-pneumatic pneum1 = pneumatic(PORT8);
-pneumatic pneum2 = pneumatic(PORT9);
+pneumatic jett = pneumatic(PORT8);
+pneumatic grayson = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
+motor_group conveyer = motor_group(ptoLeft, ptoRight);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -612,7 +613,7 @@ void windPuncher() {
     x++;
     wait(20, msec);
     printf("b\n");
-  } while ((conveyerLeft.velocity(percent) > 15) || (x < 50));
+  } while ((conveyer.velocity(percent) > 15) || (x < 50));
   conveyer.stop();
   ptoLeft.stop();
   ptoRight.stop();
