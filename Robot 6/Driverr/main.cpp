@@ -35,7 +35,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
-distance detector = distance(PORTNULL);
+distance detector = distance(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -75,7 +75,8 @@ void updateMPTO();
 void updateCPTO();
 void updateIndex();
 void updateMPTOmotors();
-void eDownMacro();
+void windCata();
+void shootCata();
 
 void init();
 
@@ -93,7 +94,8 @@ int main() {
   Controller.ButtonLDown.pressed(updateMPTOmotors);
   Controller.ButtonLDown.released(updateMPTOmotors);
 
-  Controller.ButtonEDown.pressed(eDownMacro);
+  Controller.ButtonEDown.pressed(windCata);
+  Controller.ButtonEUp.pressed(shootCata);
 
   updateMPTO();
   updateSPTO();
@@ -221,11 +223,22 @@ void updateMPTOmotors() {
 
 }
 
-void eDownMacro() {
+void windCata() {
   do {
-    metroLeft.spin(forward);
-    metroRight.spin(forward);
+    metroLeft.spin(forward, 100, percent);
+    metroRight.spin(forward, 100, percent);
   } while (detector.objectDistance(mm) < 20);
+
+  metroLeft.stop();
+  metroRight.stop();
+}
+
+void shootCata() {
+  if (!mPTO) updateMPTO();
+  metroLeft.spin(forward, 100, percent);
+  metroRight.spin(forward, 100, percent);
+
+  wait(400, msec);
 
   metroLeft.stop();
   metroRight.stop();
