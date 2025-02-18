@@ -3,7 +3,7 @@
 
 namespace vex {
 
-enum port {PORT1, PORT2, PORT3, PORT4, PORT5, PORT6, PORT7, PORT8, PORT9, PORT10, PORT11, PORT12};
+enum port {PORT1, PORT2, PORT3, PORT4, PORT5, PORT6, PORT7, PORT8, PORT9, PORT10, PORT11, PORT12, PORTNULL};
 enum axisType {xaxis, yaxis, zaxis};
 enum timeUnit {msec, seconds};
 enum dir {forward, reverse};
