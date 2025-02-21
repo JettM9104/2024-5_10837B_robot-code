@@ -35,6 +35,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
+distance detector = distance(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -68,12 +69,17 @@ bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
 bool blocker = 0;
+bool macroActive = false;
 
 void updateSPTO();
 void updateMPTO();
 void updateCPTO();
 void updateIndex();
 void updateMPTOmotors();
+void windCata();
+void shootCata();
+void continuousUpdate_led();
+
 
 void init();
 
@@ -91,12 +97,18 @@ int main() {
   Controller.ButtonLDown.pressed(updateMPTOmotors);
   Controller.ButtonLDown.released(updateMPTOmotors);
 
+  Controller.ButtonEDown.pressed(windCata);
+  Controller.ButtonEUp.pressed(shootCata);
+
+  thread led = thread(continuousUpdate_led);
+
   updateMPTO();
   updateSPTO();
   updateCPTO();
   updateMPTO();
   updateSPTO();
   updateCPTO();
+  updateMPTO();
 
 
   while (true) {
@@ -127,7 +139,6 @@ void init() {
   rightDrive.setMaxTorque(100, percent);
 }
 void updateSPTO() {
-  printf("updated spto");
   if (!sPTO) {
     pneum2.extend(cylinder2);
     sPTO = 1;
@@ -215,5 +226,55 @@ void updateMPTOmotors() {
     pdgsRight.stop();
   }
 
+}
+
+void windCata() {
+  macroActive = true;
+  do {
+    metroLeft.spin(forward, 100, percent);
+    metroRight.spin(forward, 100, percent);
+  } while (detector.objectDistance(mm) > 20);
+
+  metroLeft.stop();
+  metroRight.stop();
+  macroActive = false;
+}
+
+void shootCata() {
+  macroActive = true;
+
+  if (!mPTO) updateMPTO();
+  metroLeft.spin(forward, 100, percent);
+  metroRight.spin(forward, 100, percent);
+
+  wait(400, msec);
+
+  metroLeft.stop();
+  metroRight.stop();
+
+  macroActive = false;
+}
+
+void continuousUpdate_led() {
+  while (true) {
+    if (!macroActive) {
+      if (sPTO) {
+        indicator.setColor(blue_green);
+      }
+      else {
+        indicator.setColor(yellow);     
+      }
+      if (cPTO) {
+        wait(300, msec);
+        indicator.setColor(colorType::none);
+        wait(300, msec);
+      }
+    }
+
+    else {
+      indicator.setColor(red);
+    }
+    wait(20, msec);
+  }
 }
 

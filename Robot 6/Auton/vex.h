@@ -3,16 +3,15 @@
 
 namespace vex {
 
-enum port {PORT1, PORT2, PORT3, PORT4, PORT5, PORT6, PORT7, PORT8, PORT9, PORT10, PORT11, PORT12, PORTNULL};
+enum port {PORT1, PORT2, PORT3, PORT4, PORT5, PORT6, PORT7, PORT8, PORT9, PORT10, PORT11, PORT12};
 enum axisType {xaxis, yaxis, zaxis};
 enum timeUnit {msec, seconds};
-enum dir {forward, reverse};
+enum directionType {forward, reverse};
 enum speedUnit {rpm, percent};
 enum cylinder {cylinder1, cylinder2};
 enum degreesUnits {degrees};
 enum stopping {coast, brake, hold};
 enum distanceUnits {mm, inches};
-enum colorType { red, red_orange, orange, yellow, green, blue_green, blue, purple};
 
 // Class representing an inertial sensor
 class inertial {
@@ -34,6 +33,7 @@ public:
   void setRotation(double angle, degreesUnits unit) {}
   double heading(degreesUnits unit) { return 0.0; }
   double rotation(degreesUnits unit) { return 0.0; }
+  double value() { return 0.0; }
 };
 
 // Class representing a button
@@ -120,14 +120,17 @@ public:
 
   motor(port portnumber, double gearRatio, bool reversed = false) {}
 
-  void spin(dir direction) {}
+  void spin(directionType direction) {}
   
-  void spin(dir direction, double speed, speedUnit unit) {}
+  void spin(directionType direction, double speed, speedUnit unit) {}
 
   void setMaxTorque(double max, speedUnit unit) {}
 
+  void setVelocity(double max, speedUnit unit) {}
+
   void setStopping(stopping sto) { stopp = sto; }
 
+  void resetPosition() {}
   double position(degreesUnits unit) { return 0.0; }
   void stop() {}
 };
@@ -162,6 +165,9 @@ public:
 
   void extend(cylinder cyl) {}
   void retract(cylinder cyl) {}
+
+  void pumpOn() {}
+  void pumpOff() {}
 };
 
 // Class representing a touch LED
@@ -173,7 +179,7 @@ public:
   touchled(port portnumber) {
     this->portnumber = portnumber;
   }
-  void setColor(colorType col) {}
+  bool pressing() { return 0; }
 };
 
 class motor_group {
@@ -185,20 +191,31 @@ public:
   // Constructor that initializes two motors with specified ports and options
   motor_group(motor motor1, motor motor2) : motor1(motor1), motor2(motor2) { }
 
-  void spin(dir direction) {
+  void spin(directionType direction) {
     motor1.spin(direction);
     motor2.spin(direction);
   }
 
-  void spin(dir direction, double speed, speedUnit unit) {
+  void spin(directionType direction, double speed, speedUnit unit) {
     motor1.spin(direction, speed, unit);
     motor2.spin(direction, speed, unit);
   }
 
+  void setVelocity(double max, speedUnit unit) {
+    motor1.setVelocity(max, unit);
+    motor2.setVelocity(max, unit);
+  }
   void stop() {
     motor1.stop();
     motor2.stop();
   }
+
+  void setMaxTorque(double max, speedUnit unit) {
+    motor1.setMaxTorque(max, unit);
+    motor2.setMaxTorque(max, unit);
+  }
+
+  double velocity(speedUnit unit) {return 0.0; }
 };
 
 class bumper {
