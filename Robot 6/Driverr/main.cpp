@@ -233,7 +233,7 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (detector.objectDistance(mm) < 20);
+  } while (detector.objectDistance(mm) > 20);
 
   metroLeft.stop();
   metroRight.stop();
@@ -265,15 +265,16 @@ void continuousUpdate_led() {
         indicator.setColor(yellow);     
       }
       if (cPTO) {
-        wait(500, msec);
-        indicator.setColor(green);
-        wait(500, msec);
+        wait(300, msec);
+        indicator.setColor(colorType::none);
+        wait(300, msec);
       }
     }
 
     else {
       indicator.setColor(red);
     }
+    wait(20, msec);
   }
 }
 
