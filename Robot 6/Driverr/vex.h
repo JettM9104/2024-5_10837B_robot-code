@@ -12,6 +12,7 @@ enum cylinder {cylinder1, cylinder2};
 enum degreesUnits {degrees};
 enum stopping {coast, brake, hold};
 enum distanceUnits {mm, inches};
+enum colorType { red, red_orange, orange, yellow, green, blue_green, blue, purple};
 
 // Class representing an inertial sensor
 class inertial {
@@ -172,6 +173,7 @@ public:
   touchled(port portnumber) {
     this->portnumber = portnumber;
   }
+  void setColor(colorType col) {}
 };
 
 class motor_group {

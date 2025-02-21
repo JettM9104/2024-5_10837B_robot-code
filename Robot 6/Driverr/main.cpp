@@ -69,6 +69,7 @@ bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
 bool blocker = 0;
+bool macroActive = false;
 
 void updateSPTO();
 void updateMPTO();
@@ -77,6 +78,8 @@ void updateIndex();
 void updateMPTOmotors();
 void windCata();
 void shootCata();
+void continuousUpdate_led();
+
 
 void init();
 
@@ -96,6 +99,8 @@ int main() {
 
   Controller.ButtonEDown.pressed(windCata);
   Controller.ButtonEUp.pressed(shootCata);
+
+  thread led = thread(continuousUpdate_led);
 
   updateMPTO();
   updateSPTO();
@@ -224,6 +229,7 @@ void updateMPTOmotors() {
 }
 
 void windCata() {
+  macroActive = true;
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
@@ -231,9 +237,12 @@ void windCata() {
 
   metroLeft.stop();
   metroRight.stop();
+  macroActive = false;
 }
 
 void shootCata() {
+  macroActive = true;
+
   if (!mPTO) updateMPTO();
   metroLeft.spin(forward, 100, percent);
   metroRight.spin(forward, 100, percent);
@@ -242,5 +251,29 @@ void shootCata() {
 
   metroLeft.stop();
   metroRight.stop();
+
+  macroActive = false;
+}
+
+void continuousUpdate_led() {
+  while (true) {
+    if (!macroActive) {
+      if (sPTO) {
+        indicator.setColor(blue_green);
+      }
+      else {
+        indicator.setColor(yellow);     
+      }
+      if (cPTO) {
+        wait(500, msec);
+        indicator.setColor(green);
+        wait(500, msec);
+      }
+    }
+
+    else {
+      indicator.setColor(red);
+    }
+  }
 }
 
