@@ -113,7 +113,7 @@ int main() {
   updateCPTO();
   
   wait(200, msec);
-  
+
   updateMPTO();
 
 
@@ -246,6 +246,9 @@ void windCata() {
 
   metroLeft.stop();
   metroRight.stop();
+
+  updateMPTO();
+
   macroActive = false;
 }
 
@@ -260,6 +263,8 @@ void shootCata() {
 
   metroLeft.stop();
   metroRight.stop();
+
+  updateMPTO();
 
   macroActive = false;
 }
