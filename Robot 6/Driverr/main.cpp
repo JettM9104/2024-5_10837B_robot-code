@@ -106,16 +106,11 @@ int main() {
   updateSPTO();
   updateCPTO();
 
-  wait(200, msec);
+  wait(1000, msec);
 
   updateMPTO();
   updateSPTO();
   updateCPTO();
-  
-  wait(200, msec);
-
-  updateMPTO();
-
 
   while (true) {
     if (drivetype == tankdrive) {
