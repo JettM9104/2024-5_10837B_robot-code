@@ -12,7 +12,7 @@ enum cylinder {cylinder1, cylinder2};
 enum degreesUnits {degrees};
 enum stopping {coast, brake, hold};
 enum distanceUnits {mm, inches};
-enum colorType { red, red_orange, orange, yellow, green, blue_green, blue, purple};
+enum colorType { red = 0, red_orange, orange, yellow, green, blue_green, blue, purple, none };
 
 // Class representing an inertial sensor
 class inertial {
