@@ -115,6 +115,14 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   // Begin project code
+
+  drive(1000);
+  turn(-90);
+  drive(10000,3);
+  drive(200, 0.5);
+
+  pdgsLeft.spin(forward);
+  pdgsRight.spin(forward);
   
 }
 

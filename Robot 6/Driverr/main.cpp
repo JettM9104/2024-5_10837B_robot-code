@@ -105,10 +105,13 @@ int main() {
   updateMPTO();
   updateSPTO();
   updateCPTO();
+
+  wait(1000, msec);
+
   updateMPTO();
   updateSPTO();
   updateCPTO();
-  updateMPTO();
+
 
 
   while (true) {
@@ -230,6 +233,9 @@ void updateMPTOmotors() {
 
 void windCata() {
   macroActive = true;
+
+  if (!mPTO) updateMPTO();
+  
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
@@ -237,6 +243,9 @@ void windCata() {
 
   metroLeft.stop();
   metroRight.stop();
+
+  updateMPTO();
+
   macroActive = false;
 }
 
@@ -251,6 +260,8 @@ void shootCata() {
 
   metroLeft.stop();
   metroRight.stop();
+
+  updateMPTO();
 
   macroActive = false;
 }
