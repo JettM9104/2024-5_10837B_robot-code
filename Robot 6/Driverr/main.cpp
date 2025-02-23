@@ -298,8 +298,19 @@ void continuousUpdate_led() {
 void backandforth() { 
   bypassDrive = true;
 
+  if (mPTO) {
+    updateMPTO();
+  }
+
+  if (sPTO) {
+    updateSPTO();
+  }
+
+  unsigned long long int i = 0;
+
   while (Controller.ButtonL3.pressing()) {
-    
+    Brain.Timer.value();
+
     leftDrive.spin(forward, 100, percent);
     rightDrive.spin(forward, 100, percent);
 
@@ -309,29 +320,33 @@ void backandforth() {
 
     if (sPTO) {
       updateSPTO();
-
     }
+
+    printf("1\n");
+    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } // -----------------------------------------------------------------------------------
+    printf("2  velocity is %f and the iteration is %llu\n", fabs(leftDrive.velocity(percent)), i);
+    leftDrive.resetPosition();
+    rightDrive.resetPosition();
+
+    Brain.Timer.reset();
+
+    leftDrive.spin(reverse, 100, percent);
+    rightDrive.spin(reverse, 100, percent);
 
     pdgsLeft.spin(reverse, 100, percent);
     pdgsRight.spin(reverse, 100, percent);
     metroLeft.spin(reverse, 100, percent);
     metroRight.spin(reverse, 100, percent);
     
+    while (!(leftDrive.position(degrees) < -180 || Brain.Timer.value() > 1.3)) wait(20, msec);
 
-  
-    wait(800, msec); // -----------------------------------------------------------------------------------
-
-    leftDrive.spin(forward, 100, percent);
-    rightDrive.spin(forward, 100, percent);
-
-    pdgsLeft.spin(forward, 100, percent);
-    pdgsRight.spin(forward, 100, percent);
-    metroLeft.spin(reverse, 100, percent);
-    metroRight.spin(reverse, 100, percent);
-    
-
-    wait(800, msec);
+    printf("3\n");
+    i = 0;
   }
+
+  printf("4\n");  
+  bypassDrive = false;
+  updateMPTOmotors();
 }
 
 

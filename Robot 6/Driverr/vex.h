@@ -129,6 +129,10 @@ public:
   void setStopping(stopping sto) { stopp = sto; }
 
   double position(degreesUnits unit) { return 0.0; }
+
+  double velocity(speedUnit unit) {return 0.0; }
+
+  void resetPosition() {}
   void stop() {}
 };
 
