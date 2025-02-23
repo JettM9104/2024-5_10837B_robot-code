@@ -338,7 +338,7 @@ void backandforth() {
     metroLeft.spin(reverse, 100, percent);
     metroRight.spin(reverse, 100, percent);
     
-    while (!(leftDrive.position(degrees) < -180 || Brain.Timer.value() > 1.3)) wait(20, msec);
+    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) wait(20, msec);
 
     printf("3\n");
     i = 0;
