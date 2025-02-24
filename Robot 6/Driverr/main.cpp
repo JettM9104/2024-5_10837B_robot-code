@@ -322,9 +322,9 @@ void backandforth() {
       updateSPTO();
     }
 
-    printf("1\n");
+
     while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } // -----------------------------------------------------------------------------------
-    printf("2  velocity is %f and the iteration is %llu\n", fabs(leftDrive.velocity(percent)), i);
+
     leftDrive.resetPosition();
     rightDrive.resetPosition();
 
@@ -340,11 +340,10 @@ void backandforth() {
     
     while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) wait(20, msec);
 
-    printf("3\n");
+
     i = 0;
   }
 
-  printf("4\n");  
   bypassDrive = false;
   updateMPTOmotors();
 }
