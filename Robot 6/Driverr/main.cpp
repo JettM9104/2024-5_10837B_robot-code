@@ -323,8 +323,8 @@ void backandforth() {
     }
 
 
-    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } // -----------------------------------------------------------------------------------
-
+    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } 
+    
     leftDrive.resetPosition();
     rightDrive.resetPosition();
 
