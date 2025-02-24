@@ -69,6 +69,7 @@ bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
 bool blocker = 0;
+bool pumpState = 1;
 bool macroActive = false;
 bool bypassDrive = false;
 
@@ -76,6 +77,7 @@ void updateSPTO();
 void updateMPTO();
 void updateCPTO();
 void updateIndex();
+void updatePump();
 void updateMPTOmotors();
 void windCata();
 void shootCata();
@@ -93,6 +95,7 @@ int main() {
   Controller.ButtonRDown.pressed(updateSPTO);
   Controller.ButtonFUp.pressed(updateCPTO);
   Controller.ButtonFDown.pressed(updateIndex);
+  Controller.ButtonR3.pressed(updatePump);
 
   Controller.ButtonLUp.pressed(updateMPTOmotors);
   Controller.ButtonLUp.released(updateMPTOmotors);
@@ -237,6 +240,16 @@ void updateMPTOmotors() {
 
 }
 
+void updatePump() {
+  if (pumpState) {
+    pneum1.pumpOff();
+    pumpState = 0;
+  }
+  else {
+    pneum1.pumpOn();
+    pumpState = 0;
+  }
+}
 void windCata() {
   macroActive = true;
 

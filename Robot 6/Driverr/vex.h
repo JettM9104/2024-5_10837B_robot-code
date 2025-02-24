@@ -166,6 +166,9 @@ public:
 
   void extend(cylinder cyl) {}
   void retract(cylinder cyl) {}
+
+  void pumpOn() {}
+  void pumpOff() {}
 };
 
 // Class representing a touch LED
