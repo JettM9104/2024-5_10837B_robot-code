@@ -288,7 +288,10 @@ void shootCata() {
 void continuousUpdate_led() {
   while (true) {
     if (!macroActive) {
-      if (sPTO) {
+      if (mPTO) {
+        indicator.setColor(orange);
+      }
+      else if (sPTO) {
         indicator.setColor(blue_green);
       }
       else {
