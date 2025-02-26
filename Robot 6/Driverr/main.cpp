@@ -133,11 +133,11 @@ int main() {
         }
       }
       else if (drivetype == splitarcade) {
-        leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-        rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+        leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+        rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         if (sPTO) {
-          pdgsLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-          pdgsRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+          pdgsLeft.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+          pdgsRight.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         }
       }
     }
