@@ -109,8 +109,8 @@ void turn(double angle, double timeout) {
     double leftMS = (error * tkP) + (integral * tkI) + (derivative * tkD);
     double rightMS = leftMS;
 
-    leftDrive.spin(forward, leftMS, velocityUnits::pct);
-    rightDrive.spin(forward, rightMS, velocityUnits::pct);
+    leftDrive.spin(forward, leftMS, percent);
+    rightDrive.spin(forward, rightMS, percent);
 
     lastError = error;
 
