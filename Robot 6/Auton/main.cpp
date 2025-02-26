@@ -29,7 +29,6 @@ void vexcodeInit() {
   initializeRandomSeed(); 
 }
 
-// PID constants for drive and turn
 namespace pid {
   namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
   namespace turn { float kP = 0.65, kI = 0.2, kD = 0.1; }
@@ -43,11 +42,13 @@ double convertDistToEncoder(double gearRatio, bool reversed = false, double whee
 void drive(double distance, double timeout = 0);
 void turn(double angle, double timeout = 0);
 
+const float pi = 3.141592;
 int main() {
   vexcodeInit();  // Initialize Robot Configuration
   
-  drive(500);
+  //drive(500);
 
+  turn(-90);
   // pdgsLeft.spin(forward);
   // pdgsRight.spin(forward);
 }
@@ -101,21 +102,24 @@ void turn(double angle, double timeout) {
   double beginTimer = Brain.Timer.value();
 
   while (true) {
-    double angleEncoders = ((leftDrive.position(degrees) + rightDrive.position(degrees)) / 2) * 200 * (60/24) / 250;
-    error = (BrainInertial.rotation(degrees) + angleEncoders) / 2 - angle;
+    double angleEncoders = pi * 280 * 5 / 200 / ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2) == 0 ? 0.1 :  ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2);
+    error = angle - angleEncoders;
+    printf("angleEncoders = %f, rotation = %f;\n", angleEncoders, BrainInertial.rotation(degrees));
     integral = error < 3 ? 0 : integral + error;
     derivative = error - lastError;
+    printf("error = %f;\nintegral = %f;\nderivative = %f\n\n", error, integral, derivative);
+    double motorSpeed = (error * tkP) + (integral * tkI) + (derivative * tkD);
 
-    double leftMS = (error * tkP) + (integral * tkI) + (derivative * tkD);
-    double rightMS = leftMS;
-
-    leftDrive.spin(forward, leftMS, percent);
-    rightDrive.spin(forward, rightMS, percent);
+    leftDrive.spin(forward, motorSpeed, percent);
+    rightDrive.spin(reverse, motorSpeed, percent);
 
     lastError = error;
 
     if (fabs(error) < 5 || (timeout != 0 && Brain.Timer.value() - beginTimer > timeout)) {
       break;
     }
+    wait(20, msec);
   }
+  leftDrive.stop();
+  rightDrive.stop();
 }
