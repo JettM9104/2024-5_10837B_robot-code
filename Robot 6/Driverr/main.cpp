@@ -324,7 +324,7 @@ void backandforth() {
 
   unsigned long long int i = 0;
 
-  while (Contoller.ButtonL3.pressing()) wait(20, msec);
+  while (Controller.ButtonL3.pressing()) wait(20, msec);
   
   while (!Controller.ButtonL3.pressing()) {
     Brain.Timer.value();
