@@ -133,11 +133,11 @@ int main() {
         }
       }
       else if (drivetype == splitarcade) {
-        leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
-        rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+        leftDrive.spin(forward, abs(Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+        rightDrive.spin(forward, abs(Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         if (sPTO) {
-          pdgsLeft.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
-          pdgsRight.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+          pdgsLeft.spin(forward, abs(Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+          pdgsRight.spin(forward, abs(Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         }
       }
     }
@@ -324,7 +324,9 @@ void backandforth() {
 
   unsigned long long int i = 0;
 
-  while (Controller.ButtonL3.pressing()) {
+  while (Contoller.ButtonL3.pressing()) wait(20, msec);
+  
+  while (!Controller.ButtonL3.pressing()) {
     Brain.Timer.value();
 
     leftDrive.spin(forward, 100, percent);
