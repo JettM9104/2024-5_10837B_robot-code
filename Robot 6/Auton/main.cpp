@@ -14,6 +14,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
+distance detector = distance(PORT10);
 
 brain Brain;
 
@@ -42,15 +43,79 @@ double convertDistToEncoder(double gearRatio, bool reversed = false, double whee
 void drive(double distance, double timeout = 0);
 void turn(double angle, double timeout = 0);
 
+void init();
+void windCata();
+void shootCata();
+void updateSPTO();
+void updateMPTO();
+void updateCPTO();
+
+bool macroActive = 0;
+bool sPTO = 0;
+bool mPTO = 0;
+bool cPTO = 0;
+bool blocker = 0;
+
 const float pi = 3.141592;
 int main() {
   vexcodeInit();  // Initialize Robot Configuration
-  
-  //drive(500);
+
+  init();
+
+  while (!indicator.pressing()) {
+    if (Brain.buttonRight.pressing()) {
+      while (!Brain.buttonRight.pressing()) {}
+      windCata();
+    }
+
+    wait(20, msec);
+  }
+  drive(800);
+
+  wait(500, msec);
 
   turn(-90);
-  // pdgsLeft.spin(forward);
-  // pdgsRight.spin(forward);
+  Brain.playSound(siren);
+
+  wait(700, msec);
+  drive(-100000, 3);
+  wait(2250, msec);
+  shootCata();
+
+  pdgsLeft.spin(reverse, 100, percent);
+  pdgsRight.spin(reverse, 100, percent);
+  metroLeft.spin(reverse, 100, percent);
+  metroRight.spin(reverse, 100, percent);
+
+  drive(75, 0.5);
+  wait(55, msec);
+  drive(-400, 0.7);
+  wait(4000, msec);
+  pdgsLeft.stop();
+  pdgsRight.stop();
+  metroLeft.stop();
+  metroRight.stop();
+  
+  thread wind = thread(windCata);
+
+  drive(300);
+  turn(90);
+  drive(-350);
+  turn(-90);
+  drive(-1000, 2);
+
+  while (true) {
+    drive(75, 0.5);
+    wait(55, msec);
+    drive(-400, 0.7);
+    wait(55, msec);
+    drive(75, 0.5);
+    wait(55, msec);
+    drive(-400, 0.7);
+
+    wait(4000, msec);
+  }
+
 }
 
 double convertEncoderToDist(double gearRatio, bool reversed, double wheelCirc) {
@@ -102,7 +167,7 @@ void turn(double angle, double timeout) {
   double beginTimer = Brain.Timer.value();
 
   while (true) {
-    double angleEncoders = pi * 280 * 5 / 200 / ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2) == 0 ? 0.1 :  ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2);
+    double angleEncoders = (leftDrive.position(degrees) - rightDrive.position(degrees) / 2) * 8 * pi / 81 * 4 / 3 * 1.0975;
     error = angle - angleEncoders;
     printf("angleEncoders = %f, rotation = %f;\n", angleEncoders, BrainInertial.rotation(degrees));
     integral = error < 3 ? 0 : integral + error;
@@ -123,3 +188,102 @@ void turn(double angle, double timeout) {
   leftDrive.stop();
   rightDrive.stop();
 }
+
+void updateSPTO() {
+  if (!sPTO) {
+    pneum2.extend(cylinder2);
+    sPTO = 1;
+  }
+  else {
+    pneum2.retract(cylinder2);
+    sPTO = 0;
+  }
+}
+
+void updateMPTO() {
+  if (!mPTO) {
+    pneum2.extend(cylinder1);
+    mPTO = 1;
+  }
+  else {
+    pneum2.retract(cylinder1);
+    mPTO = 0;
+  }
+}
+
+void updateCPTO() {
+  if (!cPTO) {
+    pneum1.extend(cylinder1);
+    cPTO = 1;
+  }
+  else {
+    pneum1.retract(cylinder1);
+    cPTO = 0;
+  }
+}
+
+void updateIndex() {
+  if (!blocker) {
+    pneum1.extend(cylinder2);
+    blocker = 1;
+  }
+  else {
+    pneum1.retract(cylinder2);
+    blocker = 0;
+  }
+}
+
+void windCata() {
+  macroActive = true;
+
+  if (!mPTO) updateMPTO();
+  
+  do {
+    metroLeft.spin(forward, 100, percent);
+    metroRight.spin(forward, 100, percent);
+  } while (detector.objectDistance(mm) > 20);
+
+  metroLeft.stop();
+  metroRight.stop();
+
+  updateMPTO();
+
+  macroActive = false;
+}
+
+void shootCata() {
+  macroActive = true;
+
+  if (!mPTO) updateMPTO();
+  metroLeft.spin(forward, 100, percent);
+  metroRight.spin(forward, 100, percent);
+
+  wait(400, msec);
+
+  metroLeft.stop();
+  metroRight.stop();
+
+  updateMPTO();
+
+  macroActive = false;
+}
+
+void init() {
+  leftDrive.setStopping(hold);
+  rightDrive.setStopping(hold);
+
+  updateMPTO();
+  updateSPTO();
+  updateCPTO();
+
+  wait(1000, msec);
+
+  updateMPTO();
+  updateSPTO();
+  updateCPTO();
+
+  wait(1000, msec);
+  updateCPTO();
+}
+
+
