@@ -289,7 +289,7 @@ void continuousUpdate_led() {
   while (true) {
     if (!macroActive) {
       if (mPTO) {
-        indicator.setColor(orange);
+        indicator.setColor(purple);
       }
       else if (sPTO) {
         indicator.setColor(blue_green);
