@@ -91,6 +91,15 @@ int main() {
   wait(55, msec);
   drive(-400, 0.7);
   wait(4000, msec);
+  drive(75, 0.5);
+  windCata();
+  pdgsLeft.spin(reverse, 100, percent);
+  pdgsRight.spin(reverse, 100, percent);
+  metroLeft.spin(reverse, 100, percent);
+  metroRight.spin(reverse, 100, percent);
+  wait(55, msec);
+  drive(-400, 0.7);
+  wait(3000, msec);
   pdgsLeft.stop();
   pdgsRight.stop();
   metroLeft.stop();
@@ -99,10 +108,23 @@ int main() {
   thread wind = thread(windCata);
 
   drive(300);
-  turn(90);
-  drive(-350);
-  turn(-90);
+
+  wait(600, msec);
+
+  turn(80);
+  wait(600, msec);
+  drive(-500);
+  wait(600, msec);
+  
+  turn(-80);
+  wait(600, msec);
   drive(-1000, 2);
+  wait(1000, msec);
+  shootCata();
+  pdgsLeft.spin(reverse, 100, percent);
+  pdgsRight.spin(reverse, 100, percent);
+  metroLeft.spin(reverse, 100, percent);
+  metroRight.spin(reverse, 100, percent);
 
   while (true) {
     drive(75, 0.5);
