@@ -113,10 +113,10 @@ int main() {
 
   turn(80);
   wait(600, msec);
-  drive(-500);
+  drive(-400);
   wait(600, msec);
   
-  turn(-80);
+  turn(-90);
   wait(600, msec);
   drive(-1000, 2);
   wait(1000, msec);
