@@ -12,6 +12,7 @@ enum cylinder {cylinder1, cylinder2};
 enum degreesUnits {degrees};
 enum stopping {coast, brake, hold};
 enum distanceUnits {mm, inches};
+enum sound {siren};
 
 // Class representing an inertial sensor
 class inertial {
@@ -151,6 +152,9 @@ public:
   brain() = default;
 
   timer Timer;
+  button buttonRight;
+  button buttonLeft;
+  void playSound(sound ooh) {}
 };
 
 // Class representing a pneumatic device

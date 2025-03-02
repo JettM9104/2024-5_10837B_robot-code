@@ -69,19 +69,25 @@ bool mPTO = 0;
 bool sPTO = 0;
 bool cPTO = 0;
 bool blocker = 0;
+bool pumpState = 1;
 bool macroActive = false;
 bool bypassDrive = false;
+bool toggleActive = false;
+
+short int mostRecentPress = 0; // 0 is none, 1 is in, 2 is out
 
 void updateSPTO();
 void updateMPTO();
 void updateCPTO();
 void updateIndex();
+void updatePump();
 void updateMPTOmotors();
 void windCata();
 void shootCata();
 void continuousUpdate_led();
 
 void backandforth();
+void continuousUpdate();
 
 void init();
 
@@ -93,6 +99,7 @@ int main() {
   Controller.ButtonRDown.pressed(updateSPTO);
   Controller.ButtonFUp.pressed(updateCPTO);
   Controller.ButtonFDown.pressed(updateIndex);
+  Controller.ButtonR3.pressed(updatePump);
 
   Controller.ButtonLUp.pressed(updateMPTOmotors);
   Controller.ButtonLUp.released(updateMPTOmotors);
@@ -106,6 +113,7 @@ int main() {
 
 
   thread led = thread(continuousUpdate_led);
+  thread infloop = thread(continuousUpdate);
 
   updateMPTO();
   updateSPTO();
@@ -130,11 +138,11 @@ int main() {
         }
       }
       else if (drivetype == splitarcade) {
-        leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-        rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+        leftDrive.spin(forward, abs(Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+        rightDrive.spin(forward, abs(Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         if (sPTO) {
-          pdgsLeft.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-          pdgsRight.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+          pdgsLeft.spin(forward, abs(Controller.AxisA.position() + Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+          pdgsRight.spin(forward, abs(Controller.AxisA.position() - Controller.AxisC.position()) < 5 ? 0 : (Controller.AxisA.position() - Controller.AxisC.position()), percent);
         }
       }
     }
@@ -192,51 +200,87 @@ void updateIndex() {
 }
 
 void updateMPTOmotors() {
+  printf("function called\n");
   if (Controller.ButtonLDown.pressing()) {
-    if (mPTO) {
-      metroLeft.spin(forward, 100, percent);
-      metroRight.spin(forward, 100, percent);
-    }
-    else {
-      if (!sPTO) {
-        pdgsLeft.spin(reverse, 100, percent);
-        pdgsRight.spin(reverse, 100, percent);
-        metroLeft.spin(reverse, 100, percent);
-        metroRight.spin(reverse, 100, percent);
-      }
-      else {
-        metroLeft.spin(reverse, 100, percent);
-        metroRight.spin(reverse, 100, percent);
-      }
-    }
-  }
-  else if (Controller.ButtonLUp.pressing()) {
-    if (mPTO) {
-      metroLeft.spin(reverse, 100, percent);
-      metroRight.spin(reverse, 100, percent);
-    }
-    else {
-      if (!sPTO) {
-        pdgsLeft.spin(forward, 100, percent);
-        pdgsRight.spin(forward, 100, percent);
+    Brain.Timer.reset();
+    if (!toggleActive) {
+      if (mPTO) {
         metroLeft.spin(forward, 100, percent);
         metroRight.spin(forward, 100, percent);
       }
       else {
+        if (!sPTO) {
+          pdgsLeft.spin(reverse, 100, percent);
+          pdgsRight.spin(reverse, 100, percent);
+          metroLeft.spin(reverse, 100, percent);
+          metroRight.spin(reverse, 100, percent);
+        }
+        else {
+          metroLeft.spin(reverse, 100, percent);
+          metroRight.spin(reverse, 100, percent);
+        }
+      }
+    }
+    else {
+      metroLeft.stop();
+      metroRight.stop();
+      pdgsLeft.stop();
+      pdgsRight.stop();
+      toggleActive = 0;
+    }
+  }
+  else if (Controller.ButtonLUp.pressing()) {
+    Brain.Timer.reset();
+    if (!toggleActive) {
+      if (mPTO) {
         metroLeft.spin(reverse, 100, percent);
         metroRight.spin(reverse, 100, percent);
       }
+      else {
+        if (!sPTO) {
+          pdgsLeft.spin(forward, 100, percent);
+          pdgsRight.spin(forward, 100, percent);
+          metroLeft.spin(forward, 100, percent);
+          metroRight.spin(forward, 100, percent);
+        }
+        else {
+          metroLeft.spin(reverse, 100, percent);
+          metroRight.spin(reverse, 100, percent);
+        }
+      }
+    }
+    else {
+      metroLeft.stop();
+      metroRight.stop();
+      pdgsLeft.stop();
+      pdgsRight.stop();
+      
     }
   }
   else {
-    metroLeft.stop();
-    metroRight.stop();
-    pdgsLeft.stop();
-    pdgsRight.stop();
+    if (Brain.Timer.value() > 0.5) {
+      toggleActive = 0;
+      metroLeft.stop();
+      metroRight.stop();
+      pdgsLeft.stop();
+      pdgsRight.stop();
+    }
+    else {
+      toggleActive = 1;
+    }
   }
-
 }
 
+void updatePump() {
+  if (pumpState) {
+    pneum1.pumpOff();
+    pumpState = 0;
+  }
+  else {
+    pneum1.pumpOn();
+    pumpState = 0;
+  }
+}
 void windCata() {
   macroActive = true;
 
@@ -275,7 +319,10 @@ void shootCata() {
 void continuousUpdate_led() {
   while (true) {
     if (!macroActive) {
-      if (sPTO) {
+      if (mPTO) {
+        indicator.setColor(purple);
+      }
+      else if (sPTO) {
         indicator.setColor(blue_green);
       }
       else {
@@ -298,8 +345,21 @@ void continuousUpdate_led() {
 void backandforth() { 
   bypassDrive = true;
 
-  while (Controller.ButtonL3.pressing()) {
-    
+  if (mPTO) {
+    updateMPTO();
+  }
+
+  if (sPTO) {
+    updateSPTO();
+  }
+
+  unsigned long long int i = 0;
+
+  while (Controller.ButtonL3.pressing()) wait(20, msec);
+  
+  while (!Controller.ButtonL3.pressing()) {
+    Brain.Timer.value();
+
     leftDrive.spin(forward, 100, percent);
     rightDrive.spin(forward, 100, percent);
 
@@ -309,29 +369,37 @@ void backandforth() {
 
     if (sPTO) {
       updateSPTO();
-
     }
+
+
+    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } 
+    
+    leftDrive.resetPosition();
+    rightDrive.resetPosition();
+
+    Brain.Timer.reset();
+
+    leftDrive.spin(reverse, 100, percent);
+    rightDrive.spin(reverse, 100, percent);
 
     pdgsLeft.spin(reverse, 100, percent);
     pdgsRight.spin(reverse, 100, percent);
     metroLeft.spin(reverse, 100, percent);
     metroRight.spin(reverse, 100, percent);
     
+    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) wait(20, msec);
 
-  
-    wait(800, msec); // -----------------------------------------------------------------------------------
 
-    leftDrive.spin(forward, 100, percent);
-    rightDrive.spin(forward, 100, percent);
-
-    pdgsLeft.spin(forward, 100, percent);
-    pdgsRight.spin(forward, 100, percent);
-    metroLeft.spin(reverse, 100, percent);
-    metroRight.spin(reverse, 100, percent);
-    
-
-    wait(800, msec);
+    i = 0;
   }
+
+  bypassDrive = false;
+  updateMPTOmotors();
 }
 
-
+void continuousUpdate() {
+  while (true) {
+    printf("%f\n", Brain.Timer.value());
+    wait(20, msec);
+  }
+}

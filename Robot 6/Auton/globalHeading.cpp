@@ -47,7 +47,6 @@ void init();
 void windCata();
 void shootCata();
 void updateSPTO();
-void updateMPTO();
 void updateCPTO();
 
 bool macroActive = 0;
@@ -56,11 +55,18 @@ bool mPTO = 0;
 bool cPTO = 0;
 bool blocker = 0;
 
+double globalheading = 0;
+
 const float pi = 3.141592;
 int main() {
   vexcodeInit();  // Initialize Robot Configuration
 
   init();
+
+  BrainInertial.setRotation(0, degrees);
+
+  leftDrive.resetPosition();
+  rightDrive.resetPosition();
 
   while (!indicator.pressing()) {
     if (Brain.buttonRight.pressing()) {
@@ -75,6 +81,12 @@ int main() {
   wait(500, msec);
 
   turn(-90);
+  leftDrive.setStopping(coast);
+  rightDrive.setStopping(coast);
+
+  wait(2000, msec);
+  leftDrive.setStopping(hold);
+  rightDrive.setStopping(hold);
   Brain.playSound(siren);
 
   wait(700, msec);
@@ -149,9 +161,11 @@ double convertDistToEncoder(double gearRatio, bool reversed, double wheelCirc) {
 }
 
 void drive(double distance, double timeout) {
-  double error, integral = 0, derivative = 0, lastError = 0;
+
   leftDrive.resetPosition();
   rightDrive.resetPosition();
+
+  double error, integral = 0, derivative = 0, lastError = 0;
   double beginTimer = Brain.Timer.value();
 
   printf("%f", (convertDistToEncoder(5/2) * distance));
@@ -182,15 +196,15 @@ void drive(double distance, double timeout) {
 }
 
 void turn(double angle, double timeout) {
+  globalheading += angle;
+  printf("globel heding is %f", globalheading);
   double error, integral = 0, derivative, lastError = 0;
-  leftDrive.resetPosition();
-  rightDrive.resetPosition();
-  BrainInertial.setRotation(0, degrees);
+
   double beginTimer = Brain.Timer.value();
 
   while (true) {
-    double angleEncoders = (leftDrive.position(degrees) - rightDrive.position(degrees) / 2) * 8 * pi / 81 * 4 / 3 * 1.0975;
-    error = angle - angleEncoders;
+    double angleEncoders = (leftDrive.position(degrees) - rightDrive.position(degrees)) / 2 * 8 * pi / 81 * 4 / 3 * 1.0975 * 1.81;
+    error = globalheading - angleEncoders;
     printf("angleEncoders = %f, rotation = %f;\n", angleEncoders, BrainInertial.rotation(degrees));
     integral = error < 3 ? 0 : integral + error;
     derivative = error - lastError;
