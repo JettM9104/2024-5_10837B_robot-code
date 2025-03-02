@@ -14,7 +14,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
-bumper catSensor = bumper(PORT10);
+distance detector = distance(PORT10);
 
 brain Brain;
 
@@ -87,44 +87,6 @@ int main() {
   metroLeft.spin(reverse, 100, percent);
   metroRight.spin(reverse, 100, percent);
 
-  drive(75, 0.5);
-  wait(55, msec);
-  drive(-400, 0.7);
-  wait(4000, msec);
-  drive(75, 0.5);
-  windCata();
-  pdgsLeft.spin(reverse, 100, percent);
-  pdgsRight.spin(reverse, 100, percent);
-  metroLeft.spin(reverse, 100, percent);
-  metroRight.spin(reverse, 100, percent);
-  wait(55, msec);
-  drive(-400, 0.7);
-  wait(3000, msec);
-  pdgsLeft.stop();
-  pdgsRight.stop();
-  metroLeft.stop();
-  metroRight.stop();
-  
-  thread wind = thread(windCata);
-
-  drive(300);
-
-  wait(600, msec);
-
-  turn(80);
-  wait(600, msec);
-  drive(-400);
-  wait(600, msec);
-  
-  turn(-90);
-  wait(600, msec);
-  drive(-1000, 2);
-  wait(1000, msec);
-  shootCata();
-  pdgsLeft.spin(reverse, 100, percent);
-  pdgsRight.spin(reverse, 100, percent);
-  metroLeft.spin(reverse, 100, percent);
-  metroRight.spin(reverse, 100, percent);
 
   while (true) {
     drive(75, 0.5);
@@ -263,7 +225,7 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (!catSensor.pressing());
+  } while (detector.objectDistance(mm) > 20);
 
   metroLeft.stop();
   metroRight.stop();
