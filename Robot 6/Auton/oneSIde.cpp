@@ -15,6 +15,8 @@ pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
 distance detector = distance(PORT10);
+distance intakeJamSensor = distance(PORT11);
+sonar backRollerSensor = sonar(PORT12);
 
 brain Brain;
 
@@ -50,6 +52,8 @@ void updateSPTO();
 void updateMPTO();
 void updateCPTO();
 
+void cont();
+
 bool macroActive = 0;
 bool sPTO = 0;
 bool mPTO = 0;
@@ -62,6 +66,8 @@ int main() {
 
   init();
 
+  thread test123 = thread(cont);
+  
   while (!indicator.pressing()) {
     if (Brain.buttonRight.pressing()) {
       while (!Brain.buttonRight.pressing()) {}
@@ -81,23 +87,28 @@ int main() {
   drive(-100000, 3);
   wait(2250, msec);
   shootCata();
-
+  pneum1.retract(cylinder2);
   pdgsLeft.spin(reverse, 100, percent);
   pdgsRight.spin(reverse, 100, percent);
   metroLeft.spin(reverse, 100, percent);
   metroRight.spin(reverse, 100, percent);
 
-
+  // rapid laoding starts here
+  drive(75, 0.5);
+  wait(55, msec);
+  drive(-400, 0.7);
+  wait(1000, msec);
+  drive(75, 0.5);
+  wait(55, msec);
+  drive(-400, 0.7);
+  
   while (true) {
-    drive(75, 0.5);
-    wait(55, msec);
-    drive(-400, 0.7);
-    wait(55, msec);
-    drive(75, 0.5);
-    wait(55, msec);
-    drive(-400, 0.7);
+    while (backRollerSensor.distance(mm) < 250) {}
+    while (backRollerSensor.distance(mm) > 310) {}
 
-    wait(4000, msec);
+    drive(75, 0.5);
+    wait(55, msec);
+    drive(-400, 0.7);
   }
 
 }
@@ -271,3 +282,10 @@ void init() {
 }
 
 
+
+void cont() {
+  while (true) {
+    printf("\033[31mintake sensor\t%f\n\033[32mbackroller\t%f\n\n", intakeJamSensor.objectDistance(mm), backRollerSensor.distance(mm));
+    wait(100, msec);
+  }
+}
