@@ -35,7 +35,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
-distance detector = distance(PORT10);
+bumper catSensor = bumper(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -289,7 +289,7 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (detector.objectDistance(mm) > 20);
+  } while (!catSensor.pressing());
 
   metroLeft.stop();
   metroRight.stop();

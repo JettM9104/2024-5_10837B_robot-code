@@ -214,6 +214,8 @@ private:
 
 public:
   bumper(port portnumber) : portnumber(portnumber) { }
+
+  bool pressing() { return false; }
 };
 
 class distance {
