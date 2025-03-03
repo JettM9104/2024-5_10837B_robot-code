@@ -15,6 +15,8 @@ pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
 distance catSensor = distance(PORT10);
+distance intakeJamSensor = distance(PORT11);
+sonar backRollerSensor = sonar(PORT12);
 
 brain Brain;
 
@@ -34,6 +36,7 @@ namespace pid {
   namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
   namespace turn { float kP = 0.65, kI = 0.2, kD = 0.1; }
 }
+
 
 float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
 float& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;

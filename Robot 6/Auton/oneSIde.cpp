@@ -34,7 +34,7 @@ void vexcodeInit() {
 
 namespace pid {
   namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-  namespace turn { float kP = 0.65, kI = 0.2, kD = 0.1; }
+  namespace turn { float kP = 2000000, kI = 0.2, kD = 0.1; }
 }
 
 float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
@@ -80,7 +80,7 @@ int main() {
 
   wait(500, msec);
 
-  turn(-90);
+  turn(90, 2);
   Brain.playSound(siren);
 
   wait(700, msec);
@@ -163,7 +163,7 @@ void turn(double angle, double timeout) {
 
   while (true) {
     double angleEncoders = (leftDrive.position(degrees) - rightDrive.position(degrees) / 2) * 8 * pi / 81 * 4 / 3 * 1.0975;
-    error = angle - angleEncoders;
+    error = angle - BrainInertial.rotation(degrees);
     printf("angleEncoders = %f, rotation = %f;\n", angleEncoders, BrainInertial.rotation(degrees));
     integral = error < 3 ? 0 : integral + error;
     derivative = error - lastError;
