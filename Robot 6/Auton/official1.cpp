@@ -38,7 +38,7 @@ touchled led = touchled(PORT7);
 distance Catadist = distance(PORT10);
 motor driveleft = motor(PORT2, true);
 motor driveright = motor(PORT4, false);
-sonar Distance12 = sonar(PORT12);
+distance Distance12 = distance(PORT12);
 
 
 // generating and setting random seed
@@ -71,23 +71,35 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-void Driving();
-void P();
+// User defined function
+void myblockfunction_Drive();
+// User defined function
+void myblockfunction_Setup();
+// User defined function
+void myblockfunction_Pneu();
+// User defined function
+void myblockfunction_Relay();
+// User defined function
+void myblockfunction_Cata();
 
+int Brain_precision = 0, Console_precision = 0;
 
-
+float myVariable, Error, Output, LastError, Derivative, Integral, KPD, KDD, KID;
 
 // User defined function
-void Driving() {
-  shares.extend(cylinder1);
+void myblockfunction_Drive() {
   led.setColor(blue);
-  driveleft.spinFor(forward, 1.7, turns, false);
-  driveright.spinFor(forward, 1.7, turns, true);
+  Metroleft.spin(forward);
+  metroright.spin(forward);
+  driveleft.spinFor(forward, 1.525, turns, false);
+  driveright.spinFor(forward, 1.525, turns, true);
+  metroright.stop();
+  Metroleft.stop();
   led.setColor(blue);
   driveright.stop();
   PDSGright.stop();
-  driveleft.spinFor(forward, 0.67, turns, false);
-  PDSGleft.spinFor(forward, 0.67, turns, true);
+  driveleft.spinFor(forward, 0.7, turns, false);
+  PDSGleft.spinFor(forward, 0.7, turns, true);
   led.setColor(red);
   driveleft.spinFor(reverse, 2.4, turns, false);
   driveright.spinFor(reverse, 2.4, turns, false);
@@ -96,7 +108,17 @@ void Driving() {
 }
 
 // User defined function
-void P() {
+void myblockfunction_Setup() {
+  led.setColor(red);
+  back.retract(cylinder1);
+  shares.extend(cylinder1);
+  Metroleft.spinFor(forward, 2.0, turns, false);
+  metroright.spinFor(forward, 2.0, turns, true);
+  back.extend(cylinder1);
+}
+
+// User defined function
+void myblockfunction_Pneu() {
   PDSGleft.stop();
   PDSGright.stop();
   Metroleft.stop();
@@ -106,27 +128,8 @@ void P() {
   back.retract(cylinder2);
 }
 
-
-// "when led pressed" hat block
-void auton() {
-  Driving();
-  P();
-  back.extend(cylinder1);
-  metroright.spin(reverse);
-  Metroleft.spin(reverse);
-  wait(0.7, seconds);
-  metroright.stop();
-  Metroleft.stop();
-  back.retract(cylinder1);
-  wait(0.5, seconds);
-  PDSGleft.spin(reverse);
-  PDSGright.spin(reverse);
-  Metroleft.spin(forward);
-  metroright.spin(forward);
-  driveleft.setTimeout(0.7, seconds);
-  driveright.setTimeout(0.7, seconds);
-  back.retract(cylinder2);
-  wait(0.5, seconds);
+// User defined function
+void myblockfunction_Relay() {
   PDSGleft.spin(reverse);
   PDSGright.spin(reverse);
   Metroleft.spin(forward);
@@ -140,17 +143,71 @@ void auton() {
     // start to drive back
     driveright.spinFor(reverse, 0.4, turns, false);
     driveleft.spinFor(reverse, 0.4, turns, true);
-    waitUntil((200.0 > Distance12.distance(mm)));
-    waitUntil((Distance12.distance(mm) > 200.0));
+    Brain.Timer.reset();
+    while (!(Distance12.objectDistance(mm) > 200.0)) {
+      if (200.0 > Distance12.objectDistance(mm) && Brain.Timer.value() > 2.0) {
+        shares.extend(cylinder2);
+        wait(1.0, seconds);
+        shares.retract(cylinder2);
+      }
+    wait(20, msec);
+    }
   wait(20, msec);
   }
 }
 
+// User defined function
+void myblockfunction_Cata() {
+  back.extend(cylinder1);
+  metroright.spin(reverse);
+  Metroleft.spin(reverse);
+  wait(0.4, seconds);
+  metroright.stop();
+  Metroleft.stop();
+  wait(0.8, seconds);
+  metroright.spin(reverse);
+  Metroleft.spin(reverse);
+  wait(0.2, seconds);
+  metroright.stop();
+  Metroleft.stop();
+  back.retract(cylinder1);
+}
 
-void init() {
+// Used to find the format string for printing numbers with the
+// desired number of decimal places
+const char* printToConsole_numberFormat() {
+  // look at the current precision setting to find the format string
+  switch(Console_precision){
+    case 0:  return "%.0f"; // 0 decimal places (1)
+    case 1:  return "%.1f"; // 1 decimal place  (0.1)
+    case 2:  return "%.2f"; // 2 decimal places (0.01)
+    case 3:  return "%.3f"; // 3 decimal places (0.001)
+    default: return "%f"; // use the print system default for everthing else
+  }
+}
+
+// "when started" hat block
+int whenStarted1() {
+  while (true) {
+    printf(printToConsole_numberFormat(), static_cast<float>(Distance12.objectDistance(mm)));
+    printf("\n");
+    if (led.pressing()) {
+      myblockfunction_Setup();
+      waitUntil(led.pressing());
+      myblockfunction_Drive();
+      myblockfunction_Pneu();
+      myblockfunction_Cata();
+      myblockfunction_Relay();
+    }
+  wait(20, msec);
+  }
+  return 0;
+}
+
+// "when started" hat block
+int whenStarted2() {
   driveright.setStopping(hold);
   driveleft.setStopping(hold);
-  back.extend(cylinder2);
   back.retract(cylinder1);
   led.setColor(red);
   back.extend(cylinder2);
@@ -170,8 +227,9 @@ void init() {
 
 
 int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-  init();
-  led.pressed(auton);
+  vex::task ws1(whenStarted2);
+  whenStarted1();
 }
