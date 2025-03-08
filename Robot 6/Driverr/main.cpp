@@ -344,6 +344,7 @@ void continuousUpdate_led() {
 
 void backandforth() { 
   bypassDrive = true;
+  bool quit = false;
 
   if (mPTO) {
     updateMPTO();
@@ -370,13 +371,22 @@ void backandforth() {
     if (sPTO) {
       updateSPTO();
     }
+    if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) break;
 
 
-    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } 
+    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { 
+      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) {
+        quit = true;
+        break;
+      }
+      i++; 
+      wait(20, msec); 
+    } 
+
+    if (quit) break;
     
     leftDrive.resetPosition();
     rightDrive.resetPosition();
-
     Brain.Timer.reset();
 
     leftDrive.spin(reverse, 100, percent);
@@ -387,8 +397,14 @@ void backandforth() {
     metroLeft.spin(reverse, 100, percent);
     metroRight.spin(reverse, 100, percent);
     
-    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) wait(20, msec);
-
+    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) {
+      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) {
+        quit = true;
+        break;
+      }
+      wait(20, msec);
+    }
+    if (quit) break;
 
     i = 0;
   }
