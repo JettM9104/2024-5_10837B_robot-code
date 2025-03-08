@@ -345,11 +345,11 @@ void backandforth() {
     if (sPTO) {
       updateSPTO();
     }
-    if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) break;
+    if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) > 30) break;
 
 
     while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { 
-      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) {
+      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) > 30) {
         quit = true;
         break;
       }
@@ -372,7 +372,7 @@ void backandforth() {
     metroRight.spin(reverse, 100, percent);
     
     while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) {
-      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) != 0) {
+      if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) > 30) {
         quit = true;
         break;
       }
