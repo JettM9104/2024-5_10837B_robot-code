@@ -289,7 +289,7 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (!catSensor.objectDistance(mm) > 70);
+  } while (catSensor.objectDistance(mm) > 70);
 
   metroLeft.stop();
   metroRight.stop();
