@@ -27,19 +27,43 @@ brain Brain;
 
 
 controller Controller = controller();
+class motor_group_group {
+private:
+  motor_group motora;
+  motor_group motorb;
+
+public:
+  motor_group_group(motor_group motora, motor_group motorb): motora(motora), motorb(motorb) {}
+
+  void spin(directionType dir, int32_t velocity, percentUnits units) {
+    motora.spin(dir, velocity, units);
+    motorb.spin(dir, velocity, units);
+  }
+  void spin(directionType dir) {
+    motora.spin(dir);
+    motorb.spin(dir);
+  }
+  void stop() {
+    motora.stop();
+    motorb.stop();
+  }
+};
+
 
 // Robot configuration code.
 inertial BrainInertial = inertial();
-distance loadingZone = distance(PORTNULL);
-motor leftIntake = motor(PORTNULL, true);
-motor rightIntake = motor(PORTNULL, false);
-motor_group intake = motor_group(leftIntake, rightIntake);
-motor frontLeftDrive = motor(PORTNULL, false);
-motor backLeftDrive = motor(PORTNULL, false);
-motor_group leftDrive = motor_group(frontLeftDrive, backLeftDrive);
-motor frontRightDrive = motor(PORTNULL, true);
-motor backRightDrive = motor(PORTNULL, true);
-motor_group rightDrive = motor_group(frontRightDrive, backRightDrive);
+distance loadingZone = distance(PORT7);
+motor leftUpIntake = motor(PORT7, false);
+motor leftDownIntake = motor(PORT4, false);
+motor_group leftIntake = motor_group(leftUpIntake, leftDownIntake);
+motor rightUpIntake = motor(PORT10, true);
+motor rightDownIntake = motor(PORT11, true);
+motor_group rightIntake = motor_group(rightUpIntake, rightDownIntake);
+motor_group_group intake = motor_group_group(leftIntake, rightIntake);
+motor leftDrive = motor(PORT3, true);
+motor rightDrive = motor(PORT9, false);
+
+
 
 
 // generating and setting random seed
@@ -81,59 +105,98 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
+void updateIntakeMotors();
+void directIntake();
+
+void driveTo(int target, double timeout); 
+
+bool driveon = true;
+
+float kP = 0.1;
+
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   // Begin project code
+
+  Controller.ButtonLUp.pressed(updateIntakeMotors);
+  Controller.ButtonLDown.pressed(updateIntakeMotors);
+  Controller.ButtonLUp.released(updateIntakeMotors);
+  Controller.ButtonLDown.released(updateIntakeMotors);
+
+  Controller.ButtonL3.pressed(directIntake);
+
+  while (true) {
+    if (driveon) {
+      leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+    }
+    wait(20, msec);
+  }
   
 }
 
+void updateIntakeMotors() {
+  if (Controller.ButtonLUp.pressing()) {
+    intake.spin(forward, 100, percent);
+  }
+  else if (Controller.ButtonLDown.pressing()) {
+    intake.spin(reverse, 100, percent);
+  }
+  else {
+    intake.stop();
+  }
+}
+
 void directIntake() { 
-  bool quit = false;
 
-
+  driveon = false;
   unsigned long long int i = 0;
 
+
+
+
   while (Controller.ButtonL3.pressing()) wait(20, msec);
-  
   while (!Controller.ButtonL3.pressing()) {
-    Brain.Timer.value();
 
-    if (Controller.ButtonL3.pressing()) { break; }
-    leftDrive.spin(forward, 100, percent);
-    rightDrive.spin(forward, 100, percent);
+    intake.spin(reverse, 100, percent);
 
 
+    driveTo(-300, 2);
+
+    
+    while (leftDrive.position(degrees) > -180) { wait(20, msec); }
+
+    while (loadingZone.objectDistance(mm) < 400) { wait(20, msec); }
+    while (loadingZone.objectDistance(mm) > 400) { wait(20, msec); }
+    driveTo(400, 2);
+
+    leftDrive.spin(forward, 30, percent);
+    rightDrive.spin(forward, 30, percent);
     while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { 
       i++; 
-      if (Controller.ButtonL3.pressing()) {
-        quit = true;
-        break;
-      }
       wait(20, msec); 
     } 
+    printf("done iteration\n");
     
-    if (quit) break;
-
-    leftDrive.resetPosition();
-    rightDrive.resetPosition();
-
-    Brain.Timer.reset();
-
-    leftDrive.spin(reverse, 100, percent);
-    rightDrive.spin(reverse, 100, percent);
-
-    
-    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) { 
-      if (Controller.ButtonL3.pressing()) {
-        quit = true;
-        break;
-      }
-      wait(20, msec); 
-    }
-    if (quit) break;
-
-
-    i = 0;
   }
+  driveon = true;
+
+}
+
+void driveTo(int target, double timeout) {
+  double error;
+  leftDrive.resetPosition();
+  rightDrive.resetPosition();
+  Brain.Timer.reset();
+  while (true) {
+    error = target - leftDrive.position(degrees);
+    leftDrive.spin(forward, error * kP, percent);
+    rightDrive.spin(forward, error * kP, percent);
+
+    if (fabs(error) < 10) break;
+    if (Brain.Timer.value() > timeout) break;
+  }
+  leftDrive.stop();
+  rightDrive.stop();
 }
