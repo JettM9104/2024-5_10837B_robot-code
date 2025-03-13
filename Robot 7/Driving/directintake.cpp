@@ -149,20 +149,13 @@ void updateIntakeMotors() {
 }
 
 void directIntake() { 
-
-  driveon = false;
   unsigned long long int i = 0;
-
-
-
-
   while (Controller.ButtonL3.pressing()) wait(20, msec);
   while (!Controller.ButtonL3.pressing()) {
 
     intake.spin(reverse, 100, percent);
-
-
     driveTo(-300, 2);
+    driveon = true;
 
     
     while (leftDrive.position(degrees) > -180) { wait(20, msec); }
@@ -170,6 +163,7 @@ void directIntake() {
     while (loadingZone.objectDistance(mm) < 400) { wait(20, msec); }
     while (loadingZone.objectDistance(mm) > 400) { wait(20, msec); }
     driveTo(400, 2);
+    driveon = true;
 
     leftDrive.spin(forward, 30, percent);
     rightDrive.spin(forward, 30, percent);
@@ -180,7 +174,7 @@ void directIntake() {
     printf("done iteration\n");
     
   }
-  driveon = true;
+
 
 }
 
@@ -191,11 +185,19 @@ void driveTo(int target, double timeout) {
   Brain.Timer.reset();
   while (true) {
     error = target - leftDrive.position(degrees);
-    leftDrive.spin(forward, error * kP, percent);
-    rightDrive.spin(forward, error * kP, percent);
+
+    if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) == 0) {
+      driveon = false;
+      leftDrive.spin(forward, error * kP, percent);
+      rightDrive.spin(forward, error * kP, percent);
+    }
+    else {
+      driveon = true;
+    }
 
     if (fabs(error) < 10) break;
     if (Brain.Timer.value() > timeout) break;
+    wait(20, msec);
   }
   leftDrive.stop();
   rightDrive.stop();
