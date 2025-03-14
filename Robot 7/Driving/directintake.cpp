@@ -53,11 +53,12 @@ public:
 // Robot configuration code.
 inertial BrainInertial = inertial();
 distance loadingZone = distance(PORT7);
-motor leftUpIntake = motor(PORT7, false);
+distance chassis = distance(PORT2);
+motor leftUpIntake = motor(PORT5, false);
 motor leftDownIntake = motor(PORT4, false);
 motor_group leftIntake = motor_group(leftUpIntake, leftDownIntake);
-motor rightUpIntake = motor(PORT10, true);
-motor rightDownIntake = motor(PORT11, true);
+motor rightUpIntake = motor(PORT11, true);
+motor rightDownIntake = motor(PORT10, true);
 motor_group rightIntake = motor_group(rightUpIntake, rightDownIntake);
 motor_group_group intake = motor_group_group(leftIntake, rightIntake);
 motor leftDrive = motor(PORT3, true);
@@ -110,9 +111,11 @@ void directIntake();
 
 void driveTo(int target, double timeout); 
 
+void printa();
+
 bool driveon = true;
 
-float kP = 0.1;
+float kP = 0.25;
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
@@ -125,6 +128,7 @@ int main() {
   Controller.ButtonLDown.released(updateIntakeMotors);
 
   Controller.ButtonL3.pressed(directIntake);
+  thread print = thread(printa);
 
   while (true) {
     if (driveon) {
@@ -154,23 +158,20 @@ void directIntake() {
   while (!Controller.ButtonL3.pressing()) {
 
     intake.spin(reverse, 100, percent);
-    driveTo(-300, 2);
+    while (chassis.objectDistance(mm) >= 60) wait(20, msec);
+
+    driveTo(-220, 2);
     driveon = true;
 
     
     while (leftDrive.position(degrees) > -180) { wait(20, msec); }
 
-    while (loadingZone.objectDistance(mm) < 400) { wait(20, msec); }
     while (loadingZone.objectDistance(mm) > 400) { wait(20, msec); }
-    driveTo(400, 2);
+    driveTo(280, 1.3);
     driveon = true;
 
     leftDrive.spin(forward, 30, percent);
     rightDrive.spin(forward, 30, percent);
-    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { 
-      i++; 
-      wait(20, msec); 
-    } 
     printf("done iteration\n");
     
   }
@@ -179,12 +180,16 @@ void directIntake() {
 }
 
 void driveTo(int target, double timeout) {
-  double error;
+  double error, integral = 0, deriv = 0, lastError = 0;
   leftDrive.resetPosition();
   rightDrive.resetPosition();
   Brain.Timer.reset();
   while (true) {
     error = target - leftDrive.position(degrees);
+    integral = error < 3 ? 0 : integral + error;
+    deriv = error - lastError;
+
+
 
     if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) == 0) {
       driveon = false;
@@ -197,8 +202,17 @@ void driveTo(int target, double timeout) {
 
     if (fabs(error) < 10) break;
     if (Brain.Timer.value() > timeout) break;
+
+    lastError = error;
     wait(20, msec);
   }
   leftDrive.stop();
   rightDrive.stop();
+}
+
+void printa() {
+  while (true) {
+    printf("%f\n", loadingZone.objectDistance(mm));
+    wait(20, msec);
+  }
 }
