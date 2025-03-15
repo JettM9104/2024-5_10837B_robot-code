@@ -15,6 +15,8 @@ pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
 distance detector = distance(PORT10);
+distance intakeJamSensor = distance(PORT11);
+sonar backRollerSensor = sonar(PORT12);
 
 brain Brain;
 
@@ -32,7 +34,7 @@ void vexcodeInit() {
 
 namespace pid {
   namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
-  namespace turn { float kP = 0.65, kI = 0.2, kD = 0.1; }
+  namespace turn { float kP = 2000000, kI = 0.2, kD = 0.1; }
 }
 
 float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
@@ -50,6 +52,8 @@ void updateSPTO();
 void updateMPTO();
 void updateCPTO();
 
+void cont();
+
 bool macroActive = 0;
 bool sPTO = 0;
 bool mPTO = 0;
@@ -62,6 +66,8 @@ int main() {
 
   init();
 
+  thread test123 = thread(cont);
+  
   while (!indicator.pressing()) {
     if (Brain.buttonRight.pressing()) {
       while (!Brain.buttonRight.pressing()) {}
@@ -74,68 +80,35 @@ int main() {
 
   wait(500, msec);
 
-  turn(-90);
+  turn(90, 2);
   Brain.playSound(siren);
 
   wait(700, msec);
   drive(-100000, 3);
   wait(2250, msec);
   shootCata();
-
+  pneum1.retract(cylinder2);
   pdgsLeft.spin(reverse, 100, percent);
   pdgsRight.spin(reverse, 100, percent);
   metroLeft.spin(reverse, 100, percent);
   metroRight.spin(reverse, 100, percent);
 
+  // rapid laoding starts here
   drive(75, 0.5);
   wait(55, msec);
   drive(-400, 0.7);
-  wait(4000, msec);
-  drive(75, 0.5);
-  windCata();
-  pdgsLeft.spin(reverse, 100, percent);
-  pdgsRight.spin(reverse, 100, percent);
-  metroLeft.spin(reverse, 100, percent);
-  metroRight.spin(reverse, 100, percent);
-  wait(55, msec);
-  drive(-400, 0.7);
-  wait(3000, msec);
-  pdgsLeft.stop();
-  pdgsRight.stop();
-  metroLeft.stop();
-  metroRight.stop();
-  
-  thread wind = thread(windCata);
-
-  drive(300);
-
-  wait(600, msec);
-
-  turn(80);
-  wait(600, msec);
-  drive(-400);
-  wait(600, msec);
-  
-  turn(-90);
-  wait(600, msec);
-  drive(-1000, 2);
   wait(1000, msec);
-  shootCata();
-  pdgsLeft.spin(reverse, 100, percent);
-  pdgsRight.spin(reverse, 100, percent);
-  metroLeft.spin(reverse, 100, percent);
-  metroRight.spin(reverse, 100, percent);
-
+  drive(75, 0.5);
+  wait(55, msec);
+  drive(-400, 0.7);
+  
   while (true) {
-    drive(75, 0.5);
-    wait(55, msec);
-    drive(-400, 0.7);
-    wait(55, msec);
-    drive(75, 0.5);
-    wait(55, msec);
-    drive(-400, 0.7);
+    while (backRollerSensor.distance(mm) < 250) {}
+    while (backRollerSensor.distance(mm) > 310) {}
 
-    wait(4000, msec);
+    drive(75, 0.5);
+    wait(55, msec);
+    drive(-400, 0.7);
   }
 
 }
@@ -190,7 +163,7 @@ void turn(double angle, double timeout) {
 
   while (true) {
     double angleEncoders = (leftDrive.position(degrees) - rightDrive.position(degrees) / 2) * 8 * pi / 81 * 4 / 3 * 1.0975;
-    error = angle - angleEncoders;
+    error = angle - BrainInertial.rotation(degrees);
     printf("angleEncoders = %f, rotation = %f;\n", angleEncoders, BrainInertial.rotation(degrees));
     integral = error < 3 ? 0 : integral + error;
     derivative = error - lastError;
@@ -309,3 +282,10 @@ void init() {
 }
 
 
+
+void cont() {
+  while (true) {
+    printf("\033[31mintake sensor\t%f\n\033[32mbackroller\t%f\n\n", intakeJamSensor.objectDistance(mm), backRollerSensor.distance(mm));
+    wait(100, msec);
+  }
+}

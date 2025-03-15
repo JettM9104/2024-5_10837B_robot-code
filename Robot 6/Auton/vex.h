@@ -228,6 +228,8 @@ private:
 
 public:
   bumper(port portnumber) : portnumber(portnumber) { }
+
+  bool pressing() { return false; }
 };
 
 class distance {
@@ -253,6 +255,20 @@ public:
 };
 
 
+
+class sonar {
+private:
+  port portnumber;
+
+public:
+  sonar(port portnumber) : portnumber(portnumber) {}
+
+  double distance(distanceUnits unit) { return 0.0; }
+
+  u_int32_t timestamp() { return 0; }
+  
+ 
+};
 // Wait function that waits for a specified time
 void wait(double time, timeUnit unit) {}
 

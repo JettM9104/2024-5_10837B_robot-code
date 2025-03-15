@@ -6,13 +6,13 @@ namespace vex {
 enum port {PORT1, PORT2, PORT3, PORT4, PORT5, PORT6, PORT7, PORT8, PORT9, PORT10, PORT11, PORT12, PORTNULL};
 enum axisType {xaxis, yaxis, zaxis};
 enum timeUnit {msec, seconds};
-enum dir {forward, reverse};
+enum directionType {forward, reverse};
 enum speedUnit {rpm, percent};
 enum cylinder {cylinder1, cylinder2};
 enum degreesUnits {degrees};
 enum stopping {coast, brake, hold};
 enum distanceUnits {mm, inches};
-enum colorType { red = 0, red_orange, orange, yellow, green, blue_green, blue, purple, none };
+enum sound {siren};
 
 // Class representing an inertial sensor
 class inertial {
@@ -34,6 +34,7 @@ public:
   void setRotation(double angle, degreesUnits unit) {}
   double heading(degreesUnits unit) { return 0.0; }
   double rotation(degreesUnits unit) { return 0.0; }
+  double value() { return 0.0; }
 };
 
 // Class representing a button
@@ -120,19 +121,18 @@ public:
 
   motor(port portnumber, double gearRatio, bool reversed = false) {}
 
-  void spin(dir direction) {}
+  void spin(directionType direction) {}
   
-  void spin(dir direction, double speed, speedUnit unit) {}
+  void spin(directionType direction, double speed, speedUnit unit) {}
 
   void setMaxTorque(double max, speedUnit unit) {}
 
+  void setVelocity(double max, speedUnit unit) {}
+
   void setStopping(stopping sto) { stopp = sto; }
 
-  double position(degreesUnits unit) { return 0.0; }
-
-  double velocity(speedUnit unit) {return 0.0; }
-
   void resetPosition() {}
+  double position(degreesUnits unit) { return 0.0; }
   void stop() {}
 };
 
@@ -152,6 +152,9 @@ public:
   brain() = default;
 
   timer Timer;
+  button buttonRight;
+  button buttonLeft;
+  void playSound(sound ooh) {}
 };
 
 // Class representing a pneumatic device
@@ -180,7 +183,7 @@ public:
   touchled(port portnumber) {
     this->portnumber = portnumber;
   }
-  void setColor(colorType col) {}
+  bool pressing() { return 0; }
 };
 
 class motor_group {
@@ -192,20 +195,22 @@ public:
   // Constructor that initializes two motors with specified ports and options
   motor_group(motor motor1, motor motor2) : motor1(motor1), motor2(motor2) { }
 
-  void spin(dir direction) {
-    motor1.spin(direction);
-    motor2.spin(direction);
-  }
+  void spin(directionType direction) {}
+  
+  void spin(directionType direction, double speed, speedUnit unit) {}
 
-  void spin(dir direction, double speed, speedUnit unit) {
-    motor1.spin(direction, speed, unit);
-    motor2.spin(direction, speed, unit);
-  }
+  void setMaxTorque(double max, speedUnit unit) {}
 
-  void stop() {
-    motor1.stop();
-    motor2.stop();
-  }
+  void setVelocity(double max, speedUnit unit) {}
+
+  void setStopping(stopping sto) { stopp = sto; }
+
+  void resetPosition() {}
+  double position(degreesUnits unit) { return 0.0; }
+  void stop() {}
+
+
+  double velocity(speedUnit unit) {return 0.0; }
 };
 
 class bumper {
@@ -241,6 +246,20 @@ public:
 };
 
 
+
+class sonar {
+private:
+  port portnumber;
+
+public:
+  sonar(port portnumber) : portnumber(portnumber) {}
+
+  double distance(distanceUnits unit) { return 0.0; }
+
+  u_int32_t timestamp() { return 0; }
+  
+ 
+};
 // Wait function that waits for a specified time
 void wait(double time, timeUnit unit) {}
 

@@ -35,7 +35,7 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
-distance detector = distance(PORT10);
+distance catSensor = distance(PORT10);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -200,76 +200,50 @@ void updateIndex() {
 }
 
 void updateMPTOmotors() {
-  printf("function called\n");
-  if (Controller.ButtonLDown.pressing()) {
-    Brain.Timer.reset();
-    if (!toggleActive) {
-      if (mPTO) {
-        metroLeft.spin(forward, 100, percent);
-        metroRight.spin(forward, 100, percent);
-      }
-      else {
-        if (!sPTO) {
-          pdgsLeft.spin(reverse, 100, percent);
-          pdgsRight.spin(reverse, 100, percent);
-          metroLeft.spin(reverse, 100, percent);
-          metroRight.spin(reverse, 100, percent);
-        }
-        else {
-          metroLeft.spin(reverse, 100, percent);
-          metroRight.spin(reverse, 100, percent);
-        }
-      }
-    }
-    else {
-      metroLeft.stop();
-      metroRight.stop();
-      pdgsLeft.stop();
-      pdgsRight.stop();
-      toggleActive = 0;
-    }
-  }
-  else if (Controller.ButtonLUp.pressing()) {
-    Brain.Timer.reset();
-    if (!toggleActive) {
-      if (mPTO) {
-        metroLeft.spin(reverse, 100, percent);
-        metroRight.spin(reverse, 100, percent);
-      }
-      else {
-        if (!sPTO) {
-          pdgsLeft.spin(forward, 100, percent);
-          pdgsRight.spin(forward, 100, percent);
-          metroLeft.spin(forward, 100, percent);
-          metroRight.spin(forward, 100, percent);
-        }
-        else {
-          metroLeft.spin(reverse, 100, percent);
-          metroRight.spin(reverse, 100, percent);
-        }
-      }
-    }
-    else {
-      metroLeft.stop();
-      metroRight.stop();
-      pdgsLeft.stop();
-      pdgsRight.stop();
-      
-    }
-  }
-  else {
-    if (Brain.Timer.value() > 0.5) {
-      toggleActive = 0;
-      metroLeft.stop();
-      metroRight.stop();
-      pdgsLeft.stop();
-      pdgsRight.stop();
-    }
-    else {
-      toggleActive = 1;
-    }
-  }
-}
+   if (Controller.ButtonLDown.pressing()) {
+     if (mPTO) {
+       metroLeft.spin(forward, 100, percent);
+       metroRight.spin(forward, 100, percent);
+     }
+     else {
+       if (!sPTO) {
+         pdgsLeft.spin(reverse, 100, percent);
+         pdgsRight.spin(reverse, 100, percent);
+         metroLeft.spin(reverse, 100, percent);
+         metroRight.spin(reverse, 100, percent);
+       }
+       else {
+         metroLeft.spin(reverse, 100, percent);
+         metroRight.spin(reverse, 100, percent);
+       }
+     }
+   }
+   else if (Controller.ButtonLUp.pressing()) {
+     if (mPTO) {
+       metroLeft.spin(reverse, 100, percent);
+       metroRight.spin(reverse, 100, percent);
+     }
+     else {
+       if (!sPTO) {
+         pdgsLeft.spin(forward, 100, percent);
+         pdgsRight.spin(forward, 100, percent);
+         metroLeft.spin(forward, 100, percent);
+         metroRight.spin(forward, 100, percent);
+       }
+       else {
+         metroLeft.spin(reverse, 100, percent);
+         metroRight.spin(reverse, 100, percent);
+       }
+     }
+   }
+   else {
+     metroLeft.stop();
+     metroRight.stop();
+     pdgsLeft.stop();
+     pdgsRight.stop();
+   }
+ 
+ }
 
 void updatePump() {
   if (pumpState) {
@@ -289,7 +263,7 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (detector.objectDistance(mm) > 20);
+  } while (catSensor.objectDistance(mm) > 70);
 
   metroLeft.stop();
   metroRight.stop();
@@ -344,6 +318,7 @@ void continuousUpdate_led() {
 
 void backandforth() { 
   bypassDrive = true;
+  bool quit = false;
 
   if (mPTO) {
     updateMPTO();
@@ -360,6 +335,7 @@ void backandforth() {
   while (!Controller.ButtonL3.pressing()) {
     Brain.Timer.value();
 
+    if (Controller.ButtonL3.pressing()) { break; }
     leftDrive.spin(forward, 100, percent);
     rightDrive.spin(forward, 100, percent);
 
@@ -372,8 +348,17 @@ void backandforth() {
     }
 
 
-    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { i++; wait(20, msec); } 
+    while (fabs(leftDrive.velocity(percent)) >= 3 || i < 100) { 
+      i++; 
+      if (Controller.ButtonL3.pressing()) {
+        quit = true;
+        break;
+      }
+      wait(20, msec); 
+    } 
     
+    if (quit) break;
+
     leftDrive.resetPosition();
     rightDrive.resetPosition();
 
@@ -387,7 +372,14 @@ void backandforth() {
     metroLeft.spin(reverse, 100, percent);
     metroRight.spin(reverse, 100, percent);
     
-    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) wait(20, msec);
+    while (!(leftDrive.position(degrees) < -140 || Brain.Timer.value() > 1.3)) { 
+      if (Controller.ButtonL3.pressing()) {
+        quit = true;
+        break;
+      }
+      wait(20, msec); 
+    }
+    if (quit) break;
 
 
     i = 0;

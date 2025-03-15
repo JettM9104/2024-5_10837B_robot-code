@@ -14,7 +14,9 @@ motor metroRight = motor(PORT5, false);
 pneumatic pneum1 = pneumatic(PORT8);
 pneumatic pneum2 = pneumatic(PORT9);
 touchled indicator = touchled(PORT7);
-distance detector = distance(PORT10);
+distance catSensor = distance(PORT10);
+distance intakeJamSensor = distance(PORT11);
+sonar backRollerSensor = sonar(PORT12);
 
 brain Brain;
 
@@ -34,6 +36,7 @@ namespace pid {
   namespace drive { float kP = 0.4, kI = 0.2, kD = 0.3; }
   namespace turn { float kP = 0.65, kI = 0.2, kD = 0.1; }
 }
+
 
 float& dkP = pid::drive::kP, dkI = pid::drive::kI, dkD = pid::drive::kD;
 float& tkP = pid::turn::kP, tkI = pid::turn::kI, tkD = pid::turn::kD;
@@ -87,6 +90,44 @@ int main() {
   metroLeft.spin(reverse, 100, percent);
   metroRight.spin(reverse, 100, percent);
 
+  drive(75, 0.5);
+  wait(55, msec);
+  drive(-400, 0.7);
+  wait(4000, msec);
+  drive(75, 0.5);
+  windCata();
+  pdgsLeft.spin(reverse, 100, percent);
+  pdgsRight.spin(reverse, 100, percent);
+  metroLeft.spin(reverse, 100, percent);
+  metroRight.spin(reverse, 100, percent);
+  wait(55, msec);
+  drive(-400, 0.7);
+  wait(3000, msec);
+  pdgsLeft.stop();
+  pdgsRight.stop();
+  metroLeft.stop();
+  metroRight.stop();
+  
+  thread wind = thread(windCata);
+
+  drive(300);
+
+  wait(600, msec);
+
+  turn(80);
+  wait(600, msec);
+  drive(-400);
+  wait(600, msec);
+  
+  turn(-90);
+  wait(600, msec);
+  drive(-1000, 2);
+  wait(1000, msec);
+  shootCata();
+  pdgsLeft.spin(reverse, 100, percent);
+  pdgsRight.spin(reverse, 100, percent);
+  metroLeft.spin(reverse, 100, percent);
+  metroRight.spin(reverse, 100, percent);
 
   while (true) {
     drive(75, 0.5);
@@ -225,7 +266,9 @@ void windCata() {
   do {
     metroLeft.spin(forward, 100, percent);
     metroRight.spin(forward, 100, percent);
-  } while (detector.objectDistance(mm) > 20);
+  } while (catSensor.objectDistance(mm) > 70);
+
+  wait(10, msec);
 
   metroLeft.stop();
   metroRight.stop();
