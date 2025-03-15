@@ -30,7 +30,7 @@ motor intake = motor(PORT7);
 motor backrollerIntakem = motor(PORT1);
 motor leftDrive = motor(PORT10, true);
 motor rightDrive = motor(PORT4, false);
-bumper catapultSensor = bumper(PORT12);
+bumper catapultSensor = bumper(PORT8);
 
 void initializeRandomSeed(){
   wait(100,msec);
