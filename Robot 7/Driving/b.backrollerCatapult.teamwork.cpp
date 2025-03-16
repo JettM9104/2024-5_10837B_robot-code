@@ -21,8 +21,6 @@ brain Brain;
 #define repeat(iterations)                                                     \
   for (int iterator = 0; iterator < iterations; iterator++)
 
-
-
 controller Controller = controller();
 inertial BrainInertial = inertial();
 motor intakeCatapultLm = motor(PORT9, true);
@@ -32,6 +30,7 @@ motor intake = motor(PORT7);
 motor backrollerIntakem = motor(PORT1);
 motor leftDrive = motor(PORT10, true);
 motor rightDrive = motor(PORT4, false);
+bumper catapultSensor = bumper(PORT8);
 
 void initializeRandomSeed(){
   wait(100,msec);
@@ -60,6 +59,8 @@ void updateBackroller();
 
 void updateMotors();
 
+void windCata();
+
 int main() {
   Controller.ButtonLUp.pressed(updateMotors);
   Controller.ButtonLUp.released(updateMotors);
@@ -68,6 +69,8 @@ int main() {
 
   Controller.ButtonRDown.pressed(updateCatapult);
   Controller.ButtonRUp.pressed(updateBackroller);
+
+  Controller.ButtonEUp.pressed(windCata);
   
   while (true) {
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
@@ -113,3 +116,12 @@ void updateBackroller() {
   if (backroller) { backroller = 0; }
   else { backroller = 1; }
 }
+
+void windCata() {
+  intakeCatapultm.spin(reverse);
+
+  while (!catapultSensor.pressing()) { wait(20, msec); }
+
+  intakeCatapultm.stop();
+}
+
