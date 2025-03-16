@@ -61,7 +61,13 @@ void updateMotors();
 
 void windCata();
 
+void init();
+
 int main() {
+  vexcodeInit();
+
+  init();
+
   Controller.ButtonLUp.pressed(updateMotors);
   Controller.ButtonLUp.released(updateMotors);
   Controller.ButtonLDown.pressed(updateMotors);
@@ -78,9 +84,25 @@ int main() {
   }
 }
 
+void init() {
+  intake.setMaxTorque(100, percent);
+  intake.setVelocity(100, percent);
+
+  intakeCatapultm.setMaxTorque(100, percent);
+  intakeCatapultm.setVelocity(100, percent);
+
+  backrollerIntakem.setMaxTorque(100, percent);
+  backrollerIntakem.setVelocity(100, percent);
+
+  leftDrive.setMaxTorque(100, percent);
+  leftDrive.setVelocity(100, percent);
+  rightDrive.setMaxTorque(100, percent);
+  rightDrive.setVelocity(100, percent);
+}
+
 void updateMotors() {
   if (Controller.ButtonLDown.pressing()) { // make balls go in
-    intake.spin(forward);
+    intake.spin(reverse);
     if (backroller) {
       backrollerIntakem.spin(reverse, 100, percent);
     }
@@ -89,15 +111,15 @@ void updateMotors() {
     }
 
     if (catapult) {
-      intakeCatapultm.spin(reverse);
+      intakeCatapultm.spin(reverse, 100, percent);
     }
     else {
-      intakeCatapultm.spin(forward);
+      intakeCatapultm.spin(forward, 100, percent);
     }
   }
 
   else if (Controller.ButtonLUp.pressing()) {
-    intake.spin(reverse);
+    intake.spin(forward, 100, percent);
   }
 
   else {
@@ -118,10 +140,9 @@ void updateBackroller() {
 }
 
 void windCata() {
-  intakeCatapultm.spin(reverse);
+  intakeCatapultm.spin(reverse, 100, percent);
 
   while (!catapultSensor.pressing()) { wait(20, msec); }
 
   intakeCatapultm.stop();
 }
-
