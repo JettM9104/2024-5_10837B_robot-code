@@ -23,13 +23,13 @@ brain Brain;
 
 controller Controller = controller();
 inertial BrainInertial = inertial();
-motor intakeCatapultLm = motor(PORT9, true);
-motor intakeCatapultRm = motor(PORT3, false);
+motor intakeCatapultLm = motor(PORT12, false);
+motor intakeCatapultRm = motor(PORT6, true);
 motor_group intakeCatapultm = motor_group(intakeCatapultLm, intakeCatapultRm);
-motor intake = motor(PORT7);
+motor intake = motor(PORT7, true);
 motor backrollerIntakem = motor(PORT1);
-motor leftDrive = motor(PORT10, true);
-motor rightDrive = motor(PORT4, false);
+motor leftDrive = motor(PORT3, true);
+motor rightDrive = motor(PORT9, false);
 bumper catapultSensor = bumper(PORT8);
 
 void initializeRandomSeed(){
@@ -81,6 +81,9 @@ int main() {
   while (true) {
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
     rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+    updateMotors();
+
+    wait(20, msec);
   }
 }
 
@@ -102,24 +105,27 @@ void init() {
 
 void updateMotors() {
   if (Controller.ButtonLDown.pressing()) { // make balls go in
-    intake.spin(reverse);
+    printf("backroller is %d\ncatapult is %d\n\n", backroller, catapult);
+
+    intake.spin(forward);
+
     if (backroller) {
-      backrollerIntakem.spin(reverse, 100, percent);
+      backrollerIntakem.spin(forward);
     }
     else {
-      backrollerIntakem.spin(forward, 100, percent);
+      backrollerIntakem.spin(reverse);
     }
 
     if (catapult) {
-      intakeCatapultm.spin(reverse, 100, percent);
+      intakeCatapultm.spin(forward);
     }
     else {
-      intakeCatapultm.spin(forward, 100, percent);
+      intakeCatapultm.spin(reverse);
     }
-  }
-
+  }  
+  
   else if (Controller.ButtonLUp.pressing()) {
-    intake.spin(forward, 100, percent);
+    intake.spin(reverse);
   }
 
   else {
