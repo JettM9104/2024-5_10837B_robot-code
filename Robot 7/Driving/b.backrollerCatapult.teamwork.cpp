@@ -51,6 +51,7 @@ void vexcodeInit() {
 
 bool catapult = 0;
 bool backroller = 0;
+bool motorsactive = 1;
 
 using namespace vex;
 
@@ -60,6 +61,7 @@ void updateBackroller();
 void updateMotors();
 
 void windCata();
+void shootCata();
 
 void init();
 
@@ -77,13 +79,11 @@ int main() {
   Controller.ButtonRUp.pressed(updateBackroller);
 
   Controller.ButtonEUp.pressed(windCata);
+  Controller.ButtonEDown.pressed(shootCata);
   
   while (true) {
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
     rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
-    updateMotors();
-
-    wait(20, msec);
   }
 }
 
@@ -146,9 +146,18 @@ void updateBackroller() {
 }
 
 void windCata() {
-  intakeCatapultm.spin(reverse, 100, percent);
+  intakeCatapultm.spin(forward, 100, percent);
 
   while (!catapultSensor.pressing()) { wait(20, msec); }
+  wait(20, msec);
+
+  intakeCatapultm.stop();
+}
+
+void shootCata() {
+  intakeCatapultm.spin(forward, 100, percent);
+
+  wait(400, msec);
 
   intakeCatapultm.stop();
 }
