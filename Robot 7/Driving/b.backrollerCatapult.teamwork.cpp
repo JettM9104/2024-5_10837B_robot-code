@@ -84,6 +84,10 @@ int main() {
   while (true) {
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
     rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+
+    if (motorsactive) {
+      updateMotors();
+    }
   }
 }
 
@@ -146,18 +150,22 @@ void updateBackroller() {
 }
 
 void windCata() {
+  motorsactive = false;
   intakeCatapultm.spin(forward, 100, percent);
 
   while (!catapultSensor.pressing()) { wait(20, msec); }
   wait(20, msec);
 
   intakeCatapultm.stop();
+  motorsactive = true;
 }
 
 void shootCata() {
+  motorsactive = false;
   intakeCatapultm.spin(forward, 100, percent);
 
   wait(400, msec);
 
   intakeCatapultm.stop();
+  motorsactive = true;
 }
