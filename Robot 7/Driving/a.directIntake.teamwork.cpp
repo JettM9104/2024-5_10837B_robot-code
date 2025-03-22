@@ -52,19 +52,20 @@ public:
 
 // Robot configuration code.
 inertial BrainInertial = inertial();
-distance loadingZone = distance(PORT7);
-distance chassis = distance(PORT2);
+distance loadingZone = distance(PORT6);
+distance chassis = distance(PORT10);
 motor leftUpIntake = motor(PORT5, false);
 motor leftDownIntake = motor(PORT4, false);
 motor_group leftIntake = motor_group(leftUpIntake, leftDownIntake);
-motor rightUpIntake = motor(PORT11, true);
-motor rightDownIntake = motor(PORT10, true);
+motor rightUpIntake = motor(PORT12, true);
+motor rightDownIntake = motor(PORT11, true);
 motor_group rightIntake = motor_group(rightUpIntake, rightDownIntake);
 motor_group_group intake = motor_group_group(leftIntake, rightIntake);
 motor leftDrive = motor(PORT3, true);
 motor rightDrive = motor(PORT9, false);
 
-
+bool driveDone = true;
+bool cancel = false;
 
 
 // generating and setting random seed
@@ -110,7 +111,7 @@ void updateIntakeMotors();
 void directIntake();
 
 void driveTo(int target, double timeout); 
-
+void helo();
 void printa();
 
 bool driveon = true;
@@ -158,16 +159,19 @@ void directIntake() {
   while (!Controller.ButtonL3.pressing()) {
 
     intake.spin(reverse, 100, percent);
-    while (chassis.objectDistance(mm) >= 60) wait(20, msec);
+    while (chassis.objectDistance(mm) >= 100) wait(5, msec);
 
-    driveTo(-220, 2);
+    cancel = true;
+    wait(50, msec);
+
+    driveTo(-220, 1.2);
     driveon = true;
 
     
     while (leftDrive.position(degrees) > -180) { wait(20, msec); }
 
     while (loadingZone.objectDistance(mm) > 400) { wait(20, msec); }
-    driveTo(280, 1.3);
+    thread drive = thread(helo);
     driveon = true;
 
     leftDrive.spin(forward, 30, percent);
@@ -180,6 +184,8 @@ void directIntake() {
 }
 
 void driveTo(int target, double timeout) {
+  cancel = false;
+  driveDone = false;
   double error, integral = 0, deriv = 0, lastError = 0;
   leftDrive.resetPosition();
   rightDrive.resetPosition();
@@ -189,6 +195,7 @@ void driveTo(int target, double timeout) {
     integral = error < 3 ? 0 : integral + error;
     deriv = error - lastError;
 
+    if (cancel) break;
 
 
     if ((fabs(Controller.AxisA.position()) + fabs(Controller.AxisB.position()) + fabs(Controller.AxisC.position()) + fabs(Controller.AxisD.position())) == 0) {
@@ -208,6 +215,7 @@ void driveTo(int target, double timeout) {
   }
   leftDrive.stop();
   rightDrive.stop();
+  driveDone = true;
 }
 
 void printa() {
@@ -215,4 +223,8 @@ void printa() {
     printf("%f\n", loadingZone.objectDistance(mm));
     wait(20, msec);
   }
+}
+
+void helo() {
+  driveTo(280, 1);
 }
