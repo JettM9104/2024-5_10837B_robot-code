@@ -79,8 +79,8 @@ int main() {
   Controller.ButtonRDown.pressed(updateCatapult);
   Controller.ButtonRUp.pressed(straightForward);
 
-  Controller.ButtonEUp.pressed(windCata);
-  Controller.ButtonEDown.pressed(shootCata);
+  Controller.ButtonEDown.pressed(windCata);
+  Controller.ButtonEUp.pressed(shootCata);
   
   while (true) {
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
