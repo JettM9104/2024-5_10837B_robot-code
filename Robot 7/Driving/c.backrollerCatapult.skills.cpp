@@ -115,7 +115,7 @@ void updateMotors() {
 
     intake.spin(forward);
 
-    backrollerIntakem.spin(reverse);
+    backrollerIntakem.spin(forward);
 
     if (catapult) {
       intakeCatapultm.spin(forward);
