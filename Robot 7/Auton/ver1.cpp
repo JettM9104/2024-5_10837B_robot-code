@@ -181,10 +181,6 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 }
 
 
-
-
-
-
 void windCata() {
   intakeCatapultm.spin(forward, 100, percent);
   while (!catapultSensor.pressing()) { wait(20, msec); }
