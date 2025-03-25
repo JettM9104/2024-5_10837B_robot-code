@@ -161,43 +161,68 @@ void curve(const float radius, const float arcTheta, const float kp, const float
   float leftIntegral = 0, rightIntegral = 0;
   float leftDerivative, rightDerivative;
   float leftLastError = 0, rightLastError = 0;
+
+  float beginTimer = Brain.Timer.value();
+
+  float rightMaxSpeed, leftMaxSpeed;
+
+  if (innerArcLength > outerArcLength) { // this is assuming innter arc lenth is the left if not switch 
+    rightMaxSpeed = maxSpeed;
+    leftMaxSpeed = maxSpeed * innerArcLength / outerArcLength;
+  }
+  if (innerArcLength < outerArcLength) { 
+    leftMaxSpeed = maxSpeed;
+    rightMaxSpeed = maxSpeed * outerArcLength / innerArcLength;
+  }
+  else { // they are equal (likely imposible but nice to have)
+    rightMaxSpeed = maxSpeed;
+    leftMaxSpeed = maxSpeed;
+  }
   
   leftDrive.resetPosition();
   rightDrive.resetPosition();
 
   while (true) {
-      float leftPosition = leftDrive.position(degrees);
-      float rightPosition = rightDrive.position(degrees);
+    float leftPosition = leftDrive.position(degrees);
+    float rightPosition = rightDrive.position(degrees);
 
-      leftError = innerArcLength - leftPosition;
-      rightError = outerArcLength - rightPosition;
+    leftError = innerArcLength - leftPosition;
+    rightError = outerArcLength - rightPosition;
 
-      leftIntegral = leftIntegral <= 3 ? 0 : leftIntegral + leftError;
-      rightIntegral = rightIntegral <= 3 ? 0 : rightIntegral + rightError;
+    leftIntegral = leftIntegral <= 3 ? 0 : leftIntegral + leftError;
+    rightIntegral = rightIntegral <= 3 ? 0 : rightIntegral + rightError;
 
-      leftDerivative = leftError - leftLastError;
-      rightDerivative = rightError - rightLastError;
+    leftDerivative = leftError - leftLastError;
+    rightDerivative = rightError - rightLastError;
 
-      float leftSpeed = (kp * leftError) + (ki * leftIntegral) + (kd * leftDerivative);
-      float rightSpeed = (kp * rightError) + (ki * rightIntegral) + (kd * rightDerivative);
+    float leftSpeed = (kp * leftError) + (ki * leftIntegral) + (kd * leftDerivative);
+    float rightSpeed = (kp * rightError) + (ki * rightIntegral) + (kd * rightDerivative);
 
-      leftSpeed = fmax(fmin(leftSpeed, maxSpeed), -maxSpeed);
-      rightSpeed = fmax(fmin(rightSpeed, maxSpeed), -maxSpeed);
+    if (fabs(leftSpeed) > leftMaxSpeed) {
+      if (leftSpeed > leftMaxSpeed) leftSpeed = leftMaxSpeed;
+      if (-leftSpeed < -leftMaxSpeed) leftSpeed = -leftMaxSpeed;
+    }
 
-      if (arcTheta > 0) { 
-          leftDrive.spin(forward, leftSpeed, percent);
-          rightDrive.spin(forward, rightSpeed, percent);
-      } else {
-          leftDrive.spin(forward, rightSpeed, percent);
-          rightDrive.spin(forward, leftSpeed, percent);
-      }
+    if (fabs(rightSpeed) > rightMaxSpeed) {
+      if (rightSpeed > rightMaxSpeed) rightSpeed = rightMaxSpeed;
+      if (-rightSpeed < -rightMaxSpeed) rightSpeed = -rightMaxSpeed;
+    }
 
-      if (fabs(leftError) < 3 && fabs(rightError) < 3) break;
+    if (arcTheta > 0) { 
+        leftDrive.spin(forward, leftSpeed, percent);
+        rightDrive.spin(forward, rightSpeed, percent);
+    } else {
+        leftDrive.spin(forward, rightSpeed, percent);
+        rightDrive.spin(forward, leftSpeed, percent);
+    }
 
-      leftLastError = leftError;
-      rightLastError = rightError;
+    if (fabs(leftError) < 3 && fabs(rightError) < 3) break;
+    if (((Brain.Timer.value() - beginTimer) > timeout) && (timeout != 0)) break;
 
-      wait(20, msec); 
+    leftLastError = leftError;
+    rightLastError = rightError;
+
+    wait(20, msec); 
   }
 
   leftDrive.stop();
