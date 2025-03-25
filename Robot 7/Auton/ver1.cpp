@@ -87,6 +87,9 @@ void init() {
   rightDrive.setVelocity(100, percent);
 }
 
+// implement timeout for curve function
+// ensure data types are sufficicemt amd typedefs are ok
+
 void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int maxSpeed) {
   float error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
   float integral = 0, derivative = 0, lastError = 0;
