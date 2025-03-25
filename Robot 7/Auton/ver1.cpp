@@ -59,15 +59,39 @@ void straightForward();
 
 void init();
 
-void drive(const float distance, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
+void drive(const float distance, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int lmaxSpeed = 100, const unsigned short int rmaxSpeed = 100);
 void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
-void curve(const float radius, const float arcTheta, const float kp, const float ki, const float kd, const float timeout = 0, const float maxSpeed = 70);
+
 
 const float pi = 3.14159;
 
 int main() {
   vexcodeInit();
   init();
+
+  intake.spin(forward);
+  intakeCatapultm.spin(reverse);
+  backrollerIntakem.spin(forward);
+
+  drive(150, 0.8, 0.01, 0.5);
+  printf("a\n");
+  drive(700, 0.8, 0.01, 0.5, 0, 0, 100);
+
+  intake.stop();
+  intakeCatapultm.stop();
+  backrollerIntakem.stop();
+  printf("b\n");
+  drive(-800, 0.8, 0.01, 0.5, 0, 100, 55);
+  printf("c\n");
+  drive(-800, 0.8, 0.01, 0.5, 1.2, 100, 40);
+  drive(-100000, 1000, 1000, 0, 2, 100, 100);
+  shootCata();
+  straightForward();
+
+  intake.spin(forward);
+  intakeCatapultm.spin(reverse);
+  backrollerIntakem.spin(forward);
+
 
 }
 
@@ -90,7 +114,7 @@ void init() {
 // implement timeout for curve function
 // ensure data types are sufficicemt amd typedefs are ok
 
-void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int maxSpeed) {
+void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int lmaxSpeed, const unsigned short int rmaxSpeed) {
   float error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
   float integral = 0, derivative = 0, lastError = 0;
   float motorSpeed;
@@ -106,12 +130,20 @@ void drive(const float distance, const float kp, const float ki, const float kd,
     derivative = error - lastError;
 
     motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
-    
-    leftDrive.spin(forward, motorSpeed, percent);
-    rightDrive.spin(forward, motorSpeed, percent);
 
-    if (error < 5) break;
-    if (timeout != 0 && (timeout - beginTimer) > timeout) break;
+    float leftMotorSpeed = motorSpeed, rightMotorSpeed = motorSpeed;
+
+    if (leftMotorSpeed > lmaxSpeed) leftMotorSpeed = lmaxSpeed;
+    if (leftMotorSpeed < -lmaxSpeed) leftMotorSpeed = -lmaxSpeed;
+
+    if (rightMotorSpeed > rmaxSpeed) rightMotorSpeed = rmaxSpeed;
+    if (rightMotorSpeed < -rmaxSpeed) rightMotorSpeed = -rmaxSpeed;
+    
+    leftDrive.spin(forward, leftMotorSpeed, percent);
+    rightDrive.spin(forward, rightMotorSpeed, percent);
+
+    if (fabs(error) < 5) { printf("break by threshold\n"); break; }
+    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) { printf("break by timeout"); break; }
     lastError = error;
     wait(20, msec);
   }
@@ -148,86 +180,9 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
   rightDrive.stop();
 }
 
-void curve(const float radius, const float arcTheta, const float kp, const float ki, const float kd, const float timeout, const float maxSpeed) {
-  float wheelBase = 20.0; 
-  float arcLength = (pi / 180) * arcTheta * radius;
-  
-  float innerRadius = radius - (wheelBase / 2);
-  float outerRadius = radius + (wheelBase / 2);
-  float innerArcLength = (pi / 180) * arcTheta * innerRadius;
-  float outerArcLength = (pi / 180) * arcTheta * outerRadius;
 
-  float leftError, rightError;
-  float leftIntegral = 0, rightIntegral = 0;
-  float leftDerivative, rightDerivative;
-  float leftLastError = 0, rightLastError = 0;
 
-  float beginTimer = Brain.Timer.value();
 
-  float rightMaxSpeed, leftMaxSpeed;
-
-  if (innerArcLength > outerArcLength) { // this is assuming innter arc lenth is the left if not switch 
-    rightMaxSpeed = maxSpeed;
-    leftMaxSpeed = maxSpeed * innerArcLength / outerArcLength;
-  }
-  if (innerArcLength < outerArcLength) { 
-    leftMaxSpeed = maxSpeed;
-    rightMaxSpeed = maxSpeed * outerArcLength / innerArcLength;
-  }
-  else { // they are equal (likely imposible but nice to have)
-    rightMaxSpeed = maxSpeed;
-    leftMaxSpeed = maxSpeed;
-  }
-  
-  leftDrive.resetPosition();
-  rightDrive.resetPosition();
-
-  while (true) {
-    float leftPosition = leftDrive.position(degrees);
-    float rightPosition = rightDrive.position(degrees);
-
-    leftError = innerArcLength - leftPosition;
-    rightError = outerArcLength - rightPosition;
-
-    leftIntegral = leftIntegral <= 3 ? 0 : leftIntegral + leftError;
-    rightIntegral = rightIntegral <= 3 ? 0 : rightIntegral + rightError;
-
-    leftDerivative = leftError - leftLastError;
-    rightDerivative = rightError - rightLastError;
-
-    float leftSpeed = (kp * leftError) + (ki * leftIntegral) + (kd * leftDerivative);
-    float rightSpeed = (kp * rightError) + (ki * rightIntegral) + (kd * rightDerivative);
-
-    if (fabs(leftSpeed) > leftMaxSpeed) {
-      if (leftSpeed > leftMaxSpeed) leftSpeed = leftMaxSpeed;
-      if (-leftSpeed < -leftMaxSpeed) leftSpeed = -leftMaxSpeed;
-    }
-
-    if (fabs(rightSpeed) > rightMaxSpeed) {
-      if (rightSpeed > rightMaxSpeed) rightSpeed = rightMaxSpeed;
-      if (-rightSpeed < -rightMaxSpeed) rightSpeed = -rightMaxSpeed;
-    }
-
-    if (arcTheta > 0) { 
-        leftDrive.spin(forward, leftSpeed, percent);
-        rightDrive.spin(forward, rightSpeed, percent);
-    } else {
-        leftDrive.spin(forward, rightSpeed, percent);
-        rightDrive.spin(forward, leftSpeed, percent);
-    }
-
-    if (fabs(leftError) < 3 && fabs(rightError) < 3) break;
-    if (((Brain.Timer.value() - beginTimer) > timeout) && (timeout != 0)) break;
-
-    leftLastError = leftError;
-    rightLastError = rightError;
-
-    wait(20, msec); 
-  }
-
-  leftDrive.stop();
-  rightDrive.stop();
-}
 
 
 void windCata() {
