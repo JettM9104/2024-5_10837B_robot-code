@@ -31,6 +31,7 @@ motor backrollerIntakem = motor(PORT1);
 motor leftDrive = motor(PORT3, true);
 motor rightDrive = motor(PORT9, false);
 bumper catapultSensor = bumper(PORT8);
+distance rapidLoad = distance(PORT4);
 
 void initializeRandomSeed(){
   wait(100,msec);
@@ -63,17 +64,16 @@ void drive(const float distance, const float kp, const float ki, const float kd,
 void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
 
 
-const float pi = 3.14159;
-
 int main() {
   vexcodeInit();
   init();
 
+  BrainInertial.setRotation(0, degrees);
   intake.spin(forward);
   intakeCatapultm.spin(reverse);
   backrollerIntakem.spin(forward);
 
-  drive(150, 0.8, 0.01, 0.5);
+  drive(200, 0.8, 0.01, 0.5);
   printf("a\n");
   drive(700, 0.8, 0.01, 0.5, 0, 0, 100);
 
@@ -81,16 +81,27 @@ int main() {
   intakeCatapultm.stop();
   backrollerIntakem.stop();
   printf("b\n");
-  drive(-800, 0.8, 0.01, 0.5, 0, 100, 55);
+  drive(-800, 0.8, 0.01, 0.5, 0, 100, 50);
   printf("c\n");
-  drive(-800, 0.8, 0.01, 0.5, 1.2, 100, 40);
+  if (BrainInertial.rotation(degrees) < -90) {
+    drive(-800, 0.8, 0.01, 0.5, 1.2, 50, 100);
+  }
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
   shootCata();
+  wait(500, msec);
   straightForward();
+
+  wait(500, msec);
 
   intake.spin(forward);
   intakeCatapultm.spin(reverse);
   backrollerIntakem.spin(forward);
+
+  while (true) {
+    drive(75, 0.8, 0.01, 0.5, 0.8, 100, 100);
+    drive(-100, 0.8, 0.01, 0.5, 1, 100, 100);
+    while(rapidLoad.objectDistance(mm) < 150) wait(20, msec);
+  }
 
 
 }
@@ -110,9 +121,6 @@ void init() {
   rightDrive.setMaxTorque(100, percent);
   rightDrive.setVelocity(100, percent);
 }
-
-// implement timeout for curve function
-// ensure data types are sufficicemt amd typedefs are ok
 
 void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int lmaxSpeed, const unsigned short int rmaxSpeed) {
   float error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
