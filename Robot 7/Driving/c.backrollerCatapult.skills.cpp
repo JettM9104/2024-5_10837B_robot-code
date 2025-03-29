@@ -52,7 +52,7 @@ void vexcodeInit() {
 bool catapult = 0;
 bool backroller = 0;
 bool motorsactive = 1;
-
+bool macrosRunning = 0;
 using namespace vex;
 
 void updateCatapult();
@@ -147,35 +147,48 @@ void updateBackroller() {
 }
 
 void windCata() {
-  motorsactive = false;
-  intakeCatapultm.spin(forward, 100, percent);
+  if (!macrosRunning) {
+    macrosRunning = true;
+    motorsactive = false;
+    intakeCatapultm.spin(forward, 100, percent);
 
-  while (!catapultSensor.pressing()) { wait(20, msec); }
-  wait(20, msec);
+    while (!catapultSensor.pressing()) { wait(20, msec); }
+    wait(20, msec);
 
-  intakeCatapultm.stop();
-  motorsactive = true;
+    intakeCatapultm.stop();
+    motorsactive = true;
+    macrosRunning = false;
+  }
 }
 
 void shootCata() {
-  motorsactive = false;
-  intakeCatapultm.spin(forward, 100, percent);
+  if (!macrosRunning) {
+    motorsactive = false;
+    macrosRunning = true;
+    intakeCatapultm.spin(forward, 100, percent);
 
-  wait(400, msec);
+    wait(400, msec);
 
-  intakeCatapultm.stop();
-  motorsactive = true;
+    intakeCatapultm.stop();
+    motorsactive = true;
+    macrosRunning = false;
+  }
 }
 
 
 void straightForward() {
-  backrollerIntakem.spin(reverse);
-  intakeCatapultm.spin(forward);
-  wait(700, msec);
-  intakeCatapultm.stop();
+  if (!macrosRunning) {
+    macrosRunning = true;
+    motorsactive = false;
+    backrollerIntakem.spin(reverse);
+    intakeCatapultm.spin(forward);
+    wait(700, msec);
+    intakeCatapultm.stop();
 
-  wait(200, msec);
-  backrollerIntakem.stop();
-  
-  
+    wait(200, msec);
+    backrollerIntakem.stop();
+    
+    motorsactive = true;
+    macrosRunning = false;
+  }
 }
