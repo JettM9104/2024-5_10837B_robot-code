@@ -73,19 +73,19 @@ int main() {
   intakeCatapultm.spin(reverse);
   backrollerIntakem.spin(forward);
 
-  drive(200, 0.8, 0.01, 0.5);
+  drive(160, 0.8, 0.01, 0.5);
   printf("a\n");
-  drive(700, 0.8, 0.01, 0.5, 0, 0, 100);
+  drive(600, 0.8, 0.01, 0.5, 0, 0, 100);
 
   intake.stop();
   intakeCatapultm.stop();
   backrollerIntakem.stop();
   printf("b\n");
-  drive(-800, 0.8, 0.01, 0.5, 0, 100, 50);
+  drive(-800, 0.8, 0.01, 0.5, 0, 100, 62);
   printf("c\n");
-  if (BrainInertial.rotation(degrees) < -90) {
-    drive(-800, 0.8, 0.01, 0.5, 1.2, 50, 100);
-  }
+
+  drive(-800, 0.8, 0.01, 0.5, 1.2, 55, 100);
+
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
   shootCata();
   wait(500, msec);
@@ -100,7 +100,11 @@ int main() {
   while (true) {
     drive(75, 0.8, 0.01, 0.5, 0.8, 100, 100);
     drive(-100, 0.8, 0.01, 0.5, 1, 100, 100);
-    while(rapidLoad.objectDistance(mm) < 150) wait(20, msec);
+    Brain.Timer.reset();
+    while(rapidLoad.objectDistance(mm) < 150) {
+      if (Brain.Timer.value() > 2) break;
+      wait(20, msec);
+    }
   }
 
 
