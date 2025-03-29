@@ -167,17 +167,15 @@ void shootCata() {
   motorsactive = true;
 }
 
-void straightForward() {
-  motorsactive = false;
 
+void straightForward() {
   backrollerIntakem.spin(reverse);
   intakeCatapultm.spin(forward);
-
-
-  wait(500, msec);
-
-  backrollerIntakem.stop();
+  wait(700, msec);
   intakeCatapultm.stop();
 
-  motorsactive = true;
+  wait(200, msec);
+  backrollerIntakem.stop();
+  
+  
 }
