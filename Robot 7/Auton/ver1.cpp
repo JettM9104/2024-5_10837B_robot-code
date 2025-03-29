@@ -210,7 +210,11 @@ void shootCata() {
 void straightForward() {
   backrollerIntakem.spin(reverse);
   intakeCatapultm.spin(forward);
-  wait(1250, msec);
-  backrollerIntakem.stop();
+  wait(700, msec);
   intakeCatapultm.stop();
+
+  wait(200, msec);
+  backrollerIntakem.stop();
+  
+  
 }
