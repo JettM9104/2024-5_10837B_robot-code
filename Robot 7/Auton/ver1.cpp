@@ -63,31 +63,30 @@ void init();
 void drive(const float distance, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int lmaxSpeed = 100, const unsigned short int rmaxSpeed = 100);
 void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
 
+void therd();
+
 
 int main() {
   vexcodeInit();
   init();
 
+
+  while (rapidLoad.objectDistance(mm) > 150) wait(20, msec);
   BrainInertial.setRotation(0, degrees);
-  intake.spinFor(forward, 800, degrees, false);
-  intakeCatapultm.spinFor(reverse, 800, degrees, false);
-  backrollerIntakem.spinFor(forward, 800, degrees, false);
+  intake.spinFor(forward, 300, degrees, false);
+  intakeCatapultm.spinFor(reverse, 300, degrees, false);
+  backrollerIntakem.spinFor(forward, 300, degrees, false);
 
-  drive(160, 0.8, 0.01, 0.5);
-  intake.stop();
-  intakeCatapultm.stop();
-  backrollerIntakem.stop();
-  printf("a\n");
-  drive(600, 0.8, 0.01, 0.5, 0, 0, 100);
-
-
-  printf("b\n");
-  drive(-800, 0.8, 0.01, 0.5, 0, 100, 62);
-  printf("c\n");
-
-  drive(-800, 0.8, 0.01, 0.5, 1.2, 55, 100);
+  drive(420, 1, 0.01, 0.1, 100, 100);
+  wait(500, msec);
+  turn(-600, 0.8, 0.01, 0.5, 1.5, 100);
+  
+  wait(500, msec);
 
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
+
+  thread hi = thread(therd);
+  
   shootCata();
   wait(500, msec);
   straightForward();
@@ -99,8 +98,8 @@ int main() {
   backrollerIntakem.spin(forward);
 
   while (true) {
-    drive(70, 1, 0.01, 0.5, 0.4, 100, 100);
-    drive(-100, 1, 0.01, 0.5, 0.6, 100, 100);
+    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+    drive(-110, 1, 0.01, 0.5, 0.6, 100, 100);
     Brain.Timer.reset();
     while(rapidLoad.objectDistance(mm) < 150) {
       if (Brain.Timer.value() > 2) break;
@@ -126,6 +125,8 @@ void init() {
   rightDrive.setMaxTorque(100, percent);
   rightDrive.setVelocity(100, percent);
 }
+
+void therd() {drive(-100000, 1000, 1000, 0, 3, 100, 100);}
 
 void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int lmaxSpeed, const unsigned short int rmaxSpeed) {
   float error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
@@ -182,10 +183,10 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
     motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
     
     leftDrive.spin(forward, motorSpeed, percent);
-    rightDrive.spin(forward, motorSpeed, percent);
+    rightDrive.spin(reverse, motorSpeed, percent);
 
-    if (error < 5) break;
-    if (timeout != 0 && (timeout - beginTimer) > timeout) break;
+    if (fabs(error) < 5) break;
+    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) break;
     lastError = error;
     wait(20, msec);
   }
@@ -204,13 +205,12 @@ void windCata() {
 void shootCata() {
   intakeCatapultm.spin(forward, 100, percent);
   wait(400, msec);
-  intakeCatapultm.stop();
 }
 
 void straightForward() {
   backrollerIntakem.spin(reverse);
   intakeCatapultm.spin(forward);
-  wait(700, msec);
+  wait(500, msec);
   intakeCatapultm.stop();
 
   wait(200, msec);
