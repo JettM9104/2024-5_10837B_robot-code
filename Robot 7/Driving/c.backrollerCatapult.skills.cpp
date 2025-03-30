@@ -108,6 +108,10 @@ void init() {
   leftDrive.setVelocity(100, percent);
   rightDrive.setMaxTorque(100, percent);
   rightDrive.setVelocity(100, percent);
+
+  intake.setStopping(hold);
+  backrollerIntakem.setStopping(hold);
+  intakeCatapultm.setStopping(hold);
 }
 
 void updateMotors() {
