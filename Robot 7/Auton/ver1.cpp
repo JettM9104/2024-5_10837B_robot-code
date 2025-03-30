@@ -143,6 +143,18 @@ int main() {
 
   turn(65, 1, 0.01, 0.1, 0, 100);
 
+    if (BrainInertial.rotation(degrees) > 150) {
+    while ((BrainInertial.rotation(degrees) > 150 && BrainInertial.rotation(degrees) < 140)) {
+      leftDrive.spin(reverse, 100, percent);
+      rightDrive.spin(forward, 100, percent);
+    }
+  }
+  else if (BrainInertial.rotation(degrees) < 140) {
+    while ((BrainInertial.rotation(degrees) > 150 && BrainInertial.rotation(degrees) < 140)) {
+      leftDrive.spin(reverse, 100, percent);
+      rightDrive.spin(forward, 100, percent);
+    }
+  }
   
 
 
