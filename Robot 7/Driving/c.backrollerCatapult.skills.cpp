@@ -109,9 +109,9 @@ void init() {
   rightDrive.setMaxTorque(100, percent);
   rightDrive.setVelocity(100, percent);
 
-  intake.setStopping(hold);
-  backrollerIntakem.setStopping(hold);
-  intakeCatapultm.setStopping(hold);
+  intake.setStopping(brake);
+  backrollerIntakem.setStopping(brake);
+  intakeCatapultm.setStopping(brake);
 }
 
 void updateMotors() {
@@ -195,7 +195,7 @@ void straightForward() {
       backrollerIntakem.spin(reverse);
       intakeCatapultm.spin(forward);
       if (interrupt) {break;}
-      wait(900, msec);
+      wait(700, msec);
       if (interrupt) {break;}
       intakeCatapultm.stop();
       if (interrupt) {break;}
