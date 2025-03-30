@@ -70,28 +70,28 @@ int main() {
   vexcodeInit();
   init();
 
-  while (rapidLoad.objectDistance(mm) > 150) wait(20, msec);
+  while (rapidLoad.objectDistance(mm) > 20) wait(20, msec);
 
-  while ((Brain.Battery.capacity(percent) <= 95)) wait(20, msec);
+  while ((Brain.Battery.capacity(percent) < 95)) wait(20, msec);
   BrainInertial.setRotation(0, degrees);
   intake.spinFor(forward, 300, degrees, false);
   intakeCatapultm.spinFor(reverse, 300, degrees, false);
   backrollerIntakem.spinFor(forward, 300, degrees, false);
 
-  drive(430, 1, 0.01, 0.1, 100, 100);
+  drive(400, 1, 0.01, 0.1, 100, 100);
   wait(500, msec);
-  turn(-1100, 0.8, 0.01, 0.5, 2.7, 100);
+  turn(-1100, 0.5, 0.01, 0.5, 2.7, 100);
   printf("%f\n", BrainInertial.rotation(degrees));
 
   
-  if (BrainInertial.rotation(degrees) > -91) {
-    while ((BrainInertial.rotation(degrees) > -91 && BrainInertial.rotation(degrees) < -94)) {
+  if (BrainInertial.rotation(degrees) > -88) {
+    while ((BrainInertial.rotation(degrees) > -88 && BrainInertial.rotation(degrees) < -91)) {
       leftDrive.spin(reverse, 100, percent);
       rightDrive.spin(forward, 100, percent);
     }
   }
-  else if (BrainInertial.rotation(degrees) < -94) {
-    while ((BrainInertial.rotation(degrees) > -91 && BrainInertial.rotation(degrees) < -94)) {
+  else if (BrainInertial.rotation(degrees) < -91) {
+    while ((BrainInertial.rotation(degrees) > -88 && BrainInertial.rotation(degrees) < -91)) {
       leftDrive.spin(reverse, 100, percent);
       rightDrive.spin(forward, 100, percent);
     }
@@ -99,6 +99,12 @@ int main() {
   wait(500, msec);
 
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
+
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  wait(500, msec);
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
 
   thread hi = thread(therd);
 
@@ -116,7 +122,7 @@ int main() {
   backrollerIntakem.spin(forward, 100, percent);
 
 
-  wait(5000, msec);
+  wait(3000, msec);
 
 
 
@@ -130,12 +136,14 @@ int main() {
   backrollerIntakem.spin(forward, 100, percent);
 
   
-  drive(450, 1, 0.01, 0.1, 0, 100, 100);
+  drive(420, 1, 0.01, 0.1, 0, 100, 100);
 
   intakeCatapultm.spin(reverse, 100, percent);
   
 
-  turn(69, 1, 0.01, 0.1, 0, 100);
+  turn(65, 1, 0.01, 0.1, 0, 100);
+
+  
 
 
 
@@ -144,8 +152,13 @@ int main() {
 
   
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
-
-  drive(-100000, 1000, 1000, 0, 0.5, 100, 100);
+  drive (200, 0.8, 0.01, 0.5, 0.5, 0, 100);
+  
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  wait(500, msec);
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
   wait(500, msec);
 
   shootCata();
@@ -276,7 +289,7 @@ void shootCata() {
 void straightForward() {
   backrollerIntakem.spin(reverse);
   intakeCatapultm.spin(forward);
-  wait(500, msec);
+  wait(700, msec);
   intakeCatapultm.stop();
 
   wait(200, msec);
