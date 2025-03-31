@@ -176,7 +176,7 @@ void shootCata() {
       intakeCatapultm.spin(forward, 100, percent);
 
       if (interrupt) {break;}
-      wait(400, msec);
+      wait(550, msec);
       if (interrupt) {break;}
       intakeCatapultm.stop();
       if (interrupt) {break;}
