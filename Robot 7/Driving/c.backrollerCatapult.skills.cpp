@@ -174,6 +174,7 @@ void shootCata() {
       motorsactive = false;
       if (interrupt) {break;}
       intakeCatapultm.spin(forward, 100, percent);
+
       if (interrupt) {break;}
       wait(400, msec);
       if (interrupt) {break;}
@@ -194,8 +195,10 @@ void straightForward() {
       if (interrupt) {break;}
       backrollerIntakem.spin(reverse);
       intakeCatapultm.spin(forward);
-      if (interrupt) {break;}
-      wait(700, msec);
+      intakeCatapultm.spin(forward, 100, percent);
+      while (!catapultSensor.pressing()) { wait(20, msec); }
+      wait(20, msec);
+      intakeCatapultm.stop();
       if (interrupt) {break;}
       intakeCatapultm.stop();
       if (interrupt) {break;}
