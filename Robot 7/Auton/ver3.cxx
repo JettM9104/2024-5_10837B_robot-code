@@ -88,7 +88,7 @@ int main() {
   intakeCatapultm.spinFor(reverse, 300, degrees, false);
   backrollerIntakem.spinFor(forward, 300, degrees, false);
 
-  drive(450, 1, 0.01, 0.1, 100, 100);
+  drive(460, 1, 0.01, 0.1, 100, 100);
   wait(500, msec);
   turn(-1100, 0.5, 0.01, 0.5, 2, 100);
   printf("%f\n", BrainInertial.rotation(degrees));
@@ -108,17 +108,15 @@ int main() {
   }
   wait(500, msec);
 
-  drive(-100000, 1000, 1000, 0, 2, 100, 100);
+  drive(-100000, 1000, 1000, 0, 3, 100, 100);
 
-  if (BrainInertial.rotation(degrees) < -95 || BrainInertial.rotation(degrees) > -85)  { 
-    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-    drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-    wait(200, msec);
-    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-    drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  }
+  printf("%f\n", BrainInertial.rotation(degrees));
 
-  wait(500, msec);
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  drive(-400, 1, 0.01, 0.5,1.8, 100, 100);
+
+
+  wait(200, msec);
  
   shootCata();
   wait(500, msec);
@@ -238,7 +236,6 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 void windCata() {
   intakeCatapultm.spin(forward, 100, percent);
   while (!catapultSensor.pressing()) { wait(20, msec); }
-  wait(20, msec);
   intakeCatapultm.stop();
 }
 
