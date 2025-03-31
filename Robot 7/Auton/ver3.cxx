@@ -70,6 +70,16 @@ int main() {
   vexcodeInit();
   init();
 
+  printf("-------------------------------\n");
+
+  double x = Brain.Battery.voltage(volt);
+  double y = Brain.Battery.current(amp);
+  int z = Brain.Battery.capacity(percent);
+  printf("Voltage: %f V\n", x);
+  printf("Current: %f A\n", y);
+  printf("Capacity: %d percent\n", z);
+  printf("Wattage: %f W\n", x*y);
+
   while (rapidLoad.objectDistance(mm) > 20) wait(20, msec);
 
   while ((Brain.Battery.capacity(percent) < 95)) wait(20, msec);
@@ -100,8 +110,7 @@ int main() {
 
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
 
-
-  if (fabs(BrainInertial.rotation(degrees) + 90) > 5) {
+  if (BrainInertial.rotation(degrees) < -95 || BrainInertial.rotation(degrees) > -85)  { 
     drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
     drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
     wait(200, msec);
@@ -128,7 +137,7 @@ int main() {
   wait(2500, msec);
 
   while (true) {
-    drive(60, 1, 0.01, 0.5, 0.4, 100, 100);
+    drive(55, 1.3, 0.01, 0.5, 0.4, 100, 100);
     drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
     Brain.Timer.reset();
     while(rapidLoad.objectDistance(mm) < 150) {
@@ -187,8 +196,8 @@ void drive(const float distance, const float kp, const float ki, const float kd,
     leftDrive.spin(forward, leftMotorSpeed - (BrainInertial.rotation(degrees) - beginInertial), percent);
     rightDrive.spin(forward, rightMotorSpeed + (BrainInertial.rotation(degrees) - beginInertial), percent);
 
-    if (fabs(error) < 5) { printf("break by threshold\n"); break; }
-    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) { printf("break by timeout"); break; }
+    if (fabs(error) < 5) { break; }
+    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) { break; }
     lastError = error;
     wait(20, msec);
   }
