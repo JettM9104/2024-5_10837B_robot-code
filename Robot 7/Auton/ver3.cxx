@@ -1,19 +1,3 @@
-#include <stdbool.h>
-#include <math.h>
-Expand
-message.txt
-8 KB
-Charles — 11:58
-#pragma region VEXcode Generated Robot Configuration
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <math.h>
-Expand
-message.txt
-8 KB
-﻿
 #pragma region VEXcode Generated Robot Configuration
 
 #include <stdio.h>
@@ -94,7 +78,7 @@ int main() {
   intakeCatapultm.spinFor(reverse, 300, degrees, false);
   backrollerIntakem.spinFor(forward, 300, degrees, false);
 
-  drive(480, 1, 0.01, 0.1, 100, 100);
+  drive(450, 1, 0.01, 0.1, 100, 100);
   wait(500, msec);
   turn(-1100, 0.5, 0.01, 0.5, 2, 100);
   printf("%f\n", BrainInertial.rotation(degrees));
@@ -258,10 +242,8 @@ void shootCata() {
 void straightForward() {
   backrollerIntakem.spin(reverse);
   intakeCatapultm.spin(forward);
-  wait(600, msec);
+  windCata();
   intakeCatapultm.stop();
-
-  wait(200, msec);
   backrollerIntakem.stop();
   
   
