@@ -82,10 +82,23 @@ int main() {
 
   Controller.ButtonEDown.pressed(windCata);
   Controller.ButtonEUp.pressed(shootCata);
+
+  unsigned short int i = 0;
+
+  double average = 0;
   
   while (true) {
+    i++;
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
     rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+
+    average += intakeCatapultm.current(amp);
+
+    if (i >= 100) {
+      average /= 100;
+      printf("%f\n", average);
+    }
+
 
     if (motorsactive) {
       updateMotors();
@@ -116,7 +129,6 @@ void init() {
 
 void updateMotors() {
   if (Controller.ButtonLDown.pressing()) { // make balls go in
-    printf("backroller is %d\ncatapult is %d\n\n", backroller, catapult);
 
     intake.spin(forward);
 
@@ -173,9 +185,12 @@ void shootCata() {
       if (interrupt) {break;}
       motorsactive = false;
       if (interrupt) {break;}
+      intakeCatapultm.resetPosition();
       intakeCatapultm.spin(forward, 100, percent);
 
       if (interrupt) {break;}
+      // while (intakeCatapultm.position(degrees) < 200) wait(20, msec);
+
       wait(550, msec);
       if (interrupt) {break;}
       intakeCatapultm.stop();
