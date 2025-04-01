@@ -82,10 +82,23 @@ int main() {
 
   Controller.ButtonEDown.pressed(windCata);
   Controller.ButtonEUp.pressed(shootCata);
+
+  unsigned short int i = 0;
+
+  double average = 0;
   
   while (true) {
+    i++;
     leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
     rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
+
+    average += intakeCatapultm.current(amp);
+
+    if (i >= 100) {
+      average /= 100;
+      printf("%f\n", average);
+    }
+
 
     if (motorsactive) {
       updateMotors();
@@ -108,11 +121,14 @@ void init() {
   leftDrive.setVelocity(100, percent);
   rightDrive.setMaxTorque(100, percent);
   rightDrive.setVelocity(100, percent);
+
+  intake.setStopping(brake);
+  backrollerIntakem.setStopping(brake);
+  intakeCatapultm.setStopping(brake);
 }
 
 void updateMotors() {
   if (Controller.ButtonLDown.pressing()) { // make balls go in
-    printf("backroller is %d\ncatapult is %d\n\n", backroller, catapult);
 
     intake.spin(forward);
 
@@ -169,9 +185,13 @@ void shootCata() {
       if (interrupt) {break;}
       motorsactive = false;
       if (interrupt) {break;}
+      intakeCatapultm.resetPosition();
       intakeCatapultm.spin(forward, 100, percent);
+
       if (interrupt) {break;}
-      wait(400, msec);
+      // while (intakeCatapultm.position(degrees) < 200) wait(20, msec);
+
+      wait(550, msec);
       if (interrupt) {break;}
       intakeCatapultm.stop();
       if (interrupt) {break;}
@@ -190,8 +210,10 @@ void straightForward() {
       if (interrupt) {break;}
       backrollerIntakem.spin(reverse);
       intakeCatapultm.spin(forward);
-      if (interrupt) {break;}
-      wait(900, msec);
+      intakeCatapultm.spin(forward, 100, percent);
+      while (!catapultSensor.pressing()) { wait(20, msec); }
+      wait(20, msec);
+      intakeCatapultm.stop();
       if (interrupt) {break;}
       intakeCatapultm.stop();
       if (interrupt) {break;}
