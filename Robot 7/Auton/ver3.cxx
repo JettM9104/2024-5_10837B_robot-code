@@ -65,6 +65,8 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 
 void therd();
 
+double delta_t = 0.02;
+
 
 int main() {
   vexcodeInit();
@@ -88,7 +90,7 @@ int main() {
   intakeCatapultm.spinFor(reverse, 300, degrees, false);
   backrollerIntakem.spinFor(forward, 300, degrees, false);
 
-  drive(460, 1, 0.01, 0.1, 100, 100);
+  drive(435, 1, 0.01, 0.1, 100, 100);
   wait(500, msec);
   turn(-1100, 0.5, 0.01, 0.5, 2, 100);
   printf("%f\n", BrainInertial.rotation(degrees));
@@ -135,7 +137,7 @@ int main() {
   wait(2500, msec);
 
   while (true) {
-    drive(55, 1.3, 0.01, 0.5, 0.4, 100, 100);
+    drive(71, 1.3, 0.01, 0.5, 0.4, 100, 100);
     drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
     Brain.Timer.reset();
     while(rapidLoad.objectDistance(mm) < 150) {
@@ -181,7 +183,7 @@ void drive(const float distance, const float kp, const float ki, const float kd,
     integral = integral <= 3 ? 0 : error + integral;
     derivative = error - lastError;
 
-    motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
+    motorSpeed = (error * kp) + (integral * delta_t * ki) + (derivative * kd);
 
     float leftMotorSpeed = motorSpeed, rightMotorSpeed = motorSpeed;
 
@@ -218,7 +220,7 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
     integral = integral <= 3 ? 0 : error + integral;
     derivative = error - lastError;
 
-    motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
+    motorSpeed = (error * kp) + (integral * delta_t * ki) + (derivative * kd);
     
     leftDrive.spin(forward, motorSpeed, percent);
     rightDrive.spin(reverse, motorSpeed, percent);
@@ -246,9 +248,10 @@ void shootCata() {
 }
 
 void straightForward() {
-  backrollerIntakem.spin(reverse);
-  intakeCatapultm.spin(forward);
+  backrollerIntakem.spin(reverse, 100, percent);
   windCata();
+
+  wait(700, msec);
   intakeCatapultm.stop();
   backrollerIntakem.stop();
   
