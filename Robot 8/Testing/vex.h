@@ -152,7 +152,7 @@ class battery {
 public:
   double voltage(voltageUnits v) {return 0.0;}
   double current(currentUnits c) {return 0.0;}
-}
+};
 
 // Class representing the brain (main processing unit of the robot)
 class brain {
