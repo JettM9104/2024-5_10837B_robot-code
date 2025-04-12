@@ -100,6 +100,10 @@ int main() {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
       rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
+    else {
+      leftDrive.stop();
+      rightDrive.stop();
+    }
 
    
     wait(20, msec);
