@@ -29,10 +29,12 @@ brain Brain;
 // Robot configuration code.
 inertial BrainInertial = inertial();
 controller Controller;
-motor diffLeft = motor(PORT1, true);
-motor diffRight = motor(PORT6, false);
-motor leftDrive = motor(PORT2, false);
-motor rightDrive = motor(PORT5, true);
+motor diffLeft = motor(PORT7, true);
+motor diffRight = motor(PORT1, false);
+motor leftDrive = motor(PORT9, true); // confirmed
+motor rightDrive = motor(PORT3, false); // confirmed
+motor intake = motor(PORT8);
+motor metro = motor(PORT2);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -80,11 +82,21 @@ int main() {
   while (true) {
     if (Controller.ButtonLUp.pressing()) { diffLeft.spin(forward, 100, percent); }
     else if (Controller.ButtonLDown.pressing()) { diffLeft.spin(reverse, 100, percent); }
+    else  { diffLeft.stop();}
 
     if (Controller.ButtonRUp.pressing()) { diffRight.spin(forward, 100, percent); }
     else if (Controller.ButtonRDown.pressing()) { diffRight.spin(reverse, 100, percent); }
+    else { diffRight.stop(); }
 
-    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) < 5) {
+    if (Controller.ButtonEUp.pressing()) { intake.spin(forward, 100, percent); }
+    else if (Controller.ButtonEDown.pressing()) { intake.spin(reverse, 100, percent); }
+    else { intake.stop(); }
+
+    if (Controller.ButtonFUp.pressing()) { metro.spin(forward, 100, percent); }
+    else if (Controller.ButtonFDown.pressing()) { metro.spin(reverse, 100, percent); }
+    else { intake.stop(); }
+
+    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
       rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
