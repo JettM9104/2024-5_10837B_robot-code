@@ -80,16 +80,16 @@ int main() {
   vexcodeInit();
   // Begin project code
   while (true) {
-    if (Controller.ButtonLUp.pressing()) { diffLeft.spin(forward, 100, percent); }
-    else if (Controller.ButtonLDown.pressing()) { diffLeft.spin(reverse, 100, percent); }
+    if (Controller.ButtonLUp.pressing()) { diffLeft.spin(forward, 100, percent); } //
+    else if (Controller.ButtonLDown.pressing()) { diffLeft.spin(reverse, 100, percent); }////
     else  { diffLeft.stop();}
 
     if (Controller.ButtonRUp.pressing()) { diffRight.spin(forward, 100, percent); }
-    else if (Controller.ButtonRDown.pressing()) { diffRight.spin(reverse, 100, percent); }
+    else if (Controller.ButtonRDown.pressing()) { diffRight.spin(reverse, 100, percent); } ////
     else { diffRight.stop(); }
 
     if (Controller.ButtonEUp.pressing()) { intake.spin(forward, 100, percent); }
-    else if (Controller.ButtonEDown.pressing()) { intake.spin(reverse, 100, percent); }
+    else if (Controller.ButtonEDown.pressing()) { intake.spin(reverse, 100, percent); } //
     else { intake.stop(); }
 
     if (Controller.ButtonFUp.pressing()) { metro.spin(forward, 100, percent); }
