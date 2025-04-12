@@ -85,15 +85,17 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-  Controller.ButtonLDown.pressed(updateMotors)
+  Controller.ButtonLDown.pressed(updateMotors);
   Controller.ButtonLUp.pressed(updateMotors);
   Controller.ButtonLUp.released(updateMotors);
   Controller.ButtonLDown.released(updateMotors);
 
   Controller.ButtonRUp.pressed(updateCataMotors);
   Controller.ButtonRDown.pressed(updateCataMotors);
-  Controller.ButtonRUp.pressed(updateCataMotors);
-  Controller.ButtonRDown.pressed(updateCataMotors);
+  Controller.ButtonRUp.released(updateCataMotors);
+  Controller.ButtonRDown.released(updateCataMotors);
+
+  Controller.ButtonFUp.pressed(updateBackroller);
 }
 
 void updateBackroller() {
