@@ -102,6 +102,8 @@ int main() {
 
   thread indic = thread(updateled);
 
+  indicator.setBrightness(50);
+
   while (true) {
     if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
@@ -168,7 +170,7 @@ void updateled() {
       indicator.setColor(blue_green);
     }
     else {
-      indicator.setColor(yellow);
+      indicator.setColor(white);
     }
 
     wait(20, msec);
