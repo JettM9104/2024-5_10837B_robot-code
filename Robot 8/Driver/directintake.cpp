@@ -26,18 +26,47 @@ brain Brain;
 // END IQ MACROS
 
 
+controller Controller = controller();
+class motor_group_group {
+private:
+  motor_group motora;
+  motor_group motorb;
+
+public:
+  motor_group_group(motor_group motora, motor_group motorb): motora(motora), motorb(motorb) {}
+
+  void spin(directionType dir, int32_t velocity, percentUnits units) {
+    motora.spin(dir, velocity, units);
+    motorb.spin(dir, velocity, units);
+  }
+  void spin(directionType dir) {
+    motora.spin(dir);
+    motorb.spin(dir);
+  }
+  void stop() {
+    motora.stop();
+    motorb.stop();
+  }
+};
+
+
 // Robot configuration code.
 inertial BrainInertial = inertial();
-controller Controller;
-motor diffLeft = motor(PORT7, true);
-motor diffRight = motor(PORT4, false);
-motor leftDrive = motor(PORT9, true); // confirmed
-motor rightDrive = motor(PORT3, false); // confirmed
-motor intake = motor(PORT8);
-motor metro = motor(PORT5);
-distance chassis = distance(PORT1);
-touchled indicator = touchled(PORT2);
-bumper catapultDetector = bumper(PORT10);
+distance loadingZone = distance(PORT6);
+distance chassis = distance(PORT8);
+motor leftUpIntake = motor(PORT5, false);
+motor leftDownIntake = motor(PORT4, false);
+motor_group leftIntake = motor_group(leftUpIntake, leftDownIntake);
+motor rightUpIntake = motor(PORT12, true);
+motor rightDownIntake = motor(PORT11, true);
+motor_group rightIntake = motor_group(rightUpIntake, rightDownIntake);
+motor_group_group intake = motor_group_group(leftIntake, rightIntake);
+motor leftDrive = motor(PORT3, true);
+motor rightDrive = motor(PORT9, false);
+touchled indicator = touchled(PORT1);
+
+bool driveDone = true;
+bool cancel = false;
 
 
 // generating and setting random seed
@@ -62,7 +91,6 @@ void vexcodeInit() {
   initializeRandomSeed(); 
 }
 
-
 #pragma endregion VEXcode Generated Robot Configuration
 
 //----------------------------------------------------------------------------
@@ -80,102 +108,87 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-bool backroller = 0;
-void updateMotors();
-void updateBackroller();
-void updateCataMotors();
-void updateled();
+void updateIntakeMotors();
+void directIntake();
+void updateLED();
+bool driveon = true;
+
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  // Begin project code
 
-  Controller.ButtonLDown.pressed(updateMotors);
-  Controller.ButtonLUp.pressed(updateMotors);
-  Controller.ButtonLUp.released(updateMotors);
-  Controller.ButtonLDown.released(updateMotors);
+  Controller.ButtonLUp.pressed(updateIntakeMotors);
+  Controller.ButtonLDown.pressed(updateIntakeMotors);
+  Controller.ButtonLUp.released(updateIntakeMotors);
+  Controller.ButtonLDown.released(updateIntakeMotors);
 
-  Controller.ButtonRUp.pressed(updateCataMotors);
-  Controller.ButtonRDown.pressed(updateCataMotors);
-  Controller.ButtonRUp.released(updateCataMotors);
-  Controller.ButtonRDown.released(updateCataMotors);
+  Controller.ButtonEDown.pressed(directIntake);
 
-  Controller.ButtonFUp.pressed(updateBackroller);
-  Controller.ButtonFUp.pressed(updateMotors);
+  thread led = thread(updateLED);
 
-  thread indic = thread(updateled);
-
-  indicator.setBrightness(50);
+  indicator.setBrightness(80);
 
   while (true) {
-    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
+    if (driveon) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
       rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
-    else {
-      leftDrive.stop();
-      rightDrive.stop();
-    }
-    
     wait(20, msec);
   }
+  
 }
 
-void updateBackroller() {
-  if (backroller) backroller = 0;
-  else { backroller = 1; }
-}
-
-void updateMotors() {
-  if (Controller.ButtonLDown.pressing()) {
-    diffLeft.spin(forward, 100, percent);
-    diffRight.spin(reverse, 100, percent);
-    intake.spin(reverse, 100, percent);
-
-    if (!backroller) {
-      metro.spin(forward, 100, percent);
-    }
-    else {
-      metro.spin(reverse, 100, percent);
-    }
-
-  }
-  else if (Controller.ButtonLUp.pressing()) {
-    diffLeft.spin(reverse, 100, percent);
-    diffRight.spin(forward, 100, percent);
+void updateIntakeMotors() {
+  if (Controller.ButtonLUp.pressing()) {
     intake.spin(forward, 100, percent);
   }
+  else if (Controller.ButtonLDown.pressing()) {
+    intake.spin(reverse, 100, percent);
+  }
   else {
-    diffLeft.stop();
-    diffRight.stop();
     intake.stop();
-    metro.stop();
   }
 }
 
-void updateCataMotors() {
-  if (Controller.ButtonRDown.pressing()) {
-    diffLeft.spin(reverse, 100, percent);
-    diffRight.spin(reverse, 100, percent);
-  }
-  else if (Controller.ButtonRUp.pressing()) {
-    diffLeft.spin(forward, 100, percent);
-    diffRight.spin(forward, 100, percent);
-  }
-  else {
-    diffLeft.stop();
-    diffRight.stop();
-  }
-}
-void updateled() {
+void directIntake() { 
+  driveon = false;
+  bool quit = false;
   while (true) {
-    if (backroller) {
-      indicator.setColor(blue_green);
+    while (loadingZone.objectDistance(mm) <= 440 || Controller.ButtonEUp.pressing()) { 
+      if (Controller.ButtonEDown.pressing()) {
+        quit = true;
+        break;
+      }
+      wait(20, msec); 
     }
-    else {
-      indicator.setColor(white);
-    }
+    
+    if (quit) break;
 
+    leftDrive.spin(forward);
+    rightDrive.spin(forward);
+
+    while (chassis.objectDistance(mm) <= 80 || Controller.ButtonEUp.pressing()) {
+      if (Controller.ButtonEDown.pressing()) {
+        quit = true;
+        break;
+      } 
+      wait(20, msec); 
+    }
+    if (quit) break;
+
+    leftDrive.spin(reverse);
+    rightDrive.spin(reverse);
+  }
+  driveon = true;
+}
+void updateLED() {
+  while (true) {
+    if (loadingZone.objectDistance(mm) < 460) indicator.setColor(red);
+    else {
+      indicator.setColor(green);
+    }
     wait(20, msec);
   }
 }
