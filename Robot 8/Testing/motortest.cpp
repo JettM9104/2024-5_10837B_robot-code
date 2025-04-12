@@ -94,7 +94,7 @@ int main() {
 
     if (Controller.ButtonFUp.pressing()) { metro.spin(forward, 100, percent); }
     else if (Controller.ButtonFDown.pressing()) { metro.spin(reverse, 100, percent); }
-    else { intake.stop(); }
+    else { metro.stop(); }
 
     if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
