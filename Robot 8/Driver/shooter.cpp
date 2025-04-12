@@ -1,5 +1,5 @@
 #pragma region VEXcode Generated Robot Configuration
-
+// Make sure all required headers are included.
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,8 +11,11 @@
 
 using namespace vex;
 
+// Brain should be defined by default
 brain Brain;
 
+
+// START IQ MACROS
 #define waitUntil(condition)                                                   \
   do {                                                                         \
     wait(5, msec);                                                             \
@@ -20,152 +23,124 @@ brain Brain;
 
 #define repeat(iterations)                                                     \
   for (int iterator = 0; iterator < iterations; iterator++)
+// END IQ MACROS
 
-controller Controller = controller();
+
+// Robot configuration code.
 inertial BrainInertial = inertial();
-motor intakeCatapultLm = motor(PORTNULL, false);
-motor intakeCatapultRm = motor(PORTNULL, true);
-motor_group intakeCatapultm = motor_group(intakeCatapultLm, intakeCatapultRm);
-motor intake = motor(PORTNULL, true);
-motor backrollerIntakem = motor(PORTNULL);
-motor leftDrive = motor(PORTNULL, true);
-motor rightDrive = motor(PORTNULL, false);
-bumper catapultSensor = bumper(PORTNULL);
+controller Controller;
+motor diffLeft = motor(PORT7, true);
+motor diffRight = motor(PORT1, false);
+motor leftDrive = motor(PORT9, true); // confirmed
+motor rightDrive = motor(PORT3, false); // confirmed
+motor intake = motor(PORT8);
+motor metro = motor(PORT2);
 
+// generating and setting random seed
 void initializeRandomSeed(){
   wait(100,msec);
   double xAxis = BrainInertial.acceleration(xaxis) * 1000;
   double yAxis = BrainInertial.acceleration(yaxis) * 1000;
   double zAxis = BrainInertial.acceleration(zaxis) * 1000;
+  // Combine these values into a single integer
   int seed = int(
     xAxis + yAxis + zAxis
   );
+  // Set the seed
   srand(seed); 
 }
 
+
+
 void vexcodeInit() {
+
+  // Initializing random seed.
   initializeRandomSeed(); 
 }
 
+
 #pragma endregion VEXcode Generated Robot Configuration
 
-bool catapult = 0;
-bool backroller = 0;
-bool motorsactive = 1;
+//----------------------------------------------------------------------------
+//                                                                            
+//    Module:       main.cpp                                                  
+//    Author:       {author}                                                  
+//    Created:      {date}                                                    
+//    Description:  IQ project                                                
+//                                                                            
+//----------------------------------------------------------------------------
 
+// Include the IQ Library
+#include "iq_cpp.h"
+
+// Allows for easier use of the VEX Library
 using namespace vex;
 
-void updateCatapult();
-void updateBackroller();
-
+bool backroller = 0;
 void updateMotors();
-
-void windCata();
-void shootCata();
-
-void init();
+void updateBackroller();
+void updateCataMotors();
 
 int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-  init();
-
+  Controller.ButtonLDown.pressed(updateMotors)
   Controller.ButtonLUp.pressed(updateMotors);
   Controller.ButtonLUp.released(updateMotors);
-  Controller.ButtonLDown.pressed(updateMotors);
   Controller.ButtonLDown.released(updateMotors);
 
-  Controller.ButtonRDown.pressed(updateCatapult);
-  Controller.ButtonRUp.pressed(updateBackroller);
-
-  Controller.ButtonEUp.pressed(windCata);
-  Controller.ButtonEDown.pressed(shootCata);
-  
-  while (true) {
-    leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
-    rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
-
-    if (motorsactive) {
-      updateMotors();
-    }
-  }
-}
-
-void init() {
-  intake.setMaxTorque(100, percent);
-  intake.setVelocity(100, percent);
-
-  intakeCatapultm.setMaxTorque(100, percent);
-  intakeCatapultm.setVelocity(100, percent);
-
-  backrollerIntakem.setMaxTorque(100, percent);
-  backrollerIntakem.setVelocity(100, percent);
-
-  leftDrive.setMaxTorque(100, percent);
-  leftDrive.setVelocity(100, percent);
-  rightDrive.setMaxTorque(100, percent);
-  rightDrive.setVelocity(100, percent);
-}
-
-void updateMotors() {
-  if (Controller.ButtonLDown.pressing()) { // make balls go in
-    printf("backroller is %d\ncatapult is %d\n\n", backroller, catapult);
-
-    intake.spin(forward);
-
-    if (backroller) {
-      backrollerIntakem.spin(forward);
-    }
-    else {
-      backrollerIntakem.spin(reverse);
-    }
-
-    if (catapult) {
-      intakeCatapultm.spin(forward);
-    }
-    else {
-      intakeCatapultm.spin(reverse);
-    }
-  }  
-  
-  else if (Controller.ButtonLUp.pressing()) {
-    intake.spin(reverse);
-  }
-
-  else {
-    intakeCatapultm.stop();
-    intake.stop();
-    backrollerIntakem.stop();
-  }
-}
-
-void updateCatapult() {
-  if (catapult) { catapult = 0; }
-  else { catapult = 1; }
+  Controller.ButtonRUp.pressed(updateCataMotors);
+  Controller.ButtonRDown.pressed(updateCataMotors);
+  Controller.ButtonRUp.pressed(updateCataMotors);
+  Controller.ButtonRDown.pressed(updateCataMotors);
 }
 
 void updateBackroller() {
-  if (backroller) { backroller = 0; }
+  if (backroller) backroller = 0;
   else { backroller = 1; }
 }
 
-void windCata() {
-  motorsactive = false;
-  intakeCatapultm.spin(forward, 100, percent);
+void updateMotors() {
+  if (Controller.ButtonLDown.pressing()) {
+    diffLeft.spin(forward, 100, percent);
+    diffRight.spin(reverse, 100, percent);
+    intake.spin(reverse, 100, percent);
 
-  while (!catapultSensor.pressing()) { wait(20, msec); }
-  wait(20, msec);
+    if (!backroller) {
+      metro.spin(forward, 100, percent);
+    }
+    else {
+      metro.spin(reverse, 100, percent);
+    }
 
-  intakeCatapultm.stop();
-  motorsactive = true;
+  }
+  else if (Controller.ButtonLUp.pressing()) {
+    diffLeft.spin(reverse, 100, percent);
+    diffRight.spin(forward, 100, percent);
+    intake.spin(forward, 100, percent);
+    if (!backroller) {
+      metro.spin(forward, 100, percent);
+    }
+    else {
+      metro.spin(reverse, 100, percent);
+    }
+  }
+  else {
+    diffLeft.stop();
+    diffRight.stop();
+    intake.stop();
+    metro.stop();
+  }
 }
 
-void shootCata() {
-  motorsactive = false;
-  intakeCatapultm.spin(forward, 100, percent);
-
-  wait(400, msec);
-
-  intakeCatapultm.stop();
-  motorsactive = true;
+void updateCataMotors() {
+  if (Controller.ButtonRDown.pressing()) {
+    diffLeft.spin(reverse, 100, percent);
+    diffRight.spin(reverse, 100, percent);
+  }
+  else if (Controller.ButtonRUp.pressing()) {
+    diffLeft.spin(forward, 100, percent);
+    diffRight.spin(forward, 100, percent);
+  }
 }
