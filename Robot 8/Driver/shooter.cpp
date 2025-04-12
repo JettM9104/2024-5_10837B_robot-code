@@ -96,6 +96,17 @@ int main() {
   Controller.ButtonRDown.released(updateCataMotors);
 
   Controller.ButtonFUp.pressed(updateBackroller);
+  while (true) {
+    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
+      leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+    }
+    else {
+      leftDrive.stop();
+      rightDrive.stop();
+    }
+    wait(20, msec);
+  }
 }
 
 void updateBackroller() {
@@ -144,5 +155,9 @@ void updateCataMotors() {
   else if (Controller.ButtonRUp.pressing()) {
     diffLeft.spin(forward, 100, percent);
     diffRight.spin(forward, 100, percent);
+  }
+  else {
+    diffLeft.stop();
+    diffRight.stop();
   }
 }
