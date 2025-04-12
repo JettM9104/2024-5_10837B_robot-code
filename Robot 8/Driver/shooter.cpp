@@ -30,11 +30,12 @@ brain Brain;
 inertial BrainInertial = inertial();
 controller Controller;
 motor diffLeft = motor(PORT7, true);
-motor diffRight = motor(PORT1, false);
+motor diffRight = motor(PORT4, false);
 motor leftDrive = motor(PORT9, true); // confirmed
 motor rightDrive = motor(PORT3, false); // confirmed
 motor intake = motor(PORT8);
 motor metro = motor(PORT2);
+touchled indicator = touchled(PORT1);
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -80,6 +81,7 @@ bool backroller = 0;
 void updateMotors();
 void updateBackroller();
 void updateCataMotors();
+void updateled();
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
@@ -97,6 +99,9 @@ int main() {
 
   Controller.ButtonFUp.pressed(updateBackroller);
   Controller.ButtonFUp.pressed(updateMotors);
+
+  thread indic = thread(updateled);
+
   while (true) {
     if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
@@ -106,6 +111,7 @@ int main() {
       leftDrive.stop();
       rightDrive.stop();
     }
+    
     wait(20, msec);
   }
 }
@@ -154,5 +160,17 @@ void updateCataMotors() {
   else {
     diffLeft.stop();
     diffRight.stop();
+  }
+}
+void updateled() {
+  while (true) {
+    if (backroller) {
+      indicator.setColor(blue_green);
+    }
+    else {
+      indicator.setColor(yellow);
+    }
+
+    wait(20, msec);
   }
 }
