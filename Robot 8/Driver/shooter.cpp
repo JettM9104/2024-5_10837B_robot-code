@@ -96,6 +96,7 @@ int main() {
   Controller.ButtonRDown.released(updateCataMotors);
 
   Controller.ButtonFUp.pressed(updateBackroller);
+  Controller.ButtonFUp.pressed(updateMotors);
   while (true) {
     if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
@@ -132,12 +133,6 @@ void updateMotors() {
     diffLeft.spin(reverse, 100, percent);
     diffRight.spin(forward, 100, percent);
     intake.spin(forward, 100, percent);
-    if (!backroller) {
-      metro.spin(forward, 100, percent);
-    }
-    else {
-      metro.spin(reverse, 100, percent);
-    }
   }
   else {
     diffLeft.stop();
