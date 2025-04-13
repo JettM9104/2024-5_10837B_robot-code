@@ -126,16 +126,21 @@ int main() {
 
   Controller.ButtonEDown.pressed(directIntake);
 
+  
   thread led = thread(updateLED);
 
-  indicator.setBrightness(80);
+  
 
   while (true) {
+    Brain.Screen.setFont(mono30);
     if (driveon) {
       leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
       rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
     }
+    Brain.Screen.print("%.0f\n", loadingZone.objectDistance(mm));
     wait(20, msec);
+    Brain.Screen.clearScreen();
+    Brain.Screen.setCursor(1, 1);
   }
   
 }
@@ -155,13 +160,16 @@ void updateIntakeMotors() {
 void directIntake() { 
   driveon = false;
   bool quit = false;
+  while (Controller.ButtonEDown.pressing()) wait(20, msec);
   while (true) {
-    while (loadingZone.objectDistance(mm) <= 440 || Controller.ButtonEUp.pressing()) { 
+    intake.spin(forward);
+
+    while ((loadingZone.objectDistance(mm) >= 440) && (!Controller.ButtonEUp.pressing())) { 
       if (Controller.ButtonEDown.pressing()) {
         quit = true;
         break;
       }
-      wait(20, msec); 
+      wait(20, msec);
     }
     
     if (quit) break;
@@ -169,7 +177,7 @@ void directIntake() {
     leftDrive.spin(forward);
     rightDrive.spin(forward);
 
-    while (chassis.objectDistance(mm) <= 80 || Controller.ButtonEUp.pressing()) {
+    while ((chassis.objectDistance(mm) >= 80) && (!Controller.ButtonEUp.pressing())) {
       if (Controller.ButtonEDown.pressing()) {
         quit = true;
         break;
@@ -178,13 +186,15 @@ void directIntake() {
     }
     if (quit) break;
 
-    leftDrive.spin(reverse);
-    rightDrive.spin(reverse);
+    leftDrive.spinFor(reverse, -300, degrees, false);
+    rightDrive.spinFor(reverse, -300, degrees);
   }
+  intake.stop();
   driveon = true;
 }
 void updateLED() {
   while (true) {
+    indicator.setBrightness(50);
     if (loadingZone.objectDistance(mm) < 460) indicator.setColor(red);
     else {
       indicator.setColor(green);
