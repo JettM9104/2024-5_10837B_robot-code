@@ -45,19 +45,17 @@ public:
 };
 
 
-// Robot configuration code.
 inertial BrainInertial = inertial();
-distance loadingZone = distance(PORT6);
-distance chassis = distance(PORT10);
-motor leftUpIntake = motor(PORT5, false);
-motor leftDownIntake = motor(PORT4, false);
-motor_group leftIntake = motor_group(leftUpIntake, leftDownIntake);
-motor rightUpIntake = motor(PORT12, true);
-motor rightDownIntake = motor(PORT11, true);
-motor_group rightIntake = motor_group(rightUpIntake, rightDownIntake);
-motor_group_group intake = motor_group_group(leftIntake, rightIntake);
-motor leftDrive = motor(PORT3, true);
-motor rightDrive = motor(PORT9, false);
+controller Controller;
+motor diffLeft = motor(PORT7, true);
+motor diffRight = motor(PORT4, false);
+motor leftDrive = motor(PORT9, true); // confirmed
+motor rightDrive = motor(PORT3, false); // confirmed
+motor intake = motor(PORT8);
+motor metro = motor(PORT5);
+distance chassis = distance(PORT1);
+touchled indicator = touchled(PORT2);
+bumper catapultDetector = bumper(PORT10);
 
 void initializeRandomSeed(){
   wait(100,msec);
