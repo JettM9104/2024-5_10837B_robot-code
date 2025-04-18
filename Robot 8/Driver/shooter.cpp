@@ -33,7 +33,7 @@ motor diffLeft = motor(PORT7, true);
 motor diffRight = motor(PORT4, false);
 motor leftDrive = motor(PORT9, true); // confirmed
 motor rightDrive = motor(PORT3, false); // confirmed
-motor intake = motor(PORT8);
+motor intake = motor(PORT11);
 motor metro = motor(PORT5);
 distance chassis = distance(PORT1);
 touchled indicator = touchled(PORT2);
@@ -94,6 +94,11 @@ void init();
 
 void backrollerSensor();
 void windCata();
+void shootCata();
+
+void triggerWindCata();
+void triggerShootCata();
+void triggerBackrollerSensor();
 
 void updateScreen();
 void updateConsole();
@@ -121,7 +126,15 @@ int main() {
   Controller.ButtonFUp.pressed(updateBackroller);
   Controller.ButtonFUp.pressed(updateMotors);
 
+  Controller.ButtonEDown.pressed(triggerWindCata);
+  Controller.ButtonEUp.pressed(triggerShootCata);
+  Controller.ButtonFDown.pressed(triggerBackrollerSensor);
+
+
   thread indic = thread(updateLED);
+
+
+  indic.setPriority(1);
 
   indicator.setBrightness(50);
 
@@ -142,9 +155,27 @@ int main() {
 
 // ------------------------------ FUNCTION DEFINITIONS -----------------------------------------
 
+// -----------------MACRO TRIGGERS ---------------------
+void triggerWindCata() {
+  thread thd1 = thread(windCata);
+  thd1.setPriority(5);
+  thd1.join();
+}
+void triggerShootCata() {
+  thread thd2 = thread(shootCata);
+  thd2.setPriority(4);
+  thd2.join();
+}
+void triggerBackrollerSensor() {
+  thread thd3 = thread(backrollerSensor);
+  thd3.setPriority(4);
+  thd3.join();
+}
+
 // -----------------INITILIZATIONS AND MISCELLANIOUS----------------
 
 void init() {
+  printf("%ld\n", thread::hardware_concurrency());
   leftDrive.setMaxTorque(100, percent);
   rightDrive.setMaxTorque(100, percent);
   diffLeft.setMaxTorque(100, percent);
@@ -195,7 +226,7 @@ void checkPorts() {
 
   if (!intake.installed()) {
     y++;
-    Brain.Screen.print("8-intake");
+    Brain.Screen.print("11-intake");
   }
   Brain.Screen.setCursor(y, 1);
 
@@ -317,17 +348,25 @@ void windCata() { // E DOWN MACRO
   macrosActive--;
 }
 
-void backrollerSensor() { // L3 MACRO
+void shootCata() {
+  diffLeft.spin(reverse, 100, percent);
+  diffRight.spin(reverse, 100, percent);
+  wait(500, msec);
+  diffLeft.stop();
+  diffRight.stop();
+}
+
+void backrollerSensor() { // F DOWN MACRO
   macrosActive++;
   while (true) {
-    while (chassis.objectDistance(mm) > 60 && !Controller.ButtonL3.pressing()) {
+    while (chassis.objectDistance(mm) > 60 && !Controller.ButtonFDown.pressing()) {
       diffLeft.spin(forward, 100, percent);
       diffRight.spin(reverse, 100, percent);
       intake.spin(reverse, 100, percent);
       metro.spin(forward, 100, percent);
       wait(20, msec);
     }
-    if (Controller.ButtonL3.pressing()) break;
+    if (Controller.ButtonFDown.pressing()) break;
 
     metro.spin(reverse, 100, percent);
 
@@ -337,7 +376,7 @@ void backrollerSensor() { // L3 MACRO
       metro.spin(reverse, 100, percent);
       wait(20, msec);
     }
-    if (Controller.ButtonL3.pressing()) break;
+    if (Controller.ButtonFDown.pressing()) break;
   }
   diffLeft.stop();
   diffRight.stop();
