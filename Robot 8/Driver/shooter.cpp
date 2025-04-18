@@ -145,67 +145,76 @@ int main() {
 void init() {
   leftDrive.setMaxTorque(100, percent);
   rightDrive.setMaxTorque(100, percent);
-  leftDiff.setMaxTorque(100, percent);
-  rightDiff.setMaxTorque(100, percent);
+  diffLeft.setMaxTorque(100, percent);
+  diffRight.setMaxTorque(100, percent);
   intake.setMaxTorque(100, percent);
   metro.setMaxTorque(100, percent);
 
   leftDrive.setVelocity(100, percent);
   rightDrive.setVelocity(100, percent);
-  leftDiff.setVelocity(100, percent);
-  rightDiff.setVelocity(100, percent);
+  diffLeft.setVelocity(100, percent);
+  diffRight.setVelocity(100, percent);
   intake.setVelocity(100, percent);
   metro.setVelocity(100, percent);
 }
 
 void checkPorts() {
   unsigned short int y = 1;
-  Brain.Screen.setFont(mono10);
+  Brain.Screen.setFont(mono12);
   Brain.Screen.setCursor(y, 1);
   if (!leftDrive.installed()) {
     y++;
     Brain.Screen.print("9-leftDrive");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!rightDrive.installed()) {
     y++;
     Brain.Screen.print("3-rightDrive");
   }
-
+  Brain.Screen.setCursor(y, 1);
   if (!diffLeft.installed()) {
     y++;
     Brain.Screen.print("7-diffLeft");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!diffRight.installed()) {
     y++;
     Brain.Screen.print("4-diffRight");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!metro.installed()) {
     y++;
     Brain.Screen.print("5-metro");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!intake.installed()) {
     y++;
     Brain.Screen.print("8-intake");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!chassis.installed()) {
-    y++
+    y++;
     Brain.Screen.print("1-chassis");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!indicator.installed()) {
-    y++
+    y++;
     Brain.Screen.print("2-indicator");
   }
+  Brain.Screen.setCursor(y, 1);
 
   if (!catapultDetector.installed()) {
-    y++
+    y++;
     Brain.Screen.print("10-catapultDetector");
   }
+  Brain.Screen.setCursor(y, 1);
+  if (y > 1) Brain.Screen.print("PLUG EM IN");
 
 }
 // -------------- CONINUOUS UPDATES ------------------
