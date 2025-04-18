@@ -162,7 +162,7 @@ void init() {
 
 void checkPorts() {
   unsigned short int y = 1;
-  Brain.Screen.setFont(mono12);
+  Brain.Screen.setFont(mono15);
   Brain.Screen.setCursor(y, 1);
   if (!leftDrive.installed()) {
     y++;
@@ -283,11 +283,12 @@ void updateLED() {
       else {
         indicator.setColor(white);
       }
-      wait(300, msec);
       if (macrosActive > 0) {
-        indicator.setColor(red);
+        wait(300, msec);
+        indicator.setColor(yellow);
+        wait(300, msec);
       }
-      wait(300, msec);
+      
     }
     else {
       indicator.setColor(red);
