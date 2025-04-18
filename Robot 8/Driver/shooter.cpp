@@ -360,24 +360,27 @@ void backrollerSensor() { // F DOWN MACRO
   macrosActive++;
   while (Controller.ButtonFDown.pressing()) wait(20, msec);
   while (true) {
-    while (chassis.objectDistance(mm) > 60 && !Controller.ButtonFDown.pressing()) {
-      diffLeft.spin(forward, 100, percent);
-      diffRight.spin(reverse, 100, percent);
-      intake.spin(reverse, 100, percent);
-      metro.spin(forward, 100, percent);
-      wait(20, msec);
-    }
     if (Controller.ButtonFDown.pressing()) break;
-
-    metro.spin(reverse, 100, percent);
-
-    Brain.Timer.reset(); // --TIMER RESET STATEMENT
-
-    while (Brain.Timer.value() < 0.5 && !Controller.ButtonL3.pressing()) {
-      metro.spin(reverse, 100, percent);
-      wait(20, msec);
-    }
+    diffLeft.spin(forward, 100, percent);
+    diffRight.spin(forward, 100, percent);
+    intake.spin(forward, 100, percent);
+    metro.spin(forward, 100, percent);
+    while (chassis.objectDistance(inches) > 30 && !Controller.ButtonFDown.pressing) wait(20, msec);
     if (Controller.ButtonFDown.pressing()) break;
+    leftDrive.spin(reverse, 100, percent);
+    rightDrive.spin(reverse, 100, percent);
+
+    Brain.Timer.reset();
+    while (Brain.Timer.value() < 0.4 && !Controller.ButtonFDown.pressing) wait(20, msec);
+    if (Controller.ButtonFDown.pressing()) break;
+    leftDrive.spin(forward, 100, percent);
+    rightDrive.spin(forward, 100, percent);
+
+    Brain.Timer.reset();
+    while (Brain.Timer.value() < 0.5 && !Controller.ButtonFDown.pressing) wait(20, msec);
+    if (Controller.ButtonFDown.pressing()) break;
+    leftDrive.stop();
+    rightDrive.stop();
   }
   diffLeft.stop();
   diffRight.stop();
