@@ -98,6 +98,8 @@ void windCata();
 void updateScreen();
 void updateConsole();
 
+bool error = false;
+
 // -------------------- MAIN FUNCTION DE
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
@@ -140,7 +142,7 @@ int main() {
 
 // ------------------------------ FUNCTION DEFINITIONS -----------------------------------------
 
-// --------------------INITILIZATIONS ----------------
+// -----------------INITILIZATIONS AND MISCELLANIOUS----------------
 
 void init() {
   leftDrive.setMaxTorque(100, percent);
@@ -214,7 +216,10 @@ void checkPorts() {
     Brain.Screen.print("10-catapultDetector");
   }
   Brain.Screen.setCursor(y, 1);
-  if (y > 1) Brain.Screen.print("PLUG EM IN");
+  if (y > 1){
+    Brain.Screen.print("PLUG EM IN");
+    error = true;
+  } 
 
 }
 // -------------- CONINUOUS UPDATES ------------------
@@ -271,13 +276,25 @@ void updateCataMotors() {
 }
 void updateLED() {
   while (true) {
-    if (backroller) {
-      indicator.setColor(blue_green);
+    if (!error) {
+      if (backroller) {
+        indicator.setColor(blue_green);
+      }
+      else {
+        indicator.setColor(white);
+      }
+      wait(300, msec);
+      if (macrosActive > 0) {
+        indicator.setColor(red);
+      }
+      wait(300, msec);
     }
     else {
-      indicator.setColor(white);
+      indicator.setColor(red);
+      wait(300, msec);
+      indicator.setColor(colorType::none);
+      wait(300, msec);
     }
-
     wait(20, msec);
   }
 }
