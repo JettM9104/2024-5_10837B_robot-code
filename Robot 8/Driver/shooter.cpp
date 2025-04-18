@@ -31,13 +31,14 @@ inertial BrainInertial = inertial();
 controller Controller;
 motor diffLeft = motor(PORT7, true);
 motor diffRight = motor(PORT4, false);
-motor leftDrive = motor(PORT9, true); // confirmed
-motor rightDrive = motor(PORT3, false); // confirmed
+motor leftDrive = motor(PORT9, true); 
+motor rightDrive = motor(PORT3, false); 
 motor intake = motor(PORT11);
 motor metro = motor(PORT5);
-distance chassis = distance(PORT1);
+distance rpLoad = distance(PORT1);
 touchled indicator = touchled(PORT2);
 bumper catapultDetector = bumper(PORT10);
+optical chassis = optical(PORT8);
 
 
 // generating and setting random seed
@@ -234,9 +235,9 @@ void checkPorts() {
   }
   Brain.Screen.setCursor(y, 1);
 
-  if (!chassis.installed()) {
+  if (!rpLoad.installed()) {
     y++;
-    Brain.Screen.print("1-chassis");
+    Brain.Screen.print("1-rpLoad");
   }
   Brain.Screen.setCursor(y, 1);
 
@@ -250,17 +251,22 @@ void checkPorts() {
     y++;
     Brain.Screen.print("10-catapultDetector");
   }
+  if (!chassis.installed()) {
+    y++;
+    Brain.Screen.print("8-chassis");
+  }
   Brain.Screen.setCursor(y, 1);
   if (y > 1){
     Brain.Screen.print("PLUG EM IN");
     error = true;
   } 
 
+
 }
 // -------------- CONINUOUS UPDATES ------------------
 void updateConsole() {
   while (true) {
-    //printf("%f\n", chassis.objectDistance(inches));
+    printf("%f\n", rpLoad.objectDistance(inches));
     wait(20, msec);
   }
 }
@@ -374,7 +380,7 @@ void backrollerSensor() { // F DOWN MACRO
     diffRight.spin(reverse, 100, percent);
     intake.spin(reverse, 100, percent);
     metro.spin(forward, 100, percent);
-    while (chassis.objectDistance(inches) > 33 && !Controller.ButtonFDown.pressing()) wait(20, msec);
+    while (!((((rpLoad.objectDistance(inches) < 33) && (rpLoad.objectDistance(inches) > 28)) && !chassis.isNearObject()) || Controller.ButtonFDown.pressing())) wait(20, msec);
     printf("2\n");
     if (Controller.ButtonFDown.pressing()) break;
     printf("3\n");
@@ -382,20 +388,20 @@ void backrollerSensor() { // F DOWN MACRO
     rightDrive.spin(reverse, -100, percent);
 
     Brain.Timer.reset();
-    while (Brain.Timer.value() < 0.4 && !Controller.ButtonFDown.pressing()) wait(20, msec);
+    while (rpLoad.objectDistance(inches) > 28 && !Controller.ButtonFDown.pressing()) wait(20, msec);
     if (Controller.ButtonFDown.pressing()) break;
     printf("4\n");
     leftDrive.spin(forward, -100, percent);
     rightDrive.spin(forward, -100, percent);
 
     Brain.Timer.reset();
-    while (Brain.Timer.value() < 0.5 && !Controller.ButtonFDown.pressing()) wait(20, msec);
+    while (Brain.Timer.value() < 0.6 && !Controller.ButtonFDown.pressing()) wait(20, msec);
     if (Controller.ButtonFDown.pressing()) break;
     printf("5\n");
     leftDrive.stop();
     rightDrive.stop();
   }
-  driveActive = false;
+  driveActive = true;
   printf("b\n");
   diffLeft.stop();
   diffRight.stop();
