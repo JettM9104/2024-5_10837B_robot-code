@@ -89,6 +89,9 @@ void updateBackroller();
 void updateCataMotors();
 void updateLED();
 
+void checkPorts();
+void init();
+
 void backrollerSensor();
 void windCata();
 
@@ -99,6 +102,9 @@ void updateConsole();
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+
+  checkPorts();
+  init();
 
   Controller.ButtonLDown.pressed(updateMotors);
   Controller.ButtonLUp.pressed(updateMotors);
@@ -133,15 +139,79 @@ int main() {
 
 
 // ------------------------------ FUNCTION DEFINITIONS -----------------------------------------
-// -------------- CONINUOUS UPDATES ------------------
 
-void updateScreen() {
-  // Screen update logic
+// --------------------INITILIZATIONS ----------------
+
+void init() {
+  leftDrive.setMaxTorque(100, percent);
+  rightDrive.setMaxTorque(100, percent);
+  leftDiff.setMaxTorque(100, percent);
+  rightDiff.setMaxTorque(100, percent);
+  intake.setMaxTorque(100, percent);
+  metro.setMaxTorque(100, percent);
+
+  leftDrive.setVelocity(100, percent);
+  rightDrive.setVelocity(100, percent);
+  leftDiff.setVelocity(100, percent);
+  rightDiff.setVelocity(100, percent);
+  intake.setVelocity(100, percent);
+  metro.setVelocity(100, percent);
 }
+
+void checkPorts() {
+  unsigned short int y = 1;
+  Brain.Screen.setFont(mono10);
+  Brain.Screen.setCursor(y, 1);
+  if (!leftDrive.installed()) {
+    y++;
+    Brain.Screen.print("9-leftDrive");
+  }
+
+  if (!rightDrive.installed()) {
+    y++;
+    Brain.Screen.print("3-rightDrive");
+  }
+
+  if (!diffLeft.installed()) {
+    y++;
+    Brain.Screen.print("7-diffLeft");
+  }
+
+  if (!diffRight.installed()) {
+    y++;
+    Brain.Screen.print("4-diffRight");
+  }
+
+  if (!metro.installed()) {
+    y++;
+    Brain.Screen.print("5-metro");
+  }
+
+  if (!intake.installed()) {
+    y++;
+    Brain.Screen.print("8-intake");
+  }
+
+  if (!chassis.installed()) {
+    y++
+    Brain.Screen.print("1-chassis");
+  }
+
+  if (!indicator.installed()) {
+    y++
+    Brain.Screen.print("2-indicator");
+  }
+
+  if (!catapultDetector.installed()) {
+    y++
+    Brain.Screen.print("10-catapultDetector");
+  }
+
+}
+// -------------- CONINUOUS UPDATES ------------------
 void updateConsole() {
   //console update logic
 }
-
 // ------------- MOTOR UPDATES ---------------
 
 void updateBackroller() {
