@@ -358,6 +358,7 @@ void shootCata() {
 
 void backrollerSensor() { // F DOWN MACRO
   macrosActive++;
+  while (Controller.ButtonFDown.pressing()) wait(20, msec);
   while (true) {
     while (chassis.objectDistance(mm) > 60 && !Controller.ButtonFDown.pressing()) {
       diffLeft.spin(forward, 100, percent);
@@ -372,7 +373,7 @@ void backrollerSensor() { // F DOWN MACRO
 
     Brain.Timer.reset(); // --TIMER RESET STATEMENT
 
-    while (Brain.Timer.value() < 1 && !Controller.ButtonL3.pressing()) {
+    while (Brain.Timer.value() < 0.5 && !Controller.ButtonL3.pressing()) {
       metro.spin(reverse, 100, percent);
       wait(20, msec);
     }
