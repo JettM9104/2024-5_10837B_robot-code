@@ -81,11 +81,21 @@ void vexcodeInit() {
 using namespace vex;
 
 bool backroller = 0;
+
+u_int8_t macrosActive = 0;
+
 void updateMotors();
 void updateBackroller();
 void updateCataMotors();
-void updateled();
+void updateLED();
 
+void backrollerSensor();
+void windCata();
+
+void updateScreen();
+void updateConsole();
+
+// -------------------- MAIN FUNCTION DE
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
@@ -103,7 +113,7 @@ int main() {
   Controller.ButtonFUp.pressed(updateBackroller);
   Controller.ButtonFUp.pressed(updateMotors);
 
-  thread indic = thread(updateled);
+  thread indic = thread(updateLED);
 
   indicator.setBrightness(50);
 
@@ -121,13 +131,26 @@ int main() {
   }
 }
 
+
+// ------------------------------ FUNCTION DEFINITIONS -----------------------------------------
+// -------------- CONINUOUS UPDATES ------------------
+
+void updateScreen() {
+  // Screen update logic
+}
+void updateConsole() {
+  //console update logic
+}
+
+// ------------- MOTOR UPDATES ---------------
+
 void updateBackroller() {
   if (backroller) backroller = 0;
   else { backroller = 1; }
 }
 
 void updateMotors() {
-  if (Controller.ButtonLDown.pressing()) {
+  if (Controller.ButtonLDown.pressing()) { // INTAKE
     diffLeft.spin(forward, 100, percent);
     diffRight.spin(reverse, 100, percent);
     intake.spin(reverse, 100, percent);
@@ -140,7 +163,7 @@ void updateMotors() {
     }
 
   }
-  else if (Controller.ButtonLUp.pressing()) {
+  else if (Controller.ButtonLUp.pressing()) { // REVERSE INTAKE
     diffLeft.spin(reverse, 100, percent);
     diffRight.spin(forward, 100, percent);
     intake.spin(forward, 100, percent);
@@ -154,11 +177,11 @@ void updateMotors() {
 }
 
 void updateCataMotors() {
-  if (Controller.ButtonRDown.pressing()) {
+  if (Controller.ButtonRDown.pressing()) { // WIND CATA
     diffLeft.spin(reverse, 100, percent);
     diffRight.spin(reverse, 100, percent);
   }
-  else if (Controller.ButtonRUp.pressing()) {
+  else if (Controller.ButtonRUp.pressing()) { // SHOOT CATA
     diffLeft.spin(forward, 100, percent);
     diffRight.spin(forward, 100, percent);
   }
@@ -167,7 +190,7 @@ void updateCataMotors() {
     diffRight.stop();
   }
 }
-void updateled() {
+void updateLED() {
   while (true) {
     if (backroller) {
       indicator.setColor(blue_green);
@@ -178,4 +201,50 @@ void updateled() {
 
     wait(20, msec);
   }
+}
+
+
+// ------------------ MACROS ---------------------
+void windCata() { // E DOWN MACRO 
+  macrosActive++;
+  while (Controller.ButtonEDown.pressing()) wait(20, msec);
+
+  do {
+    diffLeft.spin(reverse, 100, percent);
+    diffRight.spin(reverse, 100, percent);
+    wait(20, msec);
+  } while (!catapultDetector.pressing() && !Controller.ButtonEDown.pressing());
+
+  diffLeft.stop();
+  diffRight.stop();
+  macrosActive--;
+}
+
+void backrollerSensor() { // L3 MACRO
+  macrosActive++;
+  while (true) {
+    while (chassis.objectDistance(mm) > 60 && !Controller.ButtonL3.pressing()) {
+      diffLeft.spin(forward, 100, percent);
+      diffRight.spin(reverse, 100, percent);
+      intake.spin(reverse, 100, percent);
+      metro.spin(forward, 100, percent);
+      wait(20, msec);
+    }
+    if (Controller.ButtonL3.pressing()) break;
+
+    metro.spin(reverse, 100, percent);
+
+    Brain.Timer.reset(); // --TIMER RESET STATEMENT
+
+    while (Brain.Timer.value() < 1 && !Controller.ButtonL3.pressing()) {
+      metro.spin(reverse, 100, percent);
+      wait(20, msec);
+    }
+    if (Controller.ButtonL3.pressing()) break;
+  }
+  diffLeft.stop();
+  diffRight.stop();
+  intake.stop();
+  metro.stop();
+  macrosActive--;
 }
