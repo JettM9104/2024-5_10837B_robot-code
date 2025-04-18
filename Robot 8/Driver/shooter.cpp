@@ -104,6 +104,7 @@ void updateScreen();
 void updateConsole();
 
 bool error = false;
+bool driveActive = true;
 
 // -------------------- MAIN FUNCTION DE
 int main() {
@@ -133,21 +134,24 @@ int main() {
 
   thread indic = thread(updateLED);
 
+  thread cons = thread(updateConsole);
+
 
   indic.setPriority(1);
 
   indicator.setBrightness(50);
 
   while (true) {
-    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
-      leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-      rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+    if (driveActive) {
+      if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
+        leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+        rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+      }
+      else {
+        leftDrive.stop();
+        rightDrive.stop();
+      }
     }
-    else {
-      leftDrive.stop();
-      rightDrive.stop();
-    }
-    
     wait(20, msec);
   }
 }
@@ -255,7 +259,10 @@ void checkPorts() {
 }
 // -------------- CONINUOUS UPDATES ------------------
 void updateConsole() {
-  //console update logic
+  while (true) {
+    //printf("%f\n", chassis.objectDistance(inches));
+    wait(20, msec);
+  }
 }
 // ------------- MOTOR UPDATES ---------------
 
@@ -359,29 +366,37 @@ void shootCata() {
 void backrollerSensor() { // F DOWN MACRO
   macrosActive++;
   while (Controller.ButtonFDown.pressing()) wait(20, msec);
+  driveActive = false;
   while (true) {
     if (Controller.ButtonFDown.pressing()) break;
+    printf("1\n");
     diffLeft.spin(forward, 100, percent);
-    diffRight.spin(forward, 100, percent);
-    intake.spin(forward, 100, percent);
+    diffRight.spin(reverse, 100, percent);
+    intake.spin(reverse, 100, percent);
     metro.spin(forward, 100, percent);
-    while (chassis.objectDistance(inches) > 30 && !Controller.ButtonFDown.pressing) wait(20, msec);
+    while (chassis.objectDistance(inches) > 33 && !Controller.ButtonFDown.pressing()) wait(20, msec);
+    printf("2\n");
     if (Controller.ButtonFDown.pressing()) break;
-    leftDrive.spin(reverse, 100, percent);
-    rightDrive.spin(reverse, 100, percent);
+    printf("3\n");
+    leftDrive.spin(reverse, -100, percent);
+    rightDrive.spin(reverse, -100, percent);
 
     Brain.Timer.reset();
-    while (Brain.Timer.value() < 0.4 && !Controller.ButtonFDown.pressing) wait(20, msec);
+    while (Brain.Timer.value() < 0.4 && !Controller.ButtonFDown.pressing()) wait(20, msec);
     if (Controller.ButtonFDown.pressing()) break;
-    leftDrive.spin(forward, 100, percent);
-    rightDrive.spin(forward, 100, percent);
+    printf("4\n");
+    leftDrive.spin(forward, -100, percent);
+    rightDrive.spin(forward, -100, percent);
 
     Brain.Timer.reset();
-    while (Brain.Timer.value() < 0.5 && !Controller.ButtonFDown.pressing) wait(20, msec);
+    while (Brain.Timer.value() < 0.5 && !Controller.ButtonFDown.pressing()) wait(20, msec);
     if (Controller.ButtonFDown.pressing()) break;
+    printf("5\n");
     leftDrive.stop();
     rightDrive.stop();
   }
+  driveActive = false;
+  printf("b\n");
   diffLeft.stop();
   diffRight.stop();
   intake.stop();
