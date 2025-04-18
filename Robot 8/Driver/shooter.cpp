@@ -349,9 +349,9 @@ void windCata() { // E DOWN MACRO
 }
 
 void shootCata() {
-  diffLeft.spin(reverse, 100, percent);
-  diffRight.spin(reverse, 100, percent);
-  wait(500, msec);
+  diffLeft.spin(forward, 100, percent);
+  diffRight.spin(forward, 100, percent);
+  wait(300, msec);
   diffLeft.stop();
   diffRight.stop();
 }
