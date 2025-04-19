@@ -38,6 +38,8 @@ motor rightIntake = motor(PORT4);
 touchled indicator = touchled(PORT2);
 distance rpLoad = distance(PORT5);
 optical chassis = optical(PORT10);
+bumper catapultDetector = bumper(PORT6);
+distance intakeChassis = distance(PORT7);
 
 
 // generating and setting random seed
@@ -95,6 +97,12 @@ void updateCatapult();
 // --- Thread (Not Macros) ---
 void updateLED();
 
+// -- Macros --
+void windCata();
+void shootCata();
+void rapidLoad();
+void countBalls();
+
 // ---- Main Function ----
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
@@ -113,9 +121,13 @@ int main() {
   Controller.ButtonRDown.pressed(updateCatapult);
   Controller.ButtonRDown.released(updateCatapult);
 
+  Controller.ButtonFUp.pressed(countBalls);
+
   thread led = thread(updateLED);
 
   while (true) {
+    leftDrive.spin(forward, (Controller.AxisA.position() + Controller.AxisC.position()), percent);
+    rightDrive.spin(forward, (Controller.AxisA.position() - Controller.AxisC.position()), percent);
     wait(20, msec);
   }
 }
@@ -257,6 +269,7 @@ void updateCatapult() {
 }
 
 // --- Thread Functions (Not Macros) ---
+// -- LED Update --
 void updateLED() {
   while (true) {
     if (errors[0] || errors[1] || errors[2]) {
@@ -267,6 +280,56 @@ void updateLED() {
     }
     else {
       indicator.setColor(blue_green);
+    }
+    wait(20, msec);
+  }
+}
+
+// --- Macros ---
+// -- Wind Catapult --
+void windCata() {
+  while (Controller.ButtonEDown.pressing()) wait(20, msec);
+
+  while (!catapultDetector.pressing() && !Controller.ButtonEDown.pressing()) {
+    rightMetro.spin(reverse, 100, percent);
+    leftMetro.spin(reverse, 10, percent);
+  }
+  rightMetro.stop();
+  leftMetro.stop();
+}
+
+// -- Shoot Catapult --
+void shootCata() {
+  while (Controller.ButtonEUp.pressing()) wait(20, msec);
+  
+  while ((Brain.Timer.value() < 0.5) && !Controller.ButtonEUp.pressing()) {
+    rightMetro.spin(forward, 10, percent);
+    leftMetro.spin(forward, 100, percent);
+  }
+  rightMetro.stop();
+  leftMetro.stop();
+}
+
+// -- Ball Count
+void countBalls() {
+  int x = 0;
+  if (catapultState != 1) {
+    rightMetro.spin(forward, 100, percent);
+  }
+  if (catapultState != 2) {
+    leftMetro.spin(reverse, 100, percent);
+  }
+  leftIntake.spin(reverse, 100, percent);
+  rightIntake.spin(forward, 100, percent);
+  while (true) {
+    while (intakeChassis.objectDistance(mm) > 50) wait(20, msec);
+    printf("%f\n", intakeChassis.objectDistance(mm));
+    x++;
+    if (fmod(x, 2) == 1 && x < 4)  {
+      leftIntake.stop();
+      rightIntake.stop();
+      rightMetro.stop();
+      leftMetro.stop();
     }
     wait(20, msec);
   }
