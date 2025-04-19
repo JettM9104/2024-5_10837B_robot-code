@@ -194,6 +194,13 @@ void init() {
   diffRight.setVelocity(100, percent);
   intake.setVelocity(100, percent);
   metro.setVelocity(100, percent);
+
+  for (int i = 0; i < 3; i++) {
+    indicator.setColor(yellow);
+    wait(300, msec);
+    indicator.setColor(colorType:none);
+    wait(300, msec);
+  }
 }
 
 void checkPorts() {
