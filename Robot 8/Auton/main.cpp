@@ -81,20 +81,37 @@ int main() {
   float dderivative =0;
   float dlastError = 0;
 
+  float values[5] = {0, 0, 0, 0, 0};
 
+  for (int i = 0; i < 5; i++) {
+    values[i] = sigma.objectDistance(inches);
+  }
+  float averages = sigma.objectDistance(inches);
 
   // pid w/ distance sensor
-  while (!(sigma.objectDistance(inches) >= 19.5 && sigma.objectDistance(inches) <= 21.5)) {
-    derror = 20 - sigma.objectDistance(inches);
+  while (!(averages >= 24.5 && averages <= 25.5)) {
+    
+    for (int i = 0; i < 5; i++) {
+      averages += values[i];
+    }
+    averages /= 5;
+
+    derror = 25 - averages;
     dintegral += derror;
     dderivative = derror - dlastError;
-    printf("dist %f\n", sigma.objectDistance(inches));
+    printf("dist %f\n", averages);
 
-    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.7), percent);
-    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.7), percent);
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.06 + dderivative * 0.7), percent);
+    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.06 + dderivative * 0.7), percent);
 
     wait(120, msec);
     dlastError = derror;
+
+    for (int i = 0; i < 4; i++) {
+      values[i] = values[i+1];
+    }
+
+    values[4] = sigma.objectDistance(inches);
   }  
 
   leftDrive.stop();
@@ -107,15 +124,18 @@ int main() {
   dintegral = 0;
   dderivative =0;
   dlastError = 0;
+
+  Brain.Timer.reset();
   while (!(BrainInertial.rotation(degrees) >= 89 && BrainInertial.rotation(degrees) <= 91)) {
     derror = 90 - BrainInertial.rotation(degrees);
     dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.4 + dintegral * 0.0015 + dderivative * 0.8), percent);
-    rightDrive.spin(forward, (derror * 0.4 + dintegral * 0.0015 + dderivative * 0.8), percent);
+    leftDrive.spin(reverse, (derror * 0.4 + dintegral * 0.0025 + dderivative * 1.4), percent);
+    rightDrive.spin(forward, (derror * 0.4 + dintegral * 0.0025 + dderivative * 1.4), percent);
 
+    if (Brain.Timer.value() > 2) break;
     wait(100, msec);
     dlastError = derror;
   }  
@@ -128,7 +148,12 @@ int main() {
 
   // drive back
 
-  drive(-100000, 1000, 1000, 0, 2, 100, 100);
+  drive(-100000, 1000, 1000, 0, 3, 100, 100);
+
+
+  leftDrive.stop();
+  rightDrive.stop();
+  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
   derror = 0;
   dintegral = 0;
@@ -146,9 +171,6 @@ int main() {
     wait(20, msec);
     dlastError = derror;
   }  
-  leftDrive.stop();
-  rightDrive.stop();
-  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
   wait(500, msec);
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
