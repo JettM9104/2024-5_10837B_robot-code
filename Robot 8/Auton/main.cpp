@@ -25,6 +25,8 @@ controller Controller = controller();
 inertial BrainInertial = inertial();
 motor leftDrive = motor(PORT3, false);
 motor rightDrive = motor(PORT9, true);
+distance sigma = distance(PORT5);
+distance alpha = distance(PORT1);
 
 void initializeRandomSeed(){
   wait(100,msec);
@@ -57,73 +59,214 @@ int main() {
   vexcodeInit();
   init();
 
-  BrainInertial.setRotation(0, degrees);
 
+  BrainInertial.calibrate();
+  // Print that the Inertial Sensor is calibrating while
+  // waiting for it to finish calibrating.
+  while(BrainInertial.isCalibrating()){
+      Brain.Screen.clearScreen();
+      Brain.Screen.print("Inertial Calibrating");
+      wait(50, msec);
+  }
+
+  BrainInertial.setRotation(90, degrees); // change to zero after
+  /*
 
   drive(530, 1, 0.01, 0.1, 100, 100);
+  */
+  float derror;
+  float dintegral = 0;
+  float dderivative =0;
+  float dlastError = 0;
+  /*
+  while (!(sigma.objectDistance(inches) >= 15 && sigma.objectDistance(inches) <= 19)) {
+    derror = 17 - sigma.objectDistance(inches);
+    dintegral += derror;
+    dderivative = derror - dlastError;
+    printf("error %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.1), percent);
+    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.1), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  }  
   wait(500, msec);
-  turn(-130, 0.5, 0.01, 0.5, 2.7, 100);
+  turn(-160, 11, 1, 0.5, 2, 100);
+
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+  while (!(BrainInertial.rotation(degrees) >= 89 && BrainInertial.rotation(degrees) <= 91)) {
+    derror = 90 - BrainInertial.rotation(degrees);
+    dintegral += derror;
+    dderivative = derror - dlastError;
+    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  }  
   printf("%f\n", BrainInertial.rotation(degrees));
 
-  
-  if (BrainInertial.rotation(degrees) > -88) {
-    while ((BrainInertial.rotation(degrees) > -88 && BrainInertial.rotation(degrees) < -91)) {
-      leftDrive.spin(reverse, 100, percent);
-      rightDrive.spin(forward, 100, percent);
-    }
-  }
-  else if (BrainInertial.rotation(degrees) < -91) {
-    while ((BrainInertial.rotation(degrees) > -88 && BrainInertial.rotation(degrees) < -91)) {
-      leftDrive.spin(reverse, 100, percent);
-      rightDrive.spin(forward, 100, percent);
-    }
-  }
   wait(500, msec);
 
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
 
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+  while (!(BrainInertial.rotation(degrees) >= 89 && BrainInertial.rotation(degrees) <= 91)) {
+    derror = 90 - BrainInertial.rotation(degrees);
+    dintegral += derror;
+    dderivative = derror - dlastError;
+    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  }  
+
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
   wait(500, msec);
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+
+  
 
 //////
 
 
-  
-  drive(420, 1, 0.01, 0.1, 0, 100, 100);
+
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+  while (!(BrainInertial.rotation(degrees) >= 89 && BrainInertial.rotation(degrees) <= 91)) {
+    derror = 90 - BrainInertial.rotation(degrees);
+    dintegral += derror;
+    dderivative = derror - dlastError;
+    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  }  
+
+  */
+
+  printf("inital curve\n");
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+  while (!(BrainInertial.rotation(degrees) >= 118 && BrainInertial.rotation(degrees) <= 122)) {
+    derror = 120 - BrainInertial.rotation(degrees);
+    dintegral = fabs(derror) > 3 ? dintegral + derror : 0;
+    dderivative = derror - dlastError;
+
+    rightDrive.spin(forward, (derror * 0.5 + dintegral * 0.005 + dderivative * 0.9), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  }  
+  leftDrive.stop();
+  rightDrive.stop();
+  leftDrive.setStopping(hold);
+  rightDrive.setStopping(hold);
+
+  printf("inital drive back\n");
+
+  drive(400, 1, 0.01, 0.1, 2, 100, 100);
+
+  printf("adjist to be close to wall\n");
+  while (!((-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180)) >= 20 && (-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180)) <= 22)) {
+    derror = 21 - (-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180));
+    dintegral = fabs(derror) > 3 ? dintegral + derror : 0;
+    dderivative = derror - dlastError;
+
+    leftDrive.spin(reverse, (derror * 0.5 + dintegral * 0.05 + dderivative * 0.9), percent);
+    rightDrive.spin(reverse, (derror * 0.5 + dintegral * 0.05 + dderivative * 0.9), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  } 
+
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+
+  printf("point to heading 90\n");
+  do {
+    derror = 90 - BrainInertial.rotation(degrees);
+    dintegral = fabs(derror) < 3 ? 0 : dintegral + derror;
+
+    printf("error %f\nintegral %f\n\n", derror, dintegral);
+
+    leftDrive.spin(reverse, (derror * 0.6 + dintegral * 0.007), percent);
+    rightDrive.spin(forward, (derror * 0.6 + dintegral * 0.007), percent);
+
+    wait(20, msec);
+    dlastError = derror;
+  } while (fabs(derror) > 1);
+  printf("full speed\n");
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
+
+  Brain.Timer.reset();
+
+  leftDrive.stop();
+  rightDrive.stop();
+
+
+  wait(1000, msec);
+
+
+
+
+
+
+
+
+
 
   
 
-  drive(100, 1, 0.01, 0.1, 0, 100, 0);
-
-  
-
-  wait(500, msec);
+  // wait(500, msec);
 
 
   
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
-  drive (200, 0.8, 0.01, 0.5, 0.5, 0, 100);
   
-  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  wait(500, msec);
-  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  wait(500, msec);
-  wait(500, msec);
+  // drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  // drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  // wait(500, msec);
+  // drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  // drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  // wait(500, msec);
+  // wait(500, msec);
 
   
 
-  wait(1000, msec);
+  // wait(1000, msec);
 
-  while (true) {
-    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-    drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  // while (true) {
+  //   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
+  //   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
 
-  }
+  // }
 
 }
 
@@ -186,9 +329,10 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
   rightDrive.resetPosition();
 
   while (true) {
-    error = rawTheta - (leftDrive.position(degrees) - rightDrive.position(degrees)) / 2;
+    error = rawTheta - ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2);
     integral = integral <= 3 ? 0 : error + integral;
     derivative = error - lastError;
+    printf("error       %f\nintegral    %f\nderivative%f\n\n\n", error, integral, derivative);
 
     motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
     
@@ -197,6 +341,8 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 
     if (fabs(error) < 5) break;
     if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) break;
+
+    printf("%f\n\n\n", (Brain.Timer.value() - beginTimer));
     lastError = error;
     wait(20, msec);
   }
