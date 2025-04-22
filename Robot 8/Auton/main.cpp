@@ -69,34 +69,37 @@ int main() {
       wait(50, msec);
   }
 
-  BrainInertial.setRotation(90, degrees); // change to zero after
-  /*
+  BrainInertial.setRotation(0, degrees); // change to zero after
+
 
   // drive out
 
   drive(530, 1, 0.01, 0.1, 100, 100);
-  */
+
   float derror;
   float dintegral = 0;
   float dderivative =0;
   float dlastError = 0;
-  /*
+
+
 
   // pid w/ distance sensor
-  while (!(sigma.objectDistance(inches) >= 15 && sigma.objectDistance(inches) <= 19)) {
-    derror = 17 - sigma.objectDistance(inches);
+  while (!(sigma.objectDistance(inches) >= 19.5 && sigma.objectDistance(inches) <= 21.5)) {
+    derror = 20 - sigma.objectDistance(inches);
     dintegral += derror;
     dderivative = derror - dlastError;
-    printf("error %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+    printf("dist %f\n", sigma.objectDistance(inches));
 
-    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.1), percent);
-    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.1), percent);
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.7), percent);
+    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.7), percent);
 
-    wait(20, msec);
+    wait(120, msec);
     dlastError = derror;
   }  
+
+  leftDrive.stop();
+  rightDrive.stop();
   wait(500, msec);
-  turn(-160, 11, 1, 0.5, 2, 100);
 
   // turn to heading 90
 
@@ -106,16 +109,19 @@ int main() {
   dlastError = 0;
   while (!(BrainInertial.rotation(degrees) >= 89 && BrainInertial.rotation(degrees) <= 91)) {
     derror = 90 - BrainInertial.rotation(degrees);
-    dintegral += derror;
+    dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
-    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+    leftDrive.spin(reverse, (derror * 0.4 + dintegral * 0.0015 + dderivative * 0.8), percent);
+    rightDrive.spin(forward, (derror * 0.4 + dintegral * 0.0015 + dderivative * 0.8), percent);
 
-    wait(20, msec);
+    wait(100, msec);
     dlastError = derror;
   }  
+
+  leftDrive.stop();
+  rightDrive.stop();
   printf("%f\n", BrainInertial.rotation(degrees));
 
   wait(500, msec);
@@ -140,7 +146,8 @@ int main() {
     wait(20, msec);
     dlastError = derror;
   }  
-
+  leftDrive.stop();
+  rightDrive.stop();
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
   wait(500, msec);
@@ -163,15 +170,14 @@ int main() {
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
-    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.1 + dderivative * 0.1), percent);
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.8), percent);
+    rightDrive.spin(forward, (derror * 0.9 + dintegral * 0.01 + dderivative * 0.8), percent);
 
     wait(20, msec);
     dlastError = derror;
   }  
-
-  */
-
+  leftDrive.stop();
+  rightDrive.stop();
   printf("inital curve\n");
   derror = 0;
   dintegral = 0;
@@ -208,7 +214,8 @@ int main() {
     wait(20, msec);
     dlastError = derror;
   } 
-
+  leftDrive.stop();
+  rightDrive.stop();
   derror = 0;
   dintegral = 0;
   dderivative =0;
@@ -221,12 +228,14 @@ int main() {
 
     printf("error %f\nintegral %f\n\n", derror, dintegral);
 
-    leftDrive.spin(reverse, (derror * 0.6 + dintegral * 0.007), percent);
-    rightDrive.spin(forward, (derror * 0.6 + dintegral * 0.007), percent);
+    leftDrive.spin(reverse, (derror * 0.4 + dintegral * 0.007), percent);
+    rightDrive.spin(forward, (derror * 0.4 + dintegral * 0.007), percent);
 
     wait(20, msec);
     dlastError = derror;
   } while (fabs(derror) > 1);
+  leftDrive.stop();
+  rightDrive.stop();
   printf("full speed\n");
   derror = 0;
   dintegral = 0;
@@ -240,20 +249,6 @@ int main() {
 
 
   wait(1000, msec);
-
-
-
-
-
-
-
-
-
-
-  
-
-  // wait(500, msec);
-
 
   
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
