@@ -72,6 +72,8 @@ int main() {
   BrainInertial.setRotation(90, degrees); // change to zero after
   /*
 
+  // drive out
+
   drive(530, 1, 0.01, 0.1, 100, 100);
   */
   float derror;
@@ -79,6 +81,8 @@ int main() {
   float dderivative =0;
   float dlastError = 0;
   /*
+
+  // pid w/ distance sensor
   while (!(sigma.objectDistance(inches) >= 15 && sigma.objectDistance(inches) <= 19)) {
     derror = 17 - sigma.objectDistance(inches);
     dintegral += derror;
@@ -93,6 +97,8 @@ int main() {
   }  
   wait(500, msec);
   turn(-160, 11, 1, 0.5, 2, 100);
+
+  // turn to heading 90
 
   derror = 0;
   dintegral = 0;
@@ -113,6 +119,8 @@ int main() {
   printf("%f\n", BrainInertial.rotation(degrees));
 
   wait(500, msec);
+
+  // drive back
 
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
 
