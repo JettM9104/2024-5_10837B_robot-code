@@ -84,9 +84,9 @@ int main() {
   float values[5] = {0, 0, 0, 0, 0};
 
   for (int i = 0; i < 5; i++) {
-    values[i] = sigma.objectDistance(inches);
+    values[i] = 20;
   }
-  float averages = sigma.objectDistance(inches);
+  float averages = 20;
 
   // pid w/ distance sensor
   while (!(averages >= 24.5 && averages <= 25.5)) {
@@ -101,8 +101,8 @@ int main() {
     dderivative = derror - dlastError;
     printf("dist %f\n", averages);
 
-    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0.06 + dderivative * 0.7), percent);
-    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0.06 + dderivative * 0.7), percent);
+    leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0 + dderivative * 0.7), percent);
+    rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0 + dderivative * 0.7), percent);
 
     wait(120, msec);
     dlastError = derror;
@@ -132,8 +132,8 @@ int main() {
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.4 + dintegral * 0.0025 + dderivative * 1.4), percent);
-    rightDrive.spin(forward, (derror * 0.4 + dintegral * 0.0025 + dderivative * 1.4), percent);
+    leftDrive.spin(reverse, (derror * 0.42 + dintegral * 0.0025 + dderivative * 1.4), percent);
+    rightDrive.spin(forward, (derror * 0.42 + dintegral * 0.0025 + dderivative * 1.4), percent);
 
     if (Brain.Timer.value() > 2) break;
     wait(100, msec);
