@@ -190,6 +190,7 @@ class motor_group {
 private:
   motor motor1;
   motor motor2;
+  stopping stopp;
 
 public:
   // Constructor that initializes two motors with specified ports and options

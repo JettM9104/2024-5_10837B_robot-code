@@ -86,19 +86,19 @@ int main() {
   vexcodeInit();
   // Begin project code
   while (true) {
-    if (Controller.ButtonLUp.pressing()) { leftMetro.spin(forward, 100, percent); } //
-    else if (Controller.ButtonLDown.pressing()) { leftMetro.spin(reverse, 100, percent); }////
+    if (Controller.ButtonLUp.pressing()) { leftMetro.spin(forward, 100, percent); } 
+    else if (Controller.ButtonLDown.pressing()) { leftMetro.spin(reverse, 100, percent); }///////
     else  { leftMetro.stop();}
 
-    if (Controller.ButtonRUp.pressing()) { rightMetro.spin(forward, 100, percent); }
-    else if (Controller.ButtonRDown.pressing()) { rightMetro.spin(reverse, 100, percent); } ////
+    if (Controller.ButtonRUp.pressing()) { rightMetro.spin(forward, 100, percent); }/////
+    else if (Controller.ButtonRDown.pressing()) { rightMetro.spin(reverse, 100, percent); } 
     else { rightMetro.stop(); }
 
     if (Controller.ButtonEUp.pressing()) { leftIntake.spin(forward, 100, percent); }
-    else if (Controller.ButtonEDown.pressing()) { leftIntake.spin(reverse, 100, percent); } //
+    else if (Controller.ButtonEDown.pressing()) { leftIntake.spin(reverse, 100, percent); } //////
     else { leftIntake.stop(); }
 
-    if (Controller.ButtonFUp.pressing()) { rightIntake.spin(forward, 100, percent); }
+    if (Controller.ButtonFUp.pressing()) { rightIntake.spin(forward, 100, percent); } ?////
     else if (Controller.ButtonFDown.pressing()) { rightIntake.spin(reverse, 100, percent); }
     else { rightIntake.stop(); }
 
