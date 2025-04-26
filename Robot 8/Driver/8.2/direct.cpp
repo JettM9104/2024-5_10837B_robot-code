@@ -26,13 +26,49 @@ brain Brain;
 // END IQ MACROS
 
 
+controller Controller = controller();
+class motor_group_group {
+private:
+  motor_group motora;
+  motor_group motorb;
+
+public:
+  motor_group_group(motor_group motora, motor_group motorb): motora(motora), motorb(motorb) {}
+
+  void spin(directionType dir, int32_t velocity, percentUnits units) {
+    motora.spin(dir, velocity, units);
+    motorb.spin(dir, velocity, units);
+  }
+  void spin(directionType dir) {
+    motora.spin(dir);
+    motorb.spin(dir);
+  }
+  void stop() {
+    motora.stop();
+    motorb.stop();
+  }
+};
+
+
 // Robot configuration code.
 inertial BrainInertial = inertial();
-controller Controller;
-motor leftDrive = motor(PORT10, false);
-motor rightDrive = motor(PORT4, true);
+distance side = distance(PORT1);
+touchled indicator = touchled(PORT2);
+motor rightDrive = motor(PORT3);
+motor rightFlywheel = motor(PORT4);
+distance rpLoad = distance(PORT5);
+motor rightMetro = motor(PORT6); ////
+bumper catapultDetector = bumper(PORT7);
+motor leftDrive = motor(PORT9, true);
 
-motor pushback = motor(PORT1);
+motor leftFlywheel = motor(PORT11, true);
+motor leftMetro = motor(PORT12, true); ////
+
+motor_group flywheel = motor_group(leftFlywheel, rightFlywheel);
+
+
+bool driveDone = true;
+bool cancel = false;
 
 
 // generating and setting random seed
@@ -74,33 +110,52 @@ void vexcodeInit() {
 // Allows for easier use of the VEX Library
 using namespace vex;
 
-bool driveActive = true;
-
+void updateIndexer();
+void updateFlywheel();
 
 int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+  // Begin project code
+  Controller.ButtonRUp.pressed(updateIndexer);
+  Controller.ButtonRUp.released(updateIndexer);
+  Controller.ButtonRDown.pressed(updateIndexer);
+  Controller.ButtonRDown.released(updateIndexer);
 
-  while (true) {
-    if (driveActive) {
-      if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
-        leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
-        rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
-      }
-      else {
-        leftDrive.stop();
-        rightDrive.stop();
-      }
-    }
+  Controller.ButtonLUp.pressed(updateFlywheel);
+  Controller.ButtonLUp.released(updateFlywheel);
+  Controller.ButtonLDown.pressed(updateFlywheel);
+  Controller.ButtonLDown.released(updateFlywheel);
 
-    if (Controller.ButtonLUp.pressing()) {
-      pushback.spin(reverse, 100, percent);
-    }
-    else if (Controller.ButtonLDown.pressing()) {
-      pushback.spin(forward, 100, percent);
-    }
-    else {
-      pushback.stop();
-    }
-    wait(20, msec);
+  
+}
+
+void updateIndexer() {
+  if (Controller.ButtonRDown.pressing()) {
+    leftMetro.spin(reverse, 100, percent);
+    leftDrive.spin(reverse, 100, percent);
   }
-  return 0;
+  else if (Controller.ButtonRUp.pressing()) {
+    leftMetro.spin(forward, 100, percent);
+    leftDrive.spin(forward, 100, percent);
+  }
+  else {
+    leftMetro.stop();
+    leftDrive.stop();
+  }
+}
+
+void updateFlywheel() {
+  if (Controller.ButtonLDown.pressing()) {
+    rightMetro.spin(forward, 100, percent);
+    flywheel.spin(forward, 100, percent);
+  }
+  else if (Controller.ButtonLUp.pressing()) {
+    rightMetro.spin(reverse, 100, percent);
+    flywheel.spin(reverse, 100, percent);
+  }
+  else {
+    rightMetro.stop();
+    flywheel.stop();
+  }
 }

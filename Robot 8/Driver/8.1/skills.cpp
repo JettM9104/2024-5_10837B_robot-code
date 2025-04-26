@@ -27,18 +27,7 @@ brain Brain;
 
 
 // Robot configuration code.
-inertial BrainInertial = inertial();
-controller Controller;
-motor diffLeft = motor(PORT7, true);
-motor diffRight = motor(PORT4, false);
-motor leftDrive = motor(PORT9, true); 
-motor rightDrive = motor(PORT3, false); 
-motor intake = motor(PORT11);
-motor metro = motor(PORT5);
-distance rpLoad = distance(PORT1);
-touchled indicator = touchled(PORT2);
-bumper catapultDetector = bumper(PORT10);
-optical chassis = optical(PORT8);
+
 
 
 // generating and setting random seed

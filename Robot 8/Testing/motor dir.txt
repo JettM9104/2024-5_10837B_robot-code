@@ -1,5 +1,7 @@
 R UP + L UP = Reverse / Shoot Cata
-R DOWN + L DOWN = Forward / Wind Cata
+
+R DOWN + L DOWN = Forward / Wind Cata ---
+
 R UP + L DOWN = Reverse Intake
 R DOWN + L UP = Forward Intake
 
