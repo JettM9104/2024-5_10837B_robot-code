@@ -25,7 +25,6 @@ brain Brain;
   for (int iterator = 0; iterator < iterations; iterator++)
 // END IQ MACROS
 
-
 controller Controller = controller();
 // Robot configuration code.
 inertial BrainInertial = inertial();
@@ -33,7 +32,6 @@ motor leftDrive = motor(PORT3, false);
 motor rightDrive = motor(PORT9, true);
 distance sigma = distance(PORT5);
 distance alpha = distance(PORT1);
-
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -408,4 +406,5 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
   leftDrive.stop();
   rightDrive.stop();
 }
+
 
