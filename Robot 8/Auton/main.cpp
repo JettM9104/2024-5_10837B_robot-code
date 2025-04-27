@@ -25,13 +25,10 @@ brain Brain;
   for (int iterator = 0; iterator < iterations; iterator++)
 // END IQ MACROS
 
-controller Controller = controller();
+
 // Robot configuration code.
 inertial BrainInertial = inertial();
-motor leftDrive = motor(PORT3, false);
-motor rightDrive = motor(PORT9, true);
-distance sigma = distance(PORT5);
-distance alpha = distance(PORT1);
+
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -66,12 +63,27 @@ void init();
 void drive(const float distance, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int lmaxSpeed = 100, const unsigned short int rmaxSpeed = 100);
 void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
 
+void spinIntake();
+
+void windCata();
 
 int main() {
   vexcodeInit();
   init();
 
+  leftDrive.setMaxTorque(100, percent);
+  rightDrive.setMaxTorque(100, percent);
+  leftMetro.setMaxTorque(100, percent);
+  rightMetro.setMaxTorque(100, percent);
+  leftIntake.setMaxTorque(100, percent);
+  rightIntake.setMaxTorque(100, percent);
 
+  leftDrive.setVelocity(100, percent);
+  rightDrive.setVelocity(100, percent);
+  leftMetro.setVelocity(100, percent);
+  rightMetro.setVelocity(100, percent);
+  leftIntake.setVelocity(100, percent);
+  rightIntake.setVelocity(100, percent);
   BrainInertial.calibrate();
   // Print that the Inertial Sensor is calibrating while
   // waiting for it to finish calibrating.
@@ -81,99 +93,51 @@ int main() {
       wait(50, msec);
   }
 
-  BrainInertial.setRotation(90, degrees); // change to zero after
+  BrainInertial.setRotation(0, degrees); // change to zero after
 
   if (Brain.Battery.capacity(percent) > 95) indicator.setColor(green);
   else if (Brain.Battery.capacity(percent) > 90) indicator.setColor(yellow);
   else if (Brain.Battery.capacity(percent) > 85) indicator.setColor(orange);
   else { indicator.setColor(red); }
 
-  // drive out
-  /*
 
-  leftDrive.spinFor(forward, 620, degrees, false);
-  rightDrive.spinFor(forward, 620, degrees, true);
+  // drive out
+
+  while (!indicator.pressing()) wait(20,  msec);
+  while (indicator.pressing()) wait(20, msec);
+
+
+
+  while (!catapultDetector.pressing()) {
+    rightMetro.spin(reverse, 100, percent);
+  }
+  rightMetro.stop();
+  leftMetro.stop();
+
+
+  while (!indicator.pressing()) wait(20,  msec);
+  while (indicator.pressing()) wait(20, msec);
+  thread ohio = thread(spinIntake);
+
+
+  leftDrive.spinFor(forward, 610, degrees, false);
+  rightDrive.spinFor(forward, 610, degrees, true);
 
   leftDrive.setStopping(brake);
   rightDrive.setStopping(brake);
-*/
-  float derror;
-  float dintegral = 0;
-  float dderivative =0;
-  float dlastError = 0;
-  /*
 
-  float values[5] = {0, 0, 0, 0, 0};
-
-  for (int i = 0; i < 5; i++) {
-    values[i] = 20;
-  }
-  float averages = 20;
-
-  // pid w/ distance sensor
-  
-  // while (!(averages >= 24.5 && averages <= 25.5)) {
-    
-  //   for (int i = 0; i < 5; i++) {
-  //     averages += values[i];
-  //   }
-  //   averages /= 5;
-
-  //   derror = 25 - averages;
-  //   dintegral += derror;
-  //   dderivative = derror - dlastError;
-  //   printf("dist %f\n", averages);
-
-  //   leftDrive.spin(reverse, (derror * 0.9 + dintegral * 0 + dderivative * 0.7), percent);
-  //   rightDrive.spin(reverse, (derror * 0.9 + dintegral * 0 + dderivative * 0.7), percent);
-
-  //   wait(120, msec);
-  //   dlastError = derror;
-
-  //   for (int i = 0; i < 4; i++) {
-  //     values[i] = values[i+1];
-  //   }
-
-  //   values[4] = sigma.objectDistance(inches);
-  // }  
-
-  // leftDrive.stop();
-  // rightDrive.stop();
-  
   wait(500, msec);
+
+  
 
   // turn to heading 90
 
-  leftDrive.spinFor(reverse, 200, degrees, false);
-  rightDrive.spinFor(forward, 200, degrees, false);
+  leftDrive.spinFor(reverse, 155, degrees, false);
+  rightDrive.spinFor(forward, 155, degrees, false);
   wait(2, seconds);
   leftDrive.stop();
   rightDrive.stop();
 
-
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
-  
-
-  Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 87 && BrainInertial.rotation(degrees) <= 93)) {
-    derror = 90 - BrainInertial.rotation(degrees);
-    dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
-    dderivative = derror - dlastError;
-    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
-
-    leftDrive.spin(reverse, (derror * 0.42 + dintegral * 0.015 + dderivative * 1.4), percent);
-    rightDrive.spin(forward, (derror * 0.42 + dintegral * 0.015 + dderivative * 1.4), percent);
-
-    if (Brain.Timer.value() > 2) break;
-    wait(100, msec);
-    dlastError = derror;
-  }
-
-  leftDrive.stop();
-  rightDrive.stop();
   printf("%f\n", BrainInertial.rotation(degrees));
 
   wait(500, msec);
@@ -187,25 +151,41 @@ int main() {
   rightDrive.stop();
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
-
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  wait(500, msec);
 
-  */
+
+    
+  rightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  leftIntake.spin(reverse, 100, percent);
+  rightIntake.spin(forward, 100, percent);
+  while (backrollerSensor.isNearObject()) wait(20, msec);
+  wait(1200, msec);
+
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.5) {
+    leftMetro.spin(forward, 100, percent);
+    wait(20, msec);
+  }
+
+  
+  thread cata1 = thread(windCata);
 
   printf("inital curve\n");
-  drive(100, 1, 0.01, 0.5, 0.8, 100, 100);
+  drive(140, 1, 0.01, 0.5, 0.8, 100, 100);
 
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
+  wait(1000, msec);
   
 
+
+
+
+
+  float derror = 0;
+  float dintegral = 0;
+  float dderivative =0;
+  float dlastError = 0;
+  
   Brain.Timer.reset();
   while (!(BrainInertial.rotation(degrees) >= 147 && BrainInertial.rotation(degrees) <= 153)) {
     derror = 150 - BrainInertial.rotation(degrees);
@@ -213,75 +193,44 @@ int main() {
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.42 + dintegral * 0.015 + dderivative * 1.4), percent);
-    rightDrive.spin(forward, (derror * 0.42 + dintegral * 0.015 + dderivative * 1.4), percent);
+    leftDrive.spin(reverse, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
+    rightDrive.spin(forward, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
 
     if (Brain.Timer.value() > 2) break;
-    wait(100, msec);
+    wait(200, msec);
     dlastError = derror;
   }
 
 
-
-
-  /*
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
-  while (!(BrainInertial.rotation(degrees) >= 118 && BrainInertial.rotation(degrees) <= 122)) {
-    derror = 120 - BrainInertial.rotation(degrees);
-    dintegral = fabs(derror) > 3 ? dintegral + derror : 0;
-    dderivative = derror - dlastError;
-
-    rightDrive.spin(forward, (derror * 0.5 + dintegral * 0.005 + dderivative * 0.9), percent);
-
-    wait(20, msec);
-    dlastError = derror;
-  }  
-  leftDrive.stop();
-  rightDrive.stop();
-  */
   leftDrive.setStopping(hold);
   rightDrive.setStopping(hold);
 
   printf("inital drive back\n");
 
-  drive(600, 1, 0.01, 0.1, 2, 100, 100);
+  drive(420, 1, 0.01, 0.1, 2, 100, 100);
 
   printf("adjist to be close to wall\n");
-  // while (!((-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180)) >= 20 && (-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180)) <= 22)) {
-  //   derror = 21 - (-alpha.objectDistance(inches) * sin(-BrainInertial.rotation(degrees) * M_PI / 180));
-  //   dintegral = fabs(derror) > 3 ? dintegral + derror : 0;
-  //   dderivative = derror - dlastError;
 
-  //   leftDrive.spin(reverse, (derror * 0.5 + dintegral * 0.05 + dderivative * 0.9), percent);
-  //   rightDrive.spin(reverse, (derror * 0.5 + dintegral * 0.05 + dderivative * 0.9), percent);
-
-  //   wait(20, msec);
-  //   dlastError = derror;
-  // } 
-  // leftDrive.stop();
-  // rightDrive.stop();
-
-  drive(-300, 0.1, 0.1, 0.1)
   derror = 0;
   dintegral = 0;
   dderivative =0;
   dlastError = 0;
   
 
+
+
   Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 87 && BrainInertial.rotation(degrees) <= 93)) {
+  while (!(BrainInertial.rotation(degrees) >= 88 && BrainInertial.rotation(degrees) <= 92)) {
     derror = 90 - BrainInertial.rotation(degrees);
-    dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
+    dintegral = fabs(derror) < 3 ? 200 : dintegral + derror;
     dderivative = derror - dlastError;
-    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
+    printf("inertial reading %f\n", BrainInertial.rotation(degrees));
+    float motorSpeed = (derror * 0.67 + dintegral * 0.025 + dderivative * 4.4);
 
-    leftDrive.spin(reverse, (derror * 0.8 + dintegral * 0.015 + dderivative * 1.4), percent);
-    rightDrive.spin(forward, (derror * 0.8 + dintegral * 0.015 + dderivative * 1.4), percent);
 
-    if (Brain.Timer.value() > 2) break;
+    leftDrive.spin(reverse, motorSpeed, percent);
+    rightDrive.spin(forward, motorSpeed, percent);
+
     wait(100, msec);
     dlastError = derror;
   }
@@ -301,29 +250,58 @@ int main() {
   leftDrive.stop();
   rightDrive.stop();
 
+  wait(200, msec);
 
-  wait(1000, msec);
 
   
   drive(-100000, 1000, 1000, 0, 2, 100, 100);
-  
-  // drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-  // drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  // wait(500, msec);
-  // drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-  // drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-  // wait(500, msec);
-  // wait(500, msec);
 
-  
+  rightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  leftIntake.spin(reverse, 100, percent);
+  rightIntake.spin(forward, 100, percent);
+    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
-  // wait(1000, msec);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
-  // while (true) {
-  //   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-  //   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  wait(300, msec);
 
-  // }
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.5) {
+    leftMetro.spin(forward, 100, percent);
+    wait(20, msec);
+  }
+
+  while (true) {
+  rightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  leftIntake.spin(reverse, 100, percent);
+  rightIntake.spin(forward, 100, percent);
+    while (!((((sigma.objectDistance(inches) < 33) && (sigma.objectDistance(inches) > 28)) && !backrollerSensor.isNearObject()))) wait(20, msec);
+    printf("2\n");
+    printf("3\n");
+    leftDrive.spin(reverse, -100, percent);
+    rightDrive.spin(reverse, -100, percent);
+
+    Brain.Timer.reset();
+    while (sigma.objectDistance(inches) > 29) wait(20, msec);
+    printf("4\n");
+    leftDrive.spin(forward, -100, percent);
+    rightDrive.spin(forward, -100, percent);
+
+    Brain.Timer.reset();
+    while (Brain.Timer.value() < 1) wait(20, msec);
+    printf("5\n");
+    leftDrive.stop();
+    rightDrive.stop();
+  }
+  printf("b\n");
+  rightIntake.stop();
+  leftIntake.stop();
+  rightMetro.stop();
+  leftMetro.stop();
 
 }
 
@@ -408,3 +386,25 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 }
 
 
+void spinIntake() {
+  rightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  leftIntake.spin(reverse, 100, percent);
+  rightIntake.spin(forward, 100, percent);
+  while (!backrollerSensor.isNearObject()) wait(50, msec);
+  while (backrollerSensor.isNearObject()) wait(50, msec);
+  rightMetro.stop();
+  leftMetro.stop();
+  leftIntake.stop();
+  rightIntake.stop();
+}
+
+void windCata() {
+  while (!catapultDetector.pressing()) {
+    rightMetro.spin(reverse, 100, percent);
+    leftMetro.spin(reverse, 100, percent);
+    wait(20, msec);
+  }
+  rightMetro.stop();
+  leftMetro.stop();
+}
