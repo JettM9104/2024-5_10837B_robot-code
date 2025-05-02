@@ -88,9 +88,11 @@ void vexcodeInit() {
 using namespace vex;
 
 bool backroller = 1;
+u_int8_t macrosActive = 0;
 
 void updateIntake();
 void updateCatapult();
+void updateLED();
 
 void toggleBackroller();
 
@@ -100,9 +102,20 @@ void triggerShootCatapult();
 void windCatapult();
 void shootCatapult();
 
+void init();
+
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+
+  init();
+
+  for (int i = 0; i < 3; i++) {
+    indicator.setColor(blue_green);
+    wait(110, msec);
+    indicator.setColor(colorType::none);
+    wait(110, msec);
+  }
 
   Controller.ButtonLDown.pressed(updateIntake);
   Controller.ButtonLDown.released(updateIntake);
@@ -116,7 +129,10 @@ int main() {
 
   Controller.ButtonFUp.pressed(toggleBackroller);
 
+  Controller.ButtonEUp.pressed(triggerShootCatapult);
   Controller.ButtonEDown.pressed(triggerWindCatapult);
+
+  thread led = thread(updateLED);
 
   // Begin project code
   while (true) {
@@ -130,6 +146,22 @@ int main() {
     }
     wait(20, msec);
   }
+}
+
+void init() {
+  leftDrive.setMaxTorque(100, percent);
+  rightDrive.setMaxTorque(100, percent);
+  intake.setMaxTorque(100, percent);
+  leftMetro.setMaxTorque(100, percent);
+  frontRightMetro.setMaxTorque(100, percent);
+  backRightMetro.setMaxTorque(100, percent);
+
+  leftDrive.setVelocity(100, percent);
+  rightDrive.setVelocity(100, percent);
+  intake.setVelocity(100, percent);
+  leftMetro.setVelocity(100, percent);
+  frontRightMetro.setVelocity(100, percent);
+  backRightMetro.setVelocity(100, percent);
 }
 
 void triggerWindCatapult() {
@@ -194,15 +226,18 @@ void updateCatapult() {
 }
 
 void windCatapult() {
+  macrosActive++;
   while (Controller.ButtonEDown.pressing()) wait(20, msec);
   while (!catapultSensor.pressing() && !Controller.ButtonEDown.pressing()) {
     backRightMetro.spin(reverse, 100, percent); 
     wait(20, msec);
   }
   backRightMetro.stop();
+  macrosActive--;
 }
 
 void shootCatapult() {
+  macrosActive++;
   while (Controller.ButtonEUp.pressing()) wait(20, msec);
   Brain.Timer.reset();
   while (Brain.Timer.value() < 0.8 && !Controller.ButtonEUp.pressing()) {
@@ -210,6 +245,24 @@ void shootCatapult() {
     wait(20, msec);
   }
   leftMetro.stop();
+  macrosActive--;
 }
 
-
+void updateLED() {
+  while (true) {
+    if (backroller) {
+      indicator.setColor(blue_green);
+    }
+    else {
+      indicator.setColor(yellow);
+    }
+    if (macrosActive) {
+      wait(200, msec);
+      indicator.setColor(red);
+      wait(200, msec);
+    }
+    else {
+    wait(20, msec);
+    }
+  }
+}
