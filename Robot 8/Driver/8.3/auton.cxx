@@ -82,38 +82,25 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
 
 void spinIntake();
 void spinUntilDetect();
-void windCata();
 
 
 int main() {
   vexcodeInit();
   init();
-    while (!indicator.pressing()) wait(20, msec);
-
-    BrainInertial.calibrate();
+  BrainInertial.calibrate();
   // Print that the Inertial Sensor is calibrating while
   // waiting for it to finish calibrating.
   while(BrainInertial.isCalibrating()){
-
-    indicator.setColor(white);
-
-    
       Brain.Screen.clearScreen();
       Brain.Screen.print("Inertial Calibrating");
       wait(50, msec);
   }
-  
-
 
   if (Brain.Battery.capacity(percent) > 95) indicator.setColor(green);
   else if (Brain.Battery.capacity(percent) > 90) indicator.setColor(yellow);
   else if (Brain.Battery.capacity(percent) > 85) indicator.setColor(orange);
   else { indicator.setColor(red); }
-
-  
   while (!indicator.pressing()) wait(20, msec);
-
-
 
   while (!catapultSensor.pressing()) {
     backRightMetro.spin(reverse, 100, percent); 
@@ -162,7 +149,12 @@ int main() {
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
 
   wait(100, msec);
+  intake.spin(reverse, 100, percent);
+  backRightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  frontRightMetro.spin(reverse, 100, percent);
 
+  wait(1600, msec);
 
   intake.stop();
   backRightMetro.stop();
@@ -175,27 +167,11 @@ int main() {
     wait(20, msec);
   }
 
-    intake.spin(reverse, 100, percent);
-  backRightMetro.spin(forward, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
-
-  while (!backrollerSensor.isNearObject()) wait(20, msec);
-
-  while (backrollerSensor.isNearObject()) wait(20, msec);
 
   
-  wait(700, msec);
+  wait(1200, msec);
 
-  intake.stop();
-  backRightMetro.stop();
-  leftMetro.stop();
-  frontRightMetro.stop();
-
-  ///// wind cata
-
-
-  thread ohio = thread(windCata);
+  
 
 
   printf("inital curve\n");
@@ -204,9 +180,7 @@ int main() {
   wait(1000, msec);
   
 
-  intake.spin(reverse, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
+
 
 
 
@@ -235,8 +209,6 @@ int main() {
   rightDrive.setStopping(hold);
 
   printf("inital drive back\n");
-  
-
 
   drive(420, 1, 0.01, 0.1, 2, 100, 100);
 
@@ -291,42 +263,12 @@ int main() {
   drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
   drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+    drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
 
-
-  Brain.Timer.reset();
-
-
-  wait(1700, msec);
+  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
+  wait(300, msec);
 
   Brain.Timer.reset();
-  while (Brain.Timer.value() < 0.8) {
-    leftMetro.spin(forward, 100, percent); 
-    wait(20, msec);
-  }
-
-
-
-  intake.spin(reverse, 100, percent);
-  backRightMetro.spin(forward, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
-  while (true) {
-    if ((rpLoad.objectDistance(inches) > 28 && rpLoad.objectDistance(inches) < 33) && !backrollerSensor.isNearObject()) {
-      leftDrive.spin(forward);
-      rightDrive.spin(forward);
-
-      wait(350, msec);
-
-      leftDrive.spin(reverse);
-      rightDrive.spin(reverse);
-      wait(550, msec);
-      leftDrive.stop();
-      rightDrive.stop();
-    }
-    wait(20, msec);
-  }
-
-  
 
 
 }
@@ -341,12 +283,12 @@ void init() {
 }
 
 void spinUntilDetect() {
-  intake.spin(reverse, 70, percent);
-  backRightMetro.spin(forward, 70, percent);
-  leftMetro.spin(reverse, 70, percent);
-  frontRightMetro.spin(reverse, 70, percent);
+  intake.spin(reverse, 100, percent);
+  backRightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  frontRightMetro.spin(reverse, 100, percent);
 
-  while (!intakeSensor.isNearObject()) wait(20, msec);
+  while (!backrollerSensor.isNearObject()) wait(20, msec);
 
   intake.stop();
   backRightMetro.stop();
@@ -422,14 +364,5 @@ void turn(const float rawTheta, const float kp, const float ki, const float kd, 
   }
   leftDrive.stop();
   rightDrive.stop();
-}
-
-void windCata() {
-  while (!catapultSensor.pressing()) {
-    backRightMetro.spin(reverse, 100, percent); 
-    wait(20, msec);
-  }
-  backRightMetro.stop();
-  backRightMetro.spin(forward, 100, percent); 
 }
 
