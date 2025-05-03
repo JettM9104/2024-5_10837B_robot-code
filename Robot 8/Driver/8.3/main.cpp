@@ -88,6 +88,7 @@ void vexcodeInit() {
 using namespace vex;
 
 bool backroller = 1;
+bool backrollerOn = 1;
 u_int8_t macrosActive = 0;
 
 void updateIntake();
@@ -95,6 +96,7 @@ void updateCatapult();
 void updateLED();
 
 void toggleBackroller();
+void toggleBackrollerActive();
 
 void triggerWindCatapult();
 void triggerShootCatapult();
@@ -127,7 +129,11 @@ int main() {
   Controller.ButtonRUp.pressed(updateCatapult);
   Controller.ButtonRUp.released(updateCatapult);
 
+  Controller.ButtonFUp.pressed(updateIntake);
+  Controller.ButtonFDown.pressed(updateIntake);
+
   Controller.ButtonFUp.pressed(toggleBackroller);
+  Controller.ButtonFDown.pressed(toggleBackrollerActive);
 
   Controller.ButtonEUp.pressed(triggerShootCatapult);
   Controller.ButtonEDown.pressed(triggerWindCatapult);
@@ -185,17 +191,31 @@ void toggleBackroller() {
   }
 }
 
+void toggleBackrollerActive() {
+  if (backrollerOn) {
+    backrollerOn = 0;
+  }
+  else {
+    backrollerOn = 1;
+  }
+}
+
 void updateIntake() {
   if (Controller.ButtonLDown.pressing()) {
     intake.spin(reverse, 100, percent);
     backRightMetro.spin(forward, 100, percent);
     leftMetro.spin(reverse, 100, percent);
 
-    if (backroller) {
-      frontRightMetro.spin(forward, 100, percent);
+    if (backrollerOn) {
+      if (backroller) {
+        frontRightMetro.spin(forward, 100, percent);
+      }
+      else {
+        frontRightMetro.spin(reverse, 100, percent);
+      }
     }
     else {
-      frontRightMetro.spin(reverse, 100, percent);
+      frontRightMetro.stop();
     }
   }
   else if (Controller.ButtonLUp.pressing()) {
@@ -250,19 +270,30 @@ void shootCatapult() {
 
 void updateLED() {
   while (true) {
-    if (backroller) {
-      indicator.setColor(blue_green);
+
+    if (backrollerOn) {
+      if (backroller) {
+        indicator.setColor(blue_green);
+      }
+      else {
+        indicator.setColor(yellow);
+      }
     }
     else {
+      indicator.setColor(blue_green);
+      wait(200, msec);
       indicator.setColor(yellow);
     }
+
+
+
     if (macrosActive) {
       wait(200, msec);
       indicator.setColor(red);
       wait(200, msec);
     }
     else {
-    wait(20, msec);
+      wait(200, msec);
     }
   }
 }
