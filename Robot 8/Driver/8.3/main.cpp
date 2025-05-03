@@ -129,8 +129,8 @@ int main() {
   Controller.ButtonRUp.pressed(updateCatapult);
   Controller.ButtonRUp.released(updateCatapult);
 
-  Controller.ButtonFUp.pressed(updateIntake);
-  Controller.ButtonFDown.pressed(updateIntake);
+  Controller.ButtonFUp.released(updateIntake);
+  Controller.ButtonFDown.released(updateIntake);
 
   Controller.ButtonFUp.pressed(toggleBackroller);
   Controller.ButtonFDown.pressed(toggleBackrollerActive);
@@ -270,30 +270,25 @@ void shootCatapult() {
 
 void updateLED() {
   while (true) {
-
-    if (backrollerOn) {
-      if (backroller) {
-        indicator.setColor(blue_green);
-      }
-      else {
-        indicator.setColor(yellow);
-      }
+    if (backroller) {
+      indicator.setColor(blue_green);
     }
     else {
-      indicator.setColor(blue_green);
-      wait(200, msec);
       indicator.setColor(yellow);
     }
-
-
+    
+    if (backrollerOn) {
+      wait(200, msec);
+      indicator.setColor(white);
+      if (!macrosActive) wait(200, msec);
+    }
 
     if (macrosActive) {
       wait(200, msec);
       indicator.setColor(red);
       wait(200, msec);
     }
-    else {
-      wait(200, msec);
-    }
+    wait(20, msec);
+
   }
 }
