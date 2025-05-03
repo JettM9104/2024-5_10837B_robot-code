@@ -277,7 +277,7 @@ void updateLED() {
       indicator.setColor(yellow);
     }
     
-    if (backrollerOn) {
+    if (!backrollerOn) {
       wait(200, msec);
       indicator.setColor(white);
       if (!macrosActive) wait(200, msec);
