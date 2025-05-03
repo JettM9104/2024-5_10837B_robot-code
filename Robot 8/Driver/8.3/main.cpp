@@ -28,8 +28,10 @@ brain Brain;
 
 // Robot configuration code.
 inertial BrainInertial = inertial();
-motor leftDrive = motor(PORT3);
-motor rightDrive = motor(PORT9, true);
+controller Controller;
+
+motor leftDrive = motor(PORT9, true); 
+motor rightDrive = motor(PORT3, false);
 
 motor frontRightMetro = motor(PORT5);
 motor backRightMetro = motor(PORT6);
@@ -45,7 +47,6 @@ optical intakeSensor = optical(PORT8);
 optical backrollerSensor = optical(PORT10);
 
 bumper catapultSensor = bumper(PORT7);
-
 
 // generating and setting random seed
 void initializeRandomSeed(){
@@ -71,365 +72,223 @@ void vexcodeInit() {
 
 #pragma endregion VEXcode Generated Robot Configuration
 
+//----------------------------------------------------------------------------
+//                                                                            
+//    Module:       main.cpp                                                  
+//    Author:       {author}                                                  
+//    Created:      {date}                                                    
+//    Description:  IQ project                                                
+//                                                                            
+//----------------------------------------------------------------------------
 
+// Include the IQ Library
+#include "iq_cpp.h"
+
+// Allows for easier use of the VEX Library
 using namespace vex;
 
+bool backroller = 1;
+bool backrollerOn = 1;
+u_int8_t macrosActive = 0;
+
+void updateIntake();
+void updateCatapult();
+void updateLED();
+
+void toggleBackroller();
+void toggleBackrollerActive();
+
+void triggerWindCatapult();
+void triggerShootCatapult();
+
+void windCatapult();
+void shootCatapult();
 
 void init();
 
-void drive(const float distance, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int lmaxSpeed = 100, const unsigned short int rmaxSpeed = 100);
-void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout = 0, const unsigned short int maxSpeed = 100);
-
-void spinIntake();
-void spinUntilDetect();
-void windCata();
-
-
 int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+
   init();
-    while (!indicator.pressing()) wait(20, msec);
 
-    BrainInertial.calibrate();
-  // Print that the Inertial Sensor is calibrating while
-  // waiting for it to finish calibrating.
-  while(BrainInertial.isCalibrating()){
-
-    indicator.setColor(white);
-
-    
-      Brain.Screen.clearScreen();
-      Brain.Screen.print("Inertial Calibrating");
-      wait(50, msec);
-  }
-  
-
-
-  if (Brain.Battery.capacity(percent) > 95) indicator.setColor(green);
-  else if (Brain.Battery.capacity(percent) > 90) indicator.setColor(yellow);
-  else if (Brain.Battery.capacity(percent) > 85) indicator.setColor(orange);
-  else { indicator.setColor(red); }
-
-  
-  while (!indicator.pressing()) wait(20, msec);
-
-
-
-  while (!catapultSensor.pressing()) {
-    backRightMetro.spin(reverse, 100, percent); 
-    wait(20, msec);
-  }
-  backRightMetro.stop();
-
-  while (!indicator.pressing()) wait(20, msec);
-
-  thread spud = thread(spinUntilDetect);
-
-  BrainInertial.setRotation(0, degrees); // change to zero after
-
-
-  leftDrive.spinFor(forward, 630, degrees, false);
-  rightDrive.spinFor(forward, 630, degrees, true);
-
-  leftDrive.setStopping(brake);
-  rightDrive.setStopping(brake);
-
-  wait(500, msec);
-
-  
-
-  // turn to heading 90
-
-  leftDrive.spinFor(reverse, 155, degrees, false);
-  rightDrive.spinFor(forward, 155, degrees, false);
-  wait(2, seconds);
-  leftDrive.stop();
-  rightDrive.stop();
-
-  printf("%f\n", BrainInertial.rotation(degrees));
-
-  wait(500, msec);
-
-  // drive back
-
-  drive(-100000, 1000, 1000, 0, 3, 100, 100);
-
-
-  leftDrive.stop();
-  rightDrive.stop();
-  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-
-  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-
-  wait(100, msec);
-
-
-  intake.stop();
-  backRightMetro.stop();
-  leftMetro.stop();
-  frontRightMetro.stop();
-
-  Brain.Timer.reset();
-  while (Brain.Timer.value() < 0.8) {
-    leftMetro.spin(forward, 100, percent); 
-    wait(20, msec);
+  for (int i = 0; i < 3; i++) {
+    indicator.setColor(blue_green);
+    wait(110, msec);
+    indicator.setColor(colorType::none);
+    wait(110, msec);
   }
 
-    intake.spin(reverse, 100, percent);
-  backRightMetro.spin(forward, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
+  Controller.ButtonLDown.pressed(updateIntake);
+  Controller.ButtonLDown.released(updateIntake);
+  Controller.ButtonLUp.pressed(updateIntake);
+  Controller.ButtonLUp.released(updateIntake);
 
-  while (!backrollerSensor.isNearObject()) wait(20, msec);
+  Controller.ButtonRDown.pressed(updateCatapult);
+  Controller.ButtonRDown.released(updateCatapult);
+  Controller.ButtonRUp.pressed(updateCatapult);
+  Controller.ButtonRUp.released(updateCatapult);
 
-  while (backrollerSensor.isNearObject()) wait(20, msec);
+  Controller.ButtonFUp.released(updateIntake);
+  Controller.ButtonFDown.released(updateIntake);
 
-  
-  wait(700, msec);
+  Controller.ButtonFUp.pressed(toggleBackroller);
+  Controller.ButtonFDown.pressed(toggleBackrollerActive);
 
-  intake.stop();
-  backRightMetro.stop();
-  leftMetro.stop();
-  frontRightMetro.stop();
+  Controller.ButtonEUp.pressed(triggerShootCatapult);
+  Controller.ButtonEDown.pressed(triggerWindCatapult);
 
-  ///// wind cata
+  thread led = thread(updateLED);
 
-
-  thread ohio = thread(windCata);
-
-
-  printf("inital curve\n");
-  drive(140, 1, 0.01, 0.5, 0.8, 100, 100);
-
-  wait(1000, msec);
-  
-
-  intake.spin(reverse, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
-
-
-
-  float derror = 0;
-  float dintegral = 0;
-  float dderivative =0;
-  float dlastError = 0;
-  
-  Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 147 && BrainInertial.rotation(degrees) <= 153)) {
-    derror = 150 - BrainInertial.rotation(degrees);
-    dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
-    dderivative = derror - dlastError;
-    printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
-
-    leftDrive.spin(reverse, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
-    rightDrive.spin(forward, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
-
-    if (Brain.Timer.value() > 2) break;
-    wait(200, msec);
-    dlastError = derror;
-  }
-
-
-  leftDrive.setStopping(hold);
-  rightDrive.setStopping(hold);
-
-  printf("inital drive back\n");
-  
-
-
-  drive(420, 1, 0.01, 0.1, 2, 100, 100);
-
-  printf("adjist to be close to wall\n");
-
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
-  
-
-
-
-  Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 88 && BrainInertial.rotation(degrees) <= 92)) {
-    derror = 90 - BrainInertial.rotation(degrees);
-    dintegral = fabs(derror) < 3 ? 200 : dintegral + derror;
-    dderivative = derror - dlastError;
-    printf("inertial reading %f\n", BrainInertial.rotation(degrees));
-    float motorSpeed = (derror * 0.67 + dintegral * 0.025 + dderivative * 4.4);
-
-
-    leftDrive.spin(reverse, motorSpeed, percent);
-    rightDrive.spin(forward, motorSpeed, percent);
-
-    wait(100, msec);
-    dlastError = derror;
-  }
-
-  leftDrive.stop();
-  rightDrive.stop();
-
-
-  printf("full speed\n");
-  derror = 0;
-  dintegral = 0;
-  dderivative =0;
-  dlastError = 0;
-
-  Brain.Timer.reset();
-
-  leftDrive.stop();
-  rightDrive.stop();
-
-  wait(200, msec);
-
-
-  
-  drive(-100000, 1000, 1000, 0, 2, 100, 100);
-
-
-  drive(100, 1, 0.01, 0.5, 0.4, 100, 100);
-
-  drive(-200, 1, 0.01, 0.5, 0.8, 100, 100);
-
-
-  Brain.Timer.reset();
-
-
-  wait(1700, msec);
-
-  Brain.Timer.reset();
-  while (Brain.Timer.value() < 0.8) {
-    leftMetro.spin(forward, 100, percent); 
-    wait(20, msec);
-  }
-
-
-
-  intake.spin(reverse, 100, percent);
-  backRightMetro.spin(forward, 100, percent);
-  leftMetro.spin(reverse, 100, percent);
-  frontRightMetro.spin(reverse, 100, percent);
+  // Begin project code
   while (true) {
-    if ((rpLoad.objectDistance(inches) > 28 && rpLoad.objectDistance(inches) < 33) && !backrollerSensor.isNearObject()) {
-      leftDrive.spin(forward);
-      rightDrive.spin(forward);
-
-      wait(350, msec);
-
-      leftDrive.spin(reverse);
-      rightDrive.spin(reverse);
-      wait(550, msec);
+    if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
+      leftDrive.spin(forward, Controller.AxisA.position() + Controller.AxisC.position(), percent);
+      rightDrive.spin(forward, Controller.AxisA.position() - Controller.AxisC.position(), percent);
+    }
+    else {
       leftDrive.stop();
       rightDrive.stop();
     }
     wait(20, msec);
   }
-
-  
-
-
 }
 
 void init() {
-
-
   leftDrive.setMaxTorque(100, percent);
-  leftDrive.setVelocity(100, percent);
   rightDrive.setMaxTorque(100, percent);
+  intake.setMaxTorque(100, percent);
+  leftMetro.setMaxTorque(100, percent);
+  frontRightMetro.setMaxTorque(100, percent);
+  backRightMetro.setMaxTorque(100, percent);
+
+  leftDrive.setVelocity(100, percent);
   rightDrive.setVelocity(100, percent);
+  intake.setVelocity(100, percent);
+  leftMetro.setVelocity(100, percent);
+  frontRightMetro.setVelocity(100, percent);
+  backRightMetro.setVelocity(100, percent);
 }
 
-void spinUntilDetect() {
-  intake.spin(reverse, 70, percent);
-  backRightMetro.spin(forward, 70, percent);
-  leftMetro.spin(reverse, 70, percent);
-  frontRightMetro.spin(reverse, 70, percent);
-
-  while (!intakeSensor.isNearObject()) wait(20, msec);
-
-  intake.stop();
-  backRightMetro.stop();
-  leftMetro.stop();
-  frontRightMetro.stop();
+void triggerWindCatapult() {
+  thread thd1 = thread(windCatapult);
+  thd1.join();
+  thd1.setPriority(5);
 }
 
-void drive(const float distance, const float kp, const float ki, const float kd, const float timeout, const unsigned short int lmaxSpeed, const unsigned short int rmaxSpeed) {
-  float error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
-  float integral = 0, derivative = 0, lastError = 0;
-  float motorSpeed;
+void triggerShootCatapult() {
+  thread thd2 = thread(shootCatapult);
+  thd2.join();
+  thd2.setPriority(4);
+}
 
-  float beginTimer = Brain.Timer.value();
-  float beginInertial = BrainInertial.rotation(degrees);
-
-  leftDrive.resetPosition();
-  rightDrive.resetPosition();
-
-  while (true) {
-    error = distance - (leftDrive.position(degrees) + rightDrive.position(degrees)) / 2;
-    integral = integral <= 3 ? 0 : error + integral;
-    derivative = error - lastError;
-
-    motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
-
-    float leftMotorSpeed = motorSpeed, rightMotorSpeed = motorSpeed;
-
-    if (leftMotorSpeed > lmaxSpeed) leftMotorSpeed = lmaxSpeed;
-    if (leftMotorSpeed < -lmaxSpeed) leftMotorSpeed = -lmaxSpeed;
-
-    if (rightMotorSpeed > rmaxSpeed) rightMotorSpeed = rmaxSpeed;
-    if (rightMotorSpeed < -rmaxSpeed) rightMotorSpeed = -rmaxSpeed;
-    
-    leftDrive.spin(forward, leftMotorSpeed - (BrainInertial.rotation(degrees) - beginInertial), percent);
-    rightDrive.spin(forward, rightMotorSpeed + (BrainInertial.rotation(degrees) - beginInertial), percent);
-
-    if (fabs(error) < 5) { printf("break by threshold\n"); break; }
-    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) { printf("break by timeout"); break; }
-    lastError = error;
-    wait(20, msec);
+void toggleBackroller() {
+  if (backroller) {
+    backroller = 0;
   }
-  leftDrive.stop();
-  rightDrive.stop();
-}
-
-void turn(const float rawTheta, const float kp, const float ki, const float kd, const float timeout, const unsigned short int maxSpeed) {
-  float error = rawTheta - (leftDrive.position(degrees) - rightDrive.position(degrees)) / 2;
-  float integral = 0, derivative = 0, lastError = 0;
-  float motorSpeed;
-
-  float beginTimer = Brain.Timer.value();
-
-  leftDrive.resetPosition();
-  rightDrive.resetPosition();
-
-  while (true) {
-    error = rawTheta - ((leftDrive.position(degrees) - rightDrive.position(degrees)) / 2);
-    integral = integral <= 3 ? 0 : error + integral;
-    derivative = error - lastError;
-    printf("error       %f\nintegral    %f\nderivative%f\n\n\n", error, integral, derivative);
-
-    motorSpeed = (error * kp) + (integral * ki) + (derivative * kd);
-    
-    leftDrive.spin(forward, motorSpeed, percent);
-    rightDrive.spin(reverse, motorSpeed, percent);
-
-    if (fabs(error) < 5) break;
-    if (timeout != 0 && (Brain.Timer.value() - beginTimer) > timeout) break;
-
-    printf("%f\n\n\n", (Brain.Timer.value() - beginTimer));
-    lastError = error;
-    wait(20, msec);
+  else {
+    backroller = 1;
   }
-  leftDrive.stop();
-  rightDrive.stop();
 }
 
-void windCata() {
-  while (!catapultSensor.pressing()) {
+void toggleBackrollerActive() {
+  if (backrollerOn) {
+    backrollerOn = 0;
+  }
+  else {
+    backrollerOn = 1;
+  }
+}
+
+void updateIntake() {
+  if (Controller.ButtonLDown.pressing()) {
+    intake.spin(reverse, 100, percent);
+    backRightMetro.spin(forward, 100, percent);
+    leftMetro.spin(reverse, 100, percent);
+
+    if (backrollerOn) {
+      if (backroller) {
+        frontRightMetro.spin(forward, 100, percent);
+      }
+      else {
+        frontRightMetro.spin(reverse, 100, percent);
+      }
+    }
+    else {
+      frontRightMetro.stop();
+    }
+  }
+  else if (Controller.ButtonLUp.pressing()) {
+    intake.spin(forward, 100, percent);
+    if (backroller) {
+      frontRightMetro.spin(forward, 100, percent);
+    }
+  }
+  else {
+    intake.stop();
+    backRightMetro.stop();
+    leftMetro.stop();
+    frontRightMetro.stop();
+  }
+}
+
+void updateCatapult() {
+  if (Controller.ButtonRDown.pressing()) {
+    backRightMetro.spin(reverse, 100, percent);
+  }
+  else if (Controller.ButtonRUp.pressing()) {
+    leftMetro.spin(forward, 100, percent);
+  }
+  else {
+    backRightMetro.stop();
+    leftMetro.stop();
+  }
+}
+
+void windCatapult() {
+  macrosActive++;
+  while (Controller.ButtonEDown.pressing()) wait(20, msec);
+  while (!catapultSensor.pressing() && !Controller.ButtonEDown.pressing()) {
     backRightMetro.spin(reverse, 100, percent); 
     wait(20, msec);
   }
   backRightMetro.stop();
-  backRightMetro.spin(forward, 100, percent); 
+  macrosActive--;
 }
 
+void shootCatapult() {
+  macrosActive++;
+  while (Controller.ButtonEUp.pressing()) wait(20, msec);
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.8 && !Controller.ButtonEUp.pressing()) {
+    leftMetro.spin(forward, 100, percent); 
+    wait(20, msec);
+  }
+  leftMetro.stop();
+  macrosActive--;
+}
+
+void updateLED() {
+  while (true) {
+    if (backroller) {
+      indicator.setColor(yellow);
+    }
+    else {
+      indicator.setColor(blue_green);
+    }
+    
+    if (!backrollerOn) {
+      wait(200, msec);
+      indicator.setColor(white);
+      if (!macrosActive) wait(200, msec);
+    }
+
+    if (macrosActive) {
+      wait(200, msec);
+      indicator.setColor(red);
+      wait(200, msec);
+    }
+    wait(20, msec);
+
+  }
+}
