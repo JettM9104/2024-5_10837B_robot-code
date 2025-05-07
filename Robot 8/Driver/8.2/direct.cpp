@@ -56,7 +56,7 @@ distance side = distance(PORT1);
 touchled indicator = touchled(PORT2);
 motor rightDrive = motor(PORT3);
 motor rightFlywheel = motor(PORT4);
-distance rpLoad = distance(PORT5);
+motor ohio = motor(PORT5);
 motor rightMetro = motor(PORT6); ////
 bumper catapultDetector = bumper(PORT7);
 motor leftDrive = motor(PORT9, true);
@@ -149,13 +149,16 @@ void updateFlywheel() {
   if (Controller.ButtonLDown.pressing()) {
     rightMetro.spin(forward, 100, percent);
     flywheel.spin(forward, 100, percent);
+    ohio.spin(reverse);
   }
   else if (Controller.ButtonLUp.pressing()) {
     rightMetro.spin(reverse, 100, percent);
+    ohio.spin(forward);
     flywheel.spin(reverse, 100, percent);
   }
   else {
     rightMetro.stop();
     flywheel.stop();
+    ohio.stop();
   }
 }
