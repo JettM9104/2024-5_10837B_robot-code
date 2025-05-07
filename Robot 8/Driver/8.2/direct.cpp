@@ -132,12 +132,12 @@ int main() {
 
 void updateIndexer() {
   if (Controller.ButtonRDown.pressing()) {
-    leftMetro.spin(reverse, 100, percent);
-    leftDrive.spin(reverse, 100, percent);
-  }
-  else if (Controller.ButtonRUp.pressing()) {
     leftMetro.spin(forward, 100, percent);
     leftDrive.spin(forward, 100, percent);
+  }
+  else if (Controller.ButtonRUp.pressing()) {
+    leftMetro.spin(reverse, 100, percent);
+    leftDrive.spin(reverse, 100, percent);
   }
   else {
     leftMetro.stop();
