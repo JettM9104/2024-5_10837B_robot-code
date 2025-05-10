@@ -90,6 +90,7 @@ using namespace vex;
 bool backroller = 1;
 bool backrollerOn = 1;
 u_int8_t macrosActive = 0;
+short int intakeDir = 0;
 
 void updateIntake();
 void updateCatapult();
@@ -202,6 +203,7 @@ void toggleBackrollerActive() {
 
 void updateIntake() {
   if (Controller.ButtonLDown.pressing()) {
+    intakeDir = 1;
     intake.spin(reverse, 100, percent);
     backRightMetro.spin(forward, 100, percent);
     leftMetro.spin(reverse, 100, percent);
@@ -219,12 +221,14 @@ void updateIntake() {
     }
   }
   else if (Controller.ButtonLUp.pressing()) {
+    intakeDir = -1;
     intake.spin(forward, 100, percent);
     if (backroller) {
       frontRightMetro.spin(forward, 100, percent);
     }
   }
   else {
+    intakeDir = 0;
     intake.stop();
     backRightMetro.stop();
     leftMetro.stop();
@@ -253,6 +257,7 @@ void windCatapult() {
     wait(20, msec);
   }
   backRightMetro.stop();
+  updateIntake();
   macrosActive--;
 }
 
@@ -265,6 +270,7 @@ void shootCatapult() {
     wait(20, msec);
   }
   leftMetro.stop();
+  updateIntake();
   macrosActive--;
 }
 
