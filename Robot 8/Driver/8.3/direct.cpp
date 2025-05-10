@@ -101,6 +101,8 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   // Begin project code
+  rightDrive.setStopping(hold);
+  rightDrive.setStopping(hold);
   Controller.ButtonRUp.pressed(updateIndexer);
   Controller.ButtonRUp.released(updateIndexer);
   Controller.ButtonRDown.pressed(updateIndexer);
@@ -114,6 +116,7 @@ int main() {
   Controller.ButtonFUp.pressed(macro);
 
   Controller.ButtonL3.pressed(updateLiftState);
+  rightDrive.setStopping(hold);
 
   //while (true) { if (driveOn) { rightDrive.spin(forward, Controller.AxisA.position(), percent); } else { rightDrive.stop(); } }
 }
@@ -157,7 +160,7 @@ void updateLiftState() {
     liftState = 0;
   }
   else {
-    rightDrive.setStopping(brake);
+    rightDrive.setStopping(hold);
     liftState = 1;
   }
 }
@@ -201,6 +204,23 @@ void macro() {
     printf("5\n");
   }
   indicator.setColor(colorType::none);
+  rightDrive.stop();
+  rearLeftMetro.stop();
+  leftDrive.stop();
+  frontRightMetro.stop();
+  rearRightMetro.stop();
+  frontLeft.stop();
+
+    rightDrive.spin(forward, 100, percent);
+
+    rearLeftMetro.spin(forward, 100, percent);
+    leftDrive.spin(reverse, 100, percent);
+
+    wait(800, msec);
+
+        rightDrive.stop();
+    rearLeftMetro.stop();
+    leftDrive.stop();
 
 
 }
