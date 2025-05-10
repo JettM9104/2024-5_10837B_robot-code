@@ -130,6 +130,9 @@ int main() {
   Controller.ButtonRUp.pressed(updateCatapult);
   Controller.ButtonRUp.released(updateCatapult);
 
+  Controller.ButtonRDown.released(updateIntake);
+  Controller.ButtonRUp.released(updateIntake);
+
   Controller.ButtonFUp.released(updateIntake);
   Controller.ButtonFDown.released(updateIntake);
 
