@@ -37,12 +37,10 @@ motor intake = motor(PORT11);
 motor leftMetro = motor(PORT12);
 
 touchled indicator = touchled(PORT1);
-
-distance sideWall = distance(PORT2);
 distance rpLoad = distance(PORT4);
 
-optical intakeSensor = optical(PORT8);
-distance backrollerSensor = optical(PORT10);
+optical intakeSensor = optical(PORT2);
+distance backrollerSensor = distance(PORT10);
 
 bumper catapultSensor = bumper(PORT7);
 
@@ -140,8 +138,8 @@ int main() {
 
   // turn to heading 90
 
-  leftDrive.spinFor(reverse, 155, degrees, false);
-  rightDrive.spinFor(forward, 155, degrees, false);
+  leftDrive.spinFor(reverse, 150, degrees, false);
+  rightDrive.spinFor(forward, 150, degrees, false);
   wait(2, seconds);
   leftDrive.stop();
   rightDrive.stop();
@@ -311,7 +309,7 @@ int main() {
   leftMetro.spin(reverse, 100, percent);
   frontRightMetro.spin(reverse, 100, percent);
   while (true) {
-    if ((rpLoad.objectDistance(inches) > 28 && rpLoad.objectDistance(inches) < 33) && !backrollerSensor.isNearObject()) {
+    if ((rpLoad.objectDistance(inches) > 28 && rpLoad.objectDistance(inches) < 33) && backrollerSensor.objectDistance(mm) > 60) {
       leftDrive.spin(forward);
       rightDrive.spin(forward);
 
@@ -341,10 +339,10 @@ void init() {
 }
 
 void spinUntilDetect() {
-  intake.spin(reverse, 70, percent);
-  backRightMetro.spin(forward, 70, percent);
-  leftMetro.spin(reverse, 70, percent);
-  frontRightMetro.spin(reverse, 70, percent);
+  intake.spin(reverse, 50, percent);
+  backRightMetro.spin(forward, 50, percent);
+  leftMetro.spin(reverse, 50, percent);
+  frontRightMetro.spin(reverse, 50, percent);
 
   while (!intakeSensor.isNearObject()) wait(20, msec);
 
