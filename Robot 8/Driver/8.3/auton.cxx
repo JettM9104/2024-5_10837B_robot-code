@@ -42,7 +42,7 @@ distance sideWall = distance(PORT2);
 distance rpLoad = distance(PORT4);
 
 optical intakeSensor = optical(PORT8);
-optical backrollerSensor = optical(PORT10);
+distance backrollerSensor = optical(PORT10);
 
 bumper catapultSensor = bumper(PORT7);
 
@@ -180,9 +180,9 @@ int main() {
   leftMetro.spin(reverse, 100, percent);
   frontRightMetro.spin(reverse, 100, percent);
 
-  while (!backrollerSensor.isNearObject()) wait(20, msec);
+  while (backrollerSensor.objectDistance(mm) > 60) wait(20, msec);
 
-  while (backrollerSensor.isNearObject()) wait(20, msec);
+  while (backrollerSensor.objectDistance(mm) < 60) wait(20, msec);
 
   
   wait(700, msec);
