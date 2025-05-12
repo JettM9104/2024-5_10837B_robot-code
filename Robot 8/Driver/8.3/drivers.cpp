@@ -307,16 +307,33 @@ void updateLED() {
 
 void constantIntake() {
   u_int8_t i = 0;
+  u_int32_t j = 0;
   while (true) {
     if (Controller.ButtonL3.pressing()) {
       i++;
       while (Controller.ButtonL3.pressing()) wait (20, msec);
     }
-    if (mod(i, 2)) {
+    if (fmod(i, 2)) {
       intake.spin(reverse, 100, percent);
       backRightMetro.spin(forward, 100, percent);
       leftMetro.spin(reverse, 100, percent);
-      frontRightMetro.spin(forward, 100, percent);
+
+      if (backrollerOn) {
+        if (backroller) {
+          frontRightMetro.spin(forward, 100, percent);
+        }
+        else {
+          frontRightMetro.spin(reverse, 100, percent);
+        }
+      }
+      else {
+        frontRightMetro.stop();
+      }
+      j = 0;
+    }
+    else {
+      if (j == 0) updateIntake();
+      j++;
     }
     wait(20, msec);
   }
