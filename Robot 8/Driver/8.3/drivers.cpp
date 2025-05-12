@@ -96,6 +96,8 @@ void updateIntake();
 void updateCatapult();
 void updateLED();
 
+void constantIntake();
+
 void toggleBackroller();
 void toggleBackrollerActive();
 
@@ -144,6 +146,7 @@ int main() {
 
   thread led = thread(updateLED);
 
+  thread constIntake = thread(constantIntake);
   // Begin project code
   while (true) {
     if ((abs(Controller.AxisA.position()) + abs(Controller.AxisC.position())) > 5) {
@@ -299,5 +302,22 @@ void updateLED() {
     }
     wait(20, msec);
 
+  }
+}
+
+void constantIntake() {
+  u_int8_t i = 0;
+  while (true) {
+    if (Controller.ButtonL3.pressing()) {
+      i++;
+      while (Controller.ButtonL3.pressing()) wait (20, msec);
+    }
+    if (mod(i, 2)) {
+      intake.spin(reverse, 100, percent);
+      backRightMetro.spin(forward, 100, percent);
+      leftMetro.spin(reverse, 100, percent);
+      frontRightMetro.spin(forward, 100, percent);
+    }
+    wait(20, msec);
   }
 }
