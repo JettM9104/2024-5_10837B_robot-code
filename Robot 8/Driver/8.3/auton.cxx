@@ -126,7 +126,7 @@ int main() {
 
   BrainInertial.setRotation(0, degrees); // change to zero after
 
-  drive(585, 1, 0.01, 0.5, 3, 100, 100);
+  drive(500, 1, 0.01, 1.5, 3, 100, 100);
   //leftDrive.spinFor(forward, 630, degrees, false);
   //rightDrive.spinFor(forward, 630, degrees, true);
 
@@ -139,8 +139,8 @@ int main() {
 
   // turn to heading 90
 
-  leftDrive.spinFor(reverse, 132, degrees, false);
-  rightDrive.spinFor(forward, 136, degrees, false);
+  leftDrive.spinFor(reverse, 150, degrees, false);
+  rightDrive.spinFor(forward, 150, degrees, false);
   wait(3, seconds);
   leftDrive.stop();
   rightDrive.stop();
@@ -215,8 +215,8 @@ int main() {
   float dlastError = 0;
   
   Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 100 && BrainInertial.rotation(degrees) <= 104)) {
-    derror = 150 - BrainInertial.rotation(degrees);
+  while (!(BrainInertial.rotation(degrees) >= 132 && BrainInertial.rotation(degrees) <= 138)) {
+    derror = 135 - BrainInertial.rotation(degrees);
     dintegral = fabs(derror) < 5 ? 200 : dintegral + derror;
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
@@ -250,12 +250,12 @@ int main() {
 
 
   Brain.Timer.reset();
-  while (!(BrainInertial.rotation(degrees) >= 80 && BrainInertial.rotation(degrees) <= 84)) {
+  while (!(BrainInertial.rotation(degrees) >= 87 && BrainInertial.rotation(degrees) <= 93)) {
     derror = 90 - BrainInertial.rotation(degrees);
     dintegral = fabs(derror) < 3 ? 200 : dintegral + derror;
     dderivative = derror - dlastError;
     printf("inertial reading %f\n", BrainInertial.rotation(degrees));
-    float motorSpeed = (derror * 0.52 + dintegral * 0.025 + dderivative * 3);
+    float motorSpeed = (derror * 0.42 + dintegral * 0.015 + dderivative * 3);
 
     if (Brain.Timer.value() > 2.3) break; // :) :()
 
@@ -263,7 +263,7 @@ int main() {
     leftDrive.spin(reverse, motorSpeed, percent);
     rightDrive.spin(forward, motorSpeed, percent);
 
-    wait(100, msec);
+    wait(333, msec);
     dlastError = derror;
   }
 
