@@ -44,7 +44,6 @@ distance backrollerSensor = distance(PORT10);
 
 bumper catapultSensor = bumper(PORT7);
 
-
 // generating and setting random seed
 void initializeRandomSeed(){
   wait(100,msec);
@@ -126,8 +125,8 @@ int main() {
   BrainInertial.setRotation(0, degrees); // change to zero after
 
 
-  leftDrive.spinFor(forward, 630, degrees, false);
-  rightDrive.spinFor(forward, 630, degrees, true);
+  leftDrive.spinFor(forward, 650, degrees, false);
+  rightDrive.spinFor(forward, 650, degrees, true);
 
   leftDrive.setStopping(brake);
   rightDrive.setStopping(brake);
@@ -143,6 +142,13 @@ int main() {
   wait(2, seconds);
   leftDrive.stop();
   rightDrive.stop();
+
+
+  float derror = 0;
+  float dintegral = 0;
+  float dderivative =0;
+  float dlastError = 0;
+
 
   printf("%f\n", BrainInertial.rotation(degrees));
 
@@ -172,6 +178,14 @@ int main() {
     leftMetro.spin(forward, 100, percent); 
     wait(20, msec);
   }
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.8) {
+    backRightMetro.spin(reverse, 100, percent); 
+    wait(20, msec);
+  }
+
+  backRightMetro.spin(reverse, 100, percent); 
+
 
     intake.spin(reverse, 100, percent);
   backRightMetro.spin(forward, 100, percent);
@@ -207,11 +221,10 @@ int main() {
   frontRightMetro.spin(reverse, 100, percent);
 
 
-
-  float derror = 0;
-  float dintegral = 0;
-  float dderivative =0;
-  float dlastError = 0;
+  derror = 0;
+  dintegral = 0;
+  dderivative =0;
+  dlastError = 0;
   
   Brain.Timer.reset();
   while (!(BrainInertial.rotation(degrees) >= 147 && BrainInertial.rotation(degrees) <= 153)) {
@@ -220,8 +233,8 @@ int main() {
     dderivative = derror - dlastError;
     printf("derror %f\nintegral %f\nderivative %f\n\n\n", derror, dintegral, dderivative);
 
-    leftDrive.spin(reverse, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
-    rightDrive.spin(forward, (derror * 0.87 + dintegral * 0.035 + dderivative * 3), percent);
+    leftDrive.spin(reverse, (derror * 0.67 + dintegral * 0.025 + dderivative * 3), percent);
+    rightDrive.spin(forward, (derror * 0.67 + dintegral * 0.025 + dderivative * 3), percent);
 
     if (Brain.Timer.value() > 2) break;
     wait(200, msec);
