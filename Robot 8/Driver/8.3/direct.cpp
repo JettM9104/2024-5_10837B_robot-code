@@ -101,8 +101,7 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   // Begin project code
-  rightDrive.setStopping(hold);
-  rightDrive.setStopping(hold);
+
   Controller.ButtonRUp.pressed(updateIndexer);
   Controller.ButtonRUp.released(updateIndexer);
   Controller.ButtonRDown.pressed(updateIndexer);
@@ -115,8 +114,7 @@ int main() {
 
   Controller.ButtonFUp.pressed(macro);
 
-  Controller.ButtonL3.pressed(updateLiftState);
-  rightDrive.setStopping(hold);
+
 
   //while (true) { if (driveOn) { rightDrive.spin(forward, Controller.AxisA.position(), percent); } else { rightDrive.stop(); } }
 }
@@ -156,19 +154,15 @@ void updateFlywheel() {
 
 void updateLiftState() {
   if (liftState) {
-    rightDrive.setStopping(hold);
     liftState = 0;
   }
   else {
-    rightDrive.setStopping(hold);
     liftState = 1;
   }
 }
 
 void macro() {
-  rightDrive.setStopping(hold);
-  leftDrive.setStopping(hold);
-  rearLeftMetro.setStopping(hold);
+
   indicator.setColor(green);
   while (true) {
     
