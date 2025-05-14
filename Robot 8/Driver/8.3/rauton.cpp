@@ -87,13 +87,13 @@ const float kP_drive = 0.37;
 const float kI_drive = 0.0;
 const float kD_drive = 0.3;
 
-const float kP_turn = 0.36;
-const float kI_turn = 0.01;
-const float kD_turn = 0.42;
+const float kP_turn = 0.70;
+const float kI_turn = 0.09;
+const float kD_turn = 0.45;
 
 // Thresholds
 const float errorThreshold = 30.0;     // Acceptable error margin
-const float angleErrorThreshold = 1.8;     // Acceptable error margin
+const float angleErrorThreshold = 1.0;     // Acceptable error margin
 const int settleTimeDefault = 250;    // msInertialSensor
 
 // Robot configuration code.
@@ -127,7 +127,7 @@ double clamp(double d, double min, double max) {
 }
 
 // PID Drive Function with Gyro Correction
-void pidDrive(double targetDistance, int maxSpeed = 50, int settleTime = settleTimeDefault) {
+void pidDrive(double targetDistance, int maxSpeed = 50, int settleTime = settleTimeDefault, int timeout = 3000) {
   resetDriveEncoders();
   Brain.Timer.reset();
   BrainInertial.resetRotation();
@@ -140,7 +140,7 @@ void pidDrive(double targetDistance, int maxSpeed = 50, int settleTime = settleT
   float error, derivative;
   int settleTimer = 0;
 
-  while (settleTimer < settleTime) {
+  while (settleTimer < settleTime && Brain.Timer.time(msec) < timeout) {
     float leftPos = leftMotor.position(degrees);
     float rightPos = rightMotor.position(degrees);
     float avgPos = (leftPos + rightPos) / 2.0;
@@ -154,7 +154,7 @@ void pidDrive(double targetDistance, int maxSpeed = 50, int settleTime = settleT
 
     // Gyro correction
     float currentHeading = BrainInertial.rotation();
-    gyroCorrection = (initialHeading - currentHeading) * 6.8;  // Correction gain
+    gyroCorrection = (initialHeading - currentHeading) * 9.3;  // Correction gain
 
     Brain.Screen.print("%d", BrainInertial.rotation(degrees));
 
@@ -175,23 +175,27 @@ void pidDrive(double targetDistance, int maxSpeed = 50, int settleTime = settleT
 }
 
 // PID Turn Function using Inertial Sensor
-void pidTurn(double targetAngle, int maxSpeed = 50, int settleTime = settleTimeDefault) {
+void pidTurn(double targetAngle, int maxSpeed = 50, int settleTime = settleTimeDefault, int timeout = 3000) {
   Brain.Timer.reset();
   float integral = 0;
   float lastError = 0;
   int settleTimer = 0;
 
-  while (settleTimer < settleTime) {
+  while (settleTimer < settleTime && Brain.Timer.time(msec) < timeout) {
     float currentAngle = BrainInertial.heading(degrees);
     float error = targetAngle - currentAngle;
 
-    if (fabs(error) < 5.0) {
+    if (fabs(error) < 7.0) {
       integral += error;
     }
 
-    if (fabs(error) < 0.7) {
+    if (fabs(error) < 0.6) {
       integral = 0;
     }
+
+    // Normalize error to [-180, 180]
+    if (error > 180) error -= 360;
+    if (error < -180) error += 360;
 
     //integral += error;
     float derivative = error - lastError;
@@ -217,15 +221,57 @@ void pidTurn(double targetAngle, int maxSpeed = 50, int settleTime = settleTimeD
   rightMotor.stop(brake);
 }
 
+void init() {
+
+
+  leftDrive.setMaxTorque(100, percent);
+  leftDrive.setVelocity(100, percent);
+  rightDrive.setMaxTorque(100, percent);
+  rightDrive.setVelocity(100, percent);
+}
+
+void spinUntilDetect() {
+  intake.spin(reverse, 50, percent);
+  backRightMetro.spin(forward, 50, percent);
+  leftMetro.spin(reverse, 50, percent);
+  frontRightMetro.spin(reverse, 50, percent);
+
+  while (!intakeSensor.isNearObject()) wait(20, msec);
+
+  intake.setStopping(hold);
+  backRightMetro.setStopping(hold);
+  leftMetro.setStopping(hold);
+  frontRightMetro.setStopping(hold);
+
+  intake.spin(reverse, 2, percent);
+  backRightMetro.spin(forward, 1, percent);
+  leftMetro.spin(reverse, 2, percent);
+  frontRightMetro.spin(reverse, 2, percent);
+  // intake.stop();
+  // backRightMetro.stop();
+  // leftMetro.stop();
+  // frontRightMetro.stop();
+}
+
+void windCata() {
+  while (!catapultSensor.pressing()) {
+    backRightMetro.spin(reverse, 100, percent); 
+    wait(20, msec);
+  }
+  backRightMetro.stop();
+  backRightMetro.spin(forward, 100, percent); 
+}
+
 
 int main() {
-  //while (!indicator.pressing()) wait(20, msec);
+  init();
+  while (!indicator.pressing()) wait(20, msec);
 
   BrainInertial.calibrate();
   // Print that the Inertial Sensor is calibrating while
   // waiting for it to finish calibrating.
   while(BrainInertial.isCalibrating()){
-    indicator.setColor(white);
+     indicator.setColor(white);
       Brain.Screen.clearScreen();
       Brain.Screen.print("Inertial Calibrating");
       wait(50, msec);
@@ -236,7 +282,7 @@ int main() {
   else if (Brain.Battery.capacity(percent) > 85) indicator.setColor(orange);
   else { indicator.setColor(red); }
 
-  //while (!indicator.pressing()) wait(20, msec);
+  while (!indicator.pressing()) wait(20, msec);
 
   while (!catapultSensor.pressing()) {
     backRightMetro.spin(reverse, 100, percent); 
@@ -244,19 +290,116 @@ int main() {
   }
   backRightMetro.stop();
 
-  //while (!indicator.pressing()) wait(20, msec);
+  while (!indicator.pressing()) wait(20, msec);
+
+  thread spud = thread(spinUntilDetect);
 
   BrainInertial.setHeading(0, degrees); // change to zero after
 
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   // Begin project code
-  //pidDrive(610, 100, 250);
-  //pidDrive(-940, 100, 250);
+  pidDrive(673, 100, 500, 3000);
   Brain.playSound(siren);
-  //pidTurn(90, 100, 250);
+  pidTurn(90, 100, 500, 3000);
   Brain.playSound(siren);
-  pidTurn(-90, 100, 250);
+  pidDrive(-980, 100, 250, 3000);
+  Brain.playSound(siren);
+  pidDrive(100, 100, 250, 1000);
+  Brain.playSound(siren);
+  pidDrive(-2000,100,250, 1000);
+
+  intake.stop();
+  backRightMetro.stop();
+  leftMetro.stop();
+  frontRightMetro.stop();
+
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.8) {
+    leftMetro.spin(forward, 100, percent); 
+    wait(20, msec);
+  }
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 1.69) {
+    backRightMetro.spin(reverse, 100, percent); 
+    wait(20, msec);
+  }
+
+  backRightMetro.spin(reverse, 100, percent); 
+  intake.spin(reverse, 100, percent);
+  backRightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  frontRightMetro.spin(reverse, 100, percent);
+
+  while (backrollerSensor.objectDistance(mm) > 60) wait(20, msec);
+
+  while (backrollerSensor.objectDistance(mm) < 60) wait(20, msec);
+
+  intake.stop();
+  backRightMetro.stop();
+  leftMetro.stop();
+  frontRightMetro.stop();
+
+  ///// wind cata
+
+
+  thread ohio = thread(windCata);
+
+
+  printf("inital curve\n");
+  pidDrive(200,100,250, 3000);
+
+  intake.spin(reverse, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  //frontRightMetro.spin(reverse, 100, percent);
+
+  pidTurn(140,100,500, 5000);
   Brain.playSound(siren);
 
+  pidDrive(645,100,250, 5000);
+  Brain.playSound(siren);
+
+  pidTurn(90,100,250, 5000);
+  Brain.playSound(siren);
+
+  pidDrive(-620,100,250, 3000);
+  Brain.playSound(siren);
+
+  pidDrive(100, 100, 250, 1000);
+  Brain.playSound(siren);
+
+  pidDrive(-2000,100,250, 1000);
+  Brain.playSound(siren);
+  
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 0.8) {
+    leftMetro.spin(forward, 100, percent); 
+    wait(20, msec);
+  }
+
+  Brain.Timer.reset();
+  while (Brain.Timer.value() < 2.0) {
+    backRightMetro.spin(reverse, 100, percent); 
+    wait(20, msec);
+  }
+
+  intake.spin(reverse, 100, percent);
+  backRightMetro.spin(forward, 100, percent);
+  leftMetro.spin(reverse, 100, percent);
+  frontRightMetro.spin(reverse, 100, percent);
+  while (true) {
+    if ((rpLoad.objectDistance(inches) > 28 && rpLoad.objectDistance(inches) < 33) && backrollerSensor.objectDistance(mm) > 60) {
+      leftDrive.spin(forward);
+      rightDrive.spin(forward);
+
+      wait(350, msec);
+
+      leftDrive.spin(reverse);
+      rightDrive.spin(reverse);
+      wait(550, msec);
+      leftDrive.stop();
+      rightDrive.stop();
+    }
+    wait(20, msec);
+  }
 }
