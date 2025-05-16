@@ -290,7 +290,7 @@ int main() {
   }
   backRightMetro.stop();
 
-  while (!indicator.pressing()) wait(20, msec);
+  while (!Controller.ButtonR3.pressing()) wait(20, msec);
 
   thread spud = thread(spinUntilDetect);
 
